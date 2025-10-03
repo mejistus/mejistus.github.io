@@ -1,1 +1,303 @@
-print("Hello, World")
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>個人主頁</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "SimSun", "宋体", "Microsoft JhengHei", serif;
+        background: #f5f1e8;
+        color: #1a1a1a;
+        line-height: 2;
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+      }
+
+      .page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 60px 40px;
+        min-height: 100vh;
+      }
+
+      .header {
+        border-right: 3px double #000;
+        padding-right: 40px;
+        margin-right: 40px;
+        display: inline-block;
+        height: auto;
+      }
+
+      .avatar-section {
+        display: inline-block;
+        vertical-align: middle;
+        height: 800px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 3px solid #000;
+        object-fit: cover;
+        writing-mode: horizontal-tb;
+      }
+
+      .title {
+        font-size: 48px;
+        letter-spacing: 0.5em;
+        margin-bottom: 30px;
+        font-weight: normal;
+      }
+
+      .subtitle {
+        font-size: 20px;
+        letter-spacing: 0.3em;
+        opacity: 0.7;
+      }
+
+      .section {
+        display: inline-block;
+        margin-right: 50px;
+        padding-right: 30px;
+        border-right: 1px solid #ccc;
+        max-height: 800px;
+      }
+
+      .section:last-child {
+        border-right: none;
+      }
+
+      .section-title {
+        font-size: 24px;
+        letter-spacing: 0.4em;
+        margin-bottom: 30px;
+        font-weight: bold;
+        position: relative;
+      }
+
+      .section-title::after {
+        content: "";
+        position: absolute;
+        right: -15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #000;
+      }
+
+      .content {
+        font-size: 18px;
+        letter-spacing: 0.15em;
+      }
+
+      .paragraph {
+        margin-bottom: 25px;
+      }
+
+      .project {
+        margin-bottom: 30px;
+        padding-right: 20px;
+        border-right: 1px dotted #999;
+      }
+
+      .project:last-child {
+        border-right: none;
+      }
+
+      .project-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        letter-spacing: 0.2em;
+      }
+
+      .project-desc {
+        font-size: 16px;
+        opacity: 0.85;
+        line-height: 1.9;
+      }
+
+      .info {
+        font-size: 16px;
+        margin-bottom: 15px;
+      }
+
+      a {
+        color: #000;
+        text-decoration: none;
+        border-bottom: 1px solid #000;
+      }
+
+      a:hover {
+        opacity: 0.7;
+      }
+
+      .date {
+        position: fixed;
+        bottom: 40px;
+        right: 40px;
+        font-size: 14px;
+        writing-mode: horizontal-tb;
+        opacity: 0.6;
+      }
+
+      @media (max-width: 768px) {
+        .page {
+          padding: 30px 20px;
+        }
+
+        .section {
+          margin-right: 30px;
+          max-height: 600px;
+        }
+
+        .title {
+          font-size: 36px;
+        }
+
+        .avatar-section {
+          height: 600px;
+        }
+
+        .avatar {
+          width: 80px;
+          height: 80px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="avatar-section">
+        <img
+          src="https://avatars.githubusercontent.com/u/155681204?v=4"
+          alt="頭像"
+          class="avatar"
+        />
+      </div>
+
+      <div class="header">
+        <div class="title">❖ 梅姬斯圖斯</div>
+        <div class="subtitle">碩士研究生在讀</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">◈ 履歷</div>
+        <div class="content">
+          <div class="paragraph">華東理工大學，計算機科學與技術，本科</div>
+          <div class="paragraph">
+            華東理工大學，計算機科學與技術，碩士研究生
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">✦ 自述</div>
+        <div class="content">
+          <div class="paragraph">
+            余籍貫所在安徽阜陽，庚子年升學來滬。少時即喜好詩賦音樂，致思歷史文學。高中時，讀遍唐詩、詩經、古文觀止、史記等，遍觀群書。
+          </div>
+          <div class="paragraph">
+            庚子，以安徽省理科六千五百名畢業高中，升學華東理工，學習計算機科學。夫六千五百者，實百之三也。雖不出色，亦可稱出眾。四年，續讀研究生，研究計算機視覺。
+          </div>
+          <div class="paragraph">
+            性少言，为人淡泊恭谨。故所交者少，然賢者甚眾。
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">◆ 項目</div>
+        <div class="content">
+          <div class="project">
+            <div class="project-title">
+              <a href="https://github.com/mejistus/python-args-completion"
+                >外參補全插件</a
+              >
+            </div>
+            <div class="project-desc">
+              依託「ast」標準庫，自動解析「Python」源碼所含之外部參數，以供外部補全。
+            </div>
+          </div>
+          <div class="project">
+            <div class="project-title">
+              <a href="https://github.com/mejistus/fantastic-i3"
+                >fantastic i3</a
+              >
+            </div>
+            <div class="project-desc">
+              系本人自用i3wm配置，風格清新，竊以為審美尚可。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">✿ 詩作</div>
+        <div class="content">
+          <div class="project">
+            <div class="project-title">秋</div>
+            <div class="project-desc">
+              月近中天興愈濃，狂歌醉舞佐金鐘。小飲清釀我將醉，半關秋月半關風。
+            </div>
+          </div>
+          <div class="project">
+            <div class="project-title">無題</div>
+            <div class="project-desc">
+              詩材張口即菲頌，我非天才自雕琢。夏秋冬春花雪月，聊摩雅致共爾說。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- <div class="section"> -->
+      <!--   <div class="section-title">✦ 學術</div> -->
+      <!--   <div class="content"> -->
+      <!--     <div class="project"> -->
+      <!--       <div class="project-title"> -->
+      <!--         Dual Data Alignment Makes AI-Generated Image Detector Easier -->
+      <!--         Generalizable -->
+      <!--       </div> -->
+      <!--       <div class="project-desc"></div> -->
+      <!--     </div> -->
+      <!--   </div> -->
+      <!-- </div> -->
+
+      <div class="section">
+        <div class="section-title">◉ 專長</div>
+        <div class="content">
+          <div class="info">數據分析</div>
+          <div class="info">計算機視覺</div>
+          <div class="info">生成內容檢測</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">✧ 聯絡</div>
+        <div class="content">
+          <div class="info">
+            <a href="https://github.com/mejistus">倉庫</a>
+            github.com/mejistus
+          </div>
+          <div class="info">
+            <a href="mailto:mejistus@outlook.com">電郵</a> mejistus@outlook.com
+          </div>
+          <div class="info"><a href="mejistus">微信</a> mejistus</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="date">乙巳年八月癸卯</div>
+  </body>
+</html>
