@@ -11,15 +11,30 @@
         box-sizing: border-box;
       }
 
+      :root:lang(zh-TW) {
+        --tc-sans: "PingFang TC", "Hiragino Sans CNS",
+                   "Microsoft JhengHei",   /* Windows */
+                   "Noto Sans TC", "Source Han Sans TC",
+                   "Heiti TC", "PMingLiU",
+                   system-ui, sans-serif;
+      }
+      
+      :root:lang(zh-TW) {
+        --tc-serif: "Noto Serif TC", "Source Han Serif TC",
+                    "Songti TC", "PMingLiU",
+                    serif;
+      }
+      
       body {
-        font-family: "SimSun", "宋体", "Microsoft JhengHei", serif;
+        font-family: var(--tc-serif);
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        font-feature-settings: "vert", "vkna";
         background: #f5f1e8;
         color: #1a1a1a;
         line-height: 2;
-        writing-mode: vertical-rl;
-        text-orientation: mixed;
       }
-
+      
       .page {
         max-width: 1200px;
         margin: 0 auto;
