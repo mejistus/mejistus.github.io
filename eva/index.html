@@ -37,7 +37,6 @@
         overflow: hidden;
       }
 
-      /* 背景细节：微弱网格 + EVA 色系条纹 */
       .poster {
         position: relative;
         width: 100vw;
@@ -102,12 +101,11 @@
         opacity: 0.8;
       }
 
-      /* 竖排歌词元素 */
       .lyric {
         position: absolute;
-        pointer-events: none; /* 仅用于展示 */
-        writing-mode: vertical-rl; /* 竖排 */
-        text-orientation: upright; /* 直立 */
+        pointer-events: none; 
+        writing-mode: vertical-rl; 
+        text-orientation: upright;
         white-space: nowrap;
         letter-spacing: 0.1em;
         line-height: 1.2;
@@ -115,10 +113,9 @@
         filter: var(--glow);
         opacity: 0.92;
         user-select: none;
-        mix-blend-mode: screen; /* 叠加更有海报感 */
+        mix-blend-mode: screen; 
       }
 
-      /* 控件 */
       .controls {
         position: absolute;
         right: 20px;
@@ -161,14 +158,8 @@
     </div>
 
     <script>
-      // === 使用说明 ===
-      // 1) 将你合法获取的歌词逐行粘贴到 lines 数组（每个元素就是一行）
-      // 2) 保存为 .html，浏览器打开；点击“重新排布”可随机换一版
-      // 3) 若文本很多，可能不可避免少量重叠；可切换“避免重叠”开关
 
       const lines = [
-        // —— 在此处粘贴你的歌词（每行一句）——
-        // 下面仅为占位示例，请替换为你自己的文本：
         "残酷な天使のように",
         "少年よ　神話になれ",
         "蒼い風がいま　胸のドアを叩いても",
@@ -199,7 +190,6 @@
         "少年よ　神話になれ",
       ];
 
-      // 颜色池（EVA 风格）
       const colorPool = ["#e5e5e5", "#8fd14f", "#6a2ca1", "#a6ff00", "#bfa3ff"];
       const poster = document.getElementById("poster");
       const btnShuffle = document.getElementById("shuffle");
@@ -224,14 +214,13 @@
       }
 
       function layout() {
-        // 清空现有
         poster.querySelectorAll(".lyric").forEach((n) => n.remove());
 
         const W = poster.clientWidth;
         const H = poster.clientHeight;
         const placed = [];
 
-        const MIN = Math.max(16, Math.min(W, H) * 0.018); // 随屏幕自适应的字号范围
+        const MIN = Math.max(16, Math.min(W, H) * 0.018);
         const MAX = Math.max(26, Math.min(W, H) * 0.085);
 
         lines.forEach((text, idx) => {
@@ -239,19 +228,16 @@
           el.className = "lyric";
           el.textContent = text;
 
-          // 随机样式
           el.style.fontSize = `${rand(MIN, MAX)}px`;
           el.style.fontWeight = Math.random() < 0.25 ? 800 : 600;
           el.style.color = choice(colorPool);
           el.style.opacity = (0.75 + Math.random() * 0.25).toFixed(2);
 
-          // 轻微旋转增加层次
-          const tilt = (Math.random() - 0.5) * 0; // -4°~+4°
+          const tilt = (Math.random() - 0.5) * 0; 
           el.style.transform = `rotate(${tilt}deg)`;
 
           poster.appendChild(el);
 
-          // 尝试放置，尽量避免重叠与越界
           let tries = 0,
             ok = false;
           while (tries < 120 && !ok) {
@@ -262,7 +248,6 @@
             el.style.top = `${y}px`;
 
             const r = el.getBoundingClientRect();
-            // 将视口 rect 映射到 poster 内局部坐标：
             const rect = {
               left: r.left - poster.getBoundingClientRect().left,
               top: r.top - poster.getBoundingClientRect().top,
@@ -294,7 +279,6 @@
             tries++;
           }
 
-          // 如果尝试很多次仍不成功，放宽条件直接放置
           if (!ok) {
             el.style.left = `${rand(0, W)}px`;
             el.style.top = `${rand(0, H)}px`;
@@ -302,7 +286,6 @@
         });
       }
 
-      // 初始与事件
       layout();
       window.addEventListener("resize", () => {
         layout();
