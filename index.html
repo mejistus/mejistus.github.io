@@ -1,334 +1,303 @@
 <!doctype html>
-<html lang="zh-TW">
+<html lang="zh-CN">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Xu</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>EVA Poster — Vertical Lyrics Scatter</title>
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+      :root {
+        --eva-purple: #6a2ca1;
+        --eva-green: #8fd14f;
+        --eva-black: #0a0b0f;
+        --eva-gray: #bfbfbf;
+        --glow: drop-shadow(0 0 6px rgba(143, 209, 79, 0.45))
+          drop-shadow(0 0 12px rgba(106, 44, 161, 0.35));
       }
 
-      :root:lang(zh-TW) {
-        --tc-sans:
-          "PingFang TC", "Hiragino Sans CNS", "Microsoft JhengHei",
-          /* Windows */ "Noto Sans TC", "Source Han Sans TC", "Heiti TC",
-          "PMingLiU", system-ui, sans-serif;
-      }
-
-      :root:lang(zh-TW) {
-        --tc-serif:
-          "Noto Serif TC", "Source Han Serif TC", "Songti TC", "PMingLiU", serif;
-      }
-
+      html,
       body {
-        font-family: var(--tc-serif);
-        writing-mode: vertical-rl;
-        text-orientation: mixed;
-        font-feature-settings: "vert", "vkna";
-        background: #f5f1e8;
-        color: #1a1a1a;
-        line-height: 2;
+        height: 100%;
+        margin: 0;
+        font-family:
+          "Noto Sans CJK SC",
+          "Noto Sans JP",
+          "Hiragino Sans",
+          "PingFang SC",
+          "Microsoft YaHei",
+          system-ui,
+          Segoe UI,
+          sans-serif;
+        background: radial-gradient(
+          1200px 800px at 70% -10%,
+          #1b1530 0%,
+          #0e0f14 55%,
+          var(--eva-black) 100%
+        );
+        color: #eee;
+        overflow: hidden;
       }
 
-      .page {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 60px 40px;
-        min-height: 100vh;
+      .poster {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        isolation: isolate;
+        background-image:
+          radial-gradient(
+            1px 1px at 25% 25%,
+            rgba(255, 255, 255, 0.04) 1px,
+            transparent 1px
+          ),
+          radial-gradient(
+            1px 1px at 75% 75%,
+            rgba(255, 255, 255, 0.04) 1px,
+            transparent 1px
+          ),
+          repeating-linear-gradient(
+            135deg,
+            rgba(143, 209, 79, 0.06) 0 16px,
+            rgba(106, 44, 161, 0.06) 16px 32px
+          );
+        background-size:
+          24px 24px,
+          24px 24px,
+          auto;
       }
 
-      .header {
-        border-right: 3px double #000;
-        padding-right: 40px;
-        margin-right: 40px;
-        display: inline-block;
-        height: auto;
-      }
-
-      .avatar-section {
-        display: inline-block;
-        vertical-align: middle;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .avatar {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        border: 4px solid #000000;
-        object-fit: cover;
-        writing-mode: horizontal-tb;
+      .badge {
+        position: absolute;
+        left: 24px;
+        top: 20px;
+        letter-spacing: 0.12em;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 6px 10px;
+        background: linear-gradient(
+          90deg,
+          rgba(143, 209, 79, 0.22),
+          rgba(106, 44, 161, 0.22)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        backdrop-filter: blur(2px);
       }
 
       .title {
-        font-size: 48px;
-        letter-spacing: 0.5em;
-        margin-bottom: 30px;
-        font-weight: normal;
-      }
-
-      .subtitle {
-        font-size: 20px;
-        letter-spacing: 0.3em;
-        opacity: 0.7;
-      }
-
-      .section {
-        /* display: inline-block; */
-        display: block;
-        break-inside: avoid;
-        margin-right: 50px;
-        padding-right: 30px;
-        border-right: 1px solid #ccc;
-        max-height: 100%;
-        -webkit-column-break-inside: avoid;
-        column-break-inside: avoid;
-      }
-
-      .section:last-child {
-        border-right: none;
-      }
-
-      .section-title {
-        font-size: 24px;
-        letter-spacing: 0.4em;
-        margin-bottom: 30px;
-        font-weight: bold;
-        position: relative;
-      }
-
-      .section-title::after {
-        content: "";
         position: absolute;
-        right: -15px;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: #000;
+        right: 28px;
+        bottom: 26px;
+        text-align: right;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        line-height: 1.15;
+        color: #e9e9e9;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+      }
+      .title small {
+        display: block;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        opacity: 0.8;
       }
 
-      .content {
-        font-size: 18px;
-        letter-spacing: 0.15em;
+      .lyric {
+        position: absolute;
+        pointer-events: none; 
+        writing-mode: vertical-rl;
+        text-orientation: upright; 
+        white-space: nowrap;
+        letter-spacing: 0.1em;
+        line-height: 1.2;
+        font-weight: 600;
+        filter: var(--glow);
+        opacity: 0.92;
+        user-select: none;
+        mix-blend-mode: screen; 
       }
 
-      .paragraph {
-        margin-bottom: 25px;
+
+      .controls {
+        position: absolute;
+        right: 20px;
+        top: 18px;
+        display: flex;
+        gap: 10px;
+        z-index: 10;
       }
-
-      .project {
-        margin-bottom: 30px;
-        padding-right: 20px;
-        border-right: 1px dotted #999;
+      .btn {
+        appearance: none;
+        border: none;
+        cursor: pointer;
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        background: linear-gradient(90deg, var(--eva-green), var(--eva-purple));
+        color: #0b0b0b;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
       }
-
-      .project:last-child {
-        border-right: none;
-      }
-
-      .project-title {
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 15px;
-        letter-spacing: 0.2em;
-      }
-
-      .project-desc {
-        font-size: 16px;
-        opacity: 0.85;
-        line-height: 1.9;
-      }
-
-      .info {
-        font-size: 16px;
-        margin-bottom: 15px;
-      }
-
-      a {
-        color: #000;
-        text-decoration: none;
-        border-bottom: 1px solid #000;
-      }
-
-      a:hover {
-        opacity: 0.7;
-      }
-
-      .date {
-        position: fixed;
-        bottom: 40px;
-        right: 40px;
-        font-size: 14px;
-        writing-mode: horizontal-tb;
-        opacity: 0.6;
-      }
-
-      @media (max-width: 768px) {
-        .page {
-          padding: 30px 20px;
-        }
-
-        .section {
-          margin-right: 30px;
-          max-height: 600px;
-        }
-
-        .title {
-          font-size: 36px;
-        }
-
-        .avatar-section {
-          height: 600px;
-        }
-
-        .avatar {
-          width: 80px;
-          height: 80px;
-        }
+      .btn.secondary {
+        background: rgba(255, 255, 255, 0.06);
+        color: #e6e6e6;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        backdrop-filter: blur(3px);
       }
     </style>
   </head>
   <body>
-    <div class="page">
-      <div class="avatar-section">
-        <img
-          src="https://avatars.githubusercontent.com/u/155681204?v=4"
-          alt="頭像"
-          class="avatar"
-        />
+    <div class="poster" id="poster">
+      <div class="badge">PROJECT EVA — VERTICAL LYRICS POSTER</div>
+      <div class="controls">
+        <button class="btn" id="shuffle">重新排列</button>
+        <button class="btn secondary" id="toggleOverlap">重疊：開</button>
       </div>
-
-      <div class="header">
-        <div class="title">❖ 梅姬斯圖斯</div>
-        <div class="subtitle">碩士研究生在讀</div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">◈ 履歷</div>
-        <div class="content">
-          <div class="paragraph">華東理工大學，計算機科學與技術，本科</div>
-          <div class="paragraph">
-            華東理工大學，計算機科學與技術，碩士研究生
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">✦ 自述</div>
-        <div class="content">
-          <div class="paragraph">
-            余籍貫所在安徽阜陽。
-            庚子，以安徽省理科六千五百名畢業高中，升學來滬。入華東理工大學學習計算機科學。四年，續讀研究生，從事計算機視覺。
-          </div>
-          <div class="paragraph">
-            少時即喜好詩賦音樂，致思歷史文學。高中時，遍觀唐詩、詩經、古文觀止、史記。尤善古文，嘗作文言以應考試，然以文章渾沌，幾乎死去。後常勉勵，才稍微入門。<br />
-            喜好詩詞甚矣！大學以後，常作小句布於網絡，以期同者交流。為求質量，常雕琢至於深夜，樂此不疲。然余詩有二憾焉。其一，每有巧思，或效李长吉法而記錄，或藉社交媒體以分發。是故所營拙作，雜者尤多，不知其數。凡余稍為修砌而成詩者，不過十之一二。余亦嘗有意整理，然以學業繁忙，竟不能成，此一憾也。其二，詩者曉情達意第一，格律聲韻上者為佳。蓋余不通聲韻，是故詩體常患不工，終究難登大雅，此二憾也。<br />
-            二憾雖抱，然余志趣未減。故每每積累，常常摘錄，句句推敲，字字斟酌，所獲良多。詩亦以日進步，完勝從前。余今日讀從前拙作，仍不免羞恥。想日後見今日所作，恐怕此心更甚，然亦必懷念之。
-          </div>
-          <div class="paragraph">
-            性少言，为人淡泊恭谨。故所交者少，然賢者眾。
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">◆ 項目</div>
-        <div class="content">
-          <div class="project">
-            <div class="project-title">
-              <a href="https://github.com/mejistus/python-args-completion"
-                >參數補全插件</a
-              >
-            </div>
-            <div class="project-desc">
-              依託「ast」標準庫，自動解析「Python」程式所含參數，助以方便。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">
-              <a href="https://github.com/mejistus/fantastic-i3"
-                >fantastic i3</a
-              >
-            </div>
-            <div class="project-desc">
-              系本人自用i3wm配置，風格清新，竊以審美尚可。
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">✿ 詩作</div>
-        <div class="content">
-          <div class="project">
-            <div class="project-title">熬夜</div>
-            <div class="project-desc">
-              我亦如常日日醉，夜夜達歡至凌晨！功名利益休縛我，地籟天籟送青春！
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">無題</div>
-            <div class="project-desc">
-              馬勞山更遠，雨急肩越沉。天涯多倦客，牛馬荔枝人。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">秋</div>
-            <div class="project-desc">
-              月近中天興愈濃，狂歌醉舞佐金鐘。小飲清釀我將醉，半關秋月半關風。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">無題</div>
-            <div class="project-desc">
-              詩材張口即菲頌，我非天才自雕琢。夏秋冬春花雪月，聊摩雅致共爾說。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">白話和別</div>
-            <div class="project-desc">
-              站裡熙熙過客，街外無限夕陽。回首前者三十日，心裡多少憂傷。<br />
-              今日匆匆離去，春秋何其漫長。動若參商難相聚，無奈又能何妨。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">出分後</div>
-            <div class="project-desc">
-              林鳥驚晨夢，心憂似海深。夢醒知無奈，獨向天色新。
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">◉ 專長</div>
-        <div class="content">
-          <div class="info">表示學習</div>
-          <div class="info">擴散模型</div>
-          <div class="info">生成內容檢測</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">✧ 聯絡</div>
-        <div class="content">
-          <div class="info">
-            <a href="https://github.com/mejistus">倉庫</a>
-            github.com/mejistus
-          </div>
-          <div class="info">
-            <a href="mailto:mejistus@outlook.com">電郵</a> mejistus@outlook.com
-          </div>
-          <div class="info"><a href="mejistus">微信</a> mejistus</div>
-        </div>
+      <div class="title">
+        NEON GENESIS EVANGELION
+        <small>EVA TYPE-01 • POSTER</small>
       </div>
     </div>
 
-    <div class="date">乙巳年八月癸卯</div>
+    <script>
+
+      const lines = [
+        "残酷な天使のように",
+        "少年よ　神話になれ",
+        "蒼い風がいま　胸のドアを叩いても",
+        "私だけをただ見つめて　微笑んでるあなた",
+        "そっとふれるもの　もとめることに夢中で",
+        "運命さえまだ知らない　いたいけな瞳",
+        "だけどいつか気付くでしょう　その背中には",
+        "遥か未来　めざすための　羽根があること",
+        "残酷な天使のテーゼ　窓辺からやがて飛び立つ",
+        "ほとばしる熱いパトスで　思い出を裏切るなら",
+        "この宇宙を抱いて輝く",
+        "少年よ　神話になれ",
+        "ずっと眠ってる　私の愛の揺りかご",
+        "あなただけが　夢の使者に　呼ばれる朝がくる",
+        "細い首筋を　月あかりが映してる",
+        "世界中の時を止めて　閉じこめたいけど",
+        "もしもふたり逢えたことに　意味があるなら",
+        "私はそう　自由を知るためのバイブル",
+        "殘酷な天使のテーゼ　悲しみがそしてはじまる",
+        "抱きしめた命のかたち　その夢に目覚めたとき",
+        "誰よりも光を放つ",
+        "少年よ　神話になれ",
+        "人は愛をつむぎながら　歴史をつくる",
+        "女神なんてなれないまま　私は生きる",
+        "残酷な天使のテーゼ　窓辺からやがて飛び立つ",
+        "ほとばしる熱いパトスで　思い出を裏切るなら",
+        "この宇宙を抱いて輝く",
+        "少年よ　神話になれ",
+      ];
+
+      const colorPool = ["#e5e5e5", "#8fd14f", "#6a2ca1", "#a6ff00", "#bfa3ff"];
+      const poster = document.getElementById("poster");
+      const btnShuffle = document.getElementById("shuffle");
+      const btnOverlap = document.getElementById("toggleOverlap");
+
+      let avoidOverlap = true;
+
+      function rand(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+      function choice(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+
+      function intersects(a, b) {
+        return !(
+          a.right < b.left ||
+          a.left > b.right ||
+          a.bottom < b.top ||
+          a.top > b.bottom
+        );
+      }
+
+      function layout() {
+        poster.querySelectorAll(".lyric").forEach((n) => n.remove());
+
+        const W = poster.clientWidth;
+        const H = poster.clientHeight;
+        const placed = [];
+
+        const MIN = Math.max(16, Math.min(W, H) * 0.018); 
+        const MAX = Math.max(26, Math.min(W, H) * 0.085);
+
+        lines.forEach((text, idx) => {
+          const el = document.createElement("div");
+          el.className = "lyric";
+          el.textContent = text;
+
+          el.style.fontSize = `${rand(MIN, MAX)}px`;
+          el.style.fontWeight = Math.random() < 0.25 ? 800 : 600;
+          el.style.color = choice(colorPool);
+          el.style.opacity = (0.75 + Math.random() * 0.25).toFixed(2);
+
+          const tilt = (Math.random() - 0.5) * 0; // rotate ? -0 ~ +0
+          el.style.transform = `rotate(${tilt}deg)`;
+
+          poster.appendChild(el);
+
+          let tries = 0,
+            ok = false;
+          while (tries < 120 && !ok) {
+            const pad = 12;
+            const x = rand(pad, W - pad);
+            const y = rand(pad, H - pad);
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+
+            const r = el.getBoundingClientRect();
+            const rect = {
+              left: r.left - poster.getBoundingClientRect().left,
+              top: r.top - poster.getBoundingClientRect().top,
+              right: r.right - poster.getBoundingClientRect().left,
+              bottom: r.bottom - poster.getBoundingClientRect().top,
+            };
+
+            const inside =
+              rect.left >= 0 &&
+              rect.top >= 0 &&
+              rect.right <= W &&
+              rect.bottom <= H;
+
+            let overlap = false;
+            if (avoidOverlap) {
+              for (const p of placed) {
+                if (intersects(rect, p)) {
+                  overlap = true;
+                  break;
+                }
+              }
+            }
+
+            ok = inside && !overlap;
+            if (ok) {
+              placed.push(rect);
+              break;
+            }
+            tries++;
+          }
+
+          if (!ok) {
+            el.style.left = `${rand(0, W)}px`;
+            el.style.top = `${rand(0, H)}px`;
+          }
+        });
+      }
+
+      // 初始与事件
+      layout();
+      window.addEventListener("resize", () => {
+        layout();
+      });
+      btnShuffle.addEventListener("click", () => layout());
+      btnOverlap.addEventListener("click", () => {
+        avoidOverlap = !avoidOverlap;
+        btnOverlap.textContent = `重疊：${avoidOverlap ? "開" : "關"}`;
+        layout();
+      });
+    </script>
   </body>
 </html>
