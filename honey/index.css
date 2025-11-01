@@ -227,7 +227,6 @@
     background-color: #e74c3c;
 }
 
-/* 隐藏滚动条 (Chrome, Edge, Safari) */
 .hide-scrollbar::-webkit-scrollbar {
     display: none;
 }
@@ -237,7 +236,6 @@
   --eva-purple:#6a2ca1;
 }
 
-/* 播放区整块：竖直排列、居中 */
 .player-card{
   display:flex; flex-direction:column; align-items:center; gap:14px;
   margin-top:20px; padding:14px 16px;
@@ -248,18 +246,15 @@
   box-shadow: 0 10px 30px rgba(0,0,0,.18);
 }
 
-/* 分隔线（更精致） */
 .player-card .separator{
   width: 140px; height:1px;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
 }
 
-/* 控制区：按钮横向等距居中 */
 .audio-box{
   display:flex; align-items:center; justify-content:center; gap:16px;
 }
 
-/* 统一按钮视觉：胶囊、半透明、带悬浮反馈 */
 .btn-audio{
   display:flex; align-items:center; justify-content:center; gap:8px;
   min-width: 46px; height:42px; padding: 0 14px;
