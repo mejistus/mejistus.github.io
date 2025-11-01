@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>EVA Poster — Vertical Lyrics Scatter</title>
+    <style>
+      :root {
+        --eva-purple: #6a2ca1;
+        --eva-green: #8fd14f;
+        --eva-black: #0a0b0f;
+        --eva-gray: #bfbfbf;
+        --glow: drop-shadow(0 0 6px rgba(143, 209, 79, 0.45))
+          drop-shadow(0 0 12px rgba(106, 44, 161, 0.35));
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family:
+          "Noto Sans CJK SC",
+          "Noto Sans JP",
+          "Hiragino Sans",
+          "PingFang SC",
+          "Microsoft YaHei",
+          system-ui,
+          Segoe UI,
+          sans-serif;
+        background: radial-gradient(
+          1200px 800px at 70% -10%,
+          #1b1530 0%,
+          #0e0f14 55%,
+          var(--eva-black) 100%
+        );
+        color: #eee;
+        overflow: hidden;
+      }
+
+      /* 背景细节：微弱网格 + EVA 色系条纹 */
+      .poster {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        isolation: isolate;
+        background-image:
+          radial-gradient(
+            1px 1px at 25% 25%,
+            rgba(255, 255, 255, 0.04) 1px,
+            transparent 1px
+          ),
+          radial-gradient(
+            1px 1px at 75% 75%,
+            rgba(255, 255, 255, 0.04) 1px,
+            transparent 1px
+          ),
+          repeating-linear-gradient(
+            135deg,
+            rgba(143, 209, 79, 0.06) 0 16px,
+            rgba(106, 44, 161, 0.06) 16px 32px
+          );
+        background-size:
+          24px 24px,
+          24px 24px,
+          auto;
+      }
+
+      .badge {
+        position: absolute;
+        left: 24px;
+        top: 20px;
+        letter-spacing: 0.12em;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 6px 10px;
+        background: linear-gradient(
+          90deg,
+          rgba(143, 209, 79, 0.22),
+          rgba(106, 44, 161, 0.22)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        backdrop-filter: blur(2px);
+      }
+
+      .title {
+        position: absolute;
+        right: 28px;
+        bottom: 26px;
+        text-align: right;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        line-height: 1.15;
+        color: #e9e9e9;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+      }
+      .title small {
+        display: block;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        opacity: 0.8;
+      }
+
+      /* 竖排歌词元素 */
+      .lyric {
+        position: absolute;
+        pointer-events: none; /* 仅用于展示 */
+        writing-mode: vertical-rl; /* 竖排 */
+        text-orientation: upright; /* 直立 */
+        white-space: nowrap;
+        letter-spacing: 0.1em;
+        line-height: 1.2;
+        font-weight: 600;
+        filter: var(--glow);
+        opacity: 0.92;
+        user-select: none;
+        mix-blend-mode: screen; /* 叠加更有海报感 */
+      }
+
+      /* 控件 */
+      .controls {
+        position: absolute;
+        right: 20px;
+        top: 18px;
+        display: flex;
+        gap: 10px;
+        z-index: 10;
+      }
+      .btn {
+        appearance: none;
+        border: none;
+        cursor: pointer;
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        background: linear-gradient(90deg, var(--eva-green), var(--eva-purple));
+        color: #0b0b0b;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+      }
+      .btn.secondary {
+        background: rgba(255, 255, 255, 0.06);
+        color: #e6e6e6;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        backdrop-filter: blur(3px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="poster" id="poster">
+      <div class="badge">PROJECT EVA — VERTICAL LYRICS POSTER</div>
+      <div class="controls">
+        <button class="btn" id="shuffle">重新排列</button>
+        <button class="btn secondary" id="toggleOverlap">重疊：開</button>
+      </div>
+      <div class="title">
+        NEON GENESIS EVANGELION
+        <small>EVA TYPE-01 • POSTER</small>
+      </div>
+    </div>
+
+    <script>
+      // === 使用说明 ===
+      // 1) 将你合法获取的歌词逐行粘贴到 lines 数组（每个元素就是一行）
+      // 2) 保存为 .html，浏览器打开；点击“重新排布”可随机换一版
+      // 3) 若文本很多，可能不可避免少量重叠；可切换“避免重叠”开关
+
+      const lines = [
+        // —— 在此处粘贴你的歌词（每行一句）——
+        // 下面仅为占位示例，请替换为你自己的文本：
+        "残酷な天使のように",
+        "少年よ　神話になれ",
+        "蒼い風がいま　胸のドアを叩いても",
+        "私だけをただ見つめて　微笑んでるあなた",
+        "そっとふれるもの　もとめることに夢中で",
+        "運命さえまだ知らない　いたいけな瞳",
+        "だけどいつか気付くでしょう　その背中には",
+        "遥か未来　めざすための　羽根があること",
+        "残酷な天使のテーゼ　窓辺からやがて飛び立つ",
+        "ほとばしる熱いパトスで　思い出を裏切るなら",
+        "この宇宙を抱いて輝く",
+        "少年よ　神話になれ",
+        "ずっと眠ってる　私の愛の揺りかご",
+        "あなただけが　夢の使者に　呼ばれる朝がくる",
+        "細い首筋を　月あかりが映してる",
+        "世界中の時を止めて　閉じこめたいけど",
+        "もしもふたり逢えたことに　意味があるなら",
+        "私はそう　自由を知るためのバイブル",
+        "殘酷な天使のテーゼ　悲しみがそしてはじまる",
+        "抱きしめた命のかたち　その夢に目覚めたとき",
+        "誰よりも光を放つ",
+        "少年よ　神話になれ",
+        "人は愛をつむぎながら　歴史をつくる",
+        "女神なんてなれないまま　私は生きる",
+        "残酷な天使のテーゼ　窓辺からやがて飛び立つ",
+        "ほとばしる熱いパトスで　思い出を裏切るなら",
+        "この宇宙を抱いて輝く",
+        "少年よ　神話になれ",
+      ];
+
+      // 颜色池（EVA 风格）
+      const colorPool = ["#e5e5e5", "#8fd14f", "#6a2ca1", "#a6ff00", "#bfa3ff"];
+      const poster = document.getElementById("poster");
+      const btnShuffle = document.getElementById("shuffle");
+      const btnOverlap = document.getElementById("toggleOverlap");
+
+      let avoidOverlap = true;
+
+      function rand(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+      function choice(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+
+      function intersects(a, b) {
+        return !(
+          a.right < b.left ||
+          a.left > b.right ||
+          a.bottom < b.top ||
+          a.top > b.bottom
+        );
+      }
+
+      function layout() {
+        // 清空现有
+        poster.querySelectorAll(".lyric").forEach((n) => n.remove());
+
+        const W = poster.clientWidth;
+        const H = poster.clientHeight;
+        const placed = [];
+
+        const MIN = Math.max(16, Math.min(W, H) * 0.018); // 随屏幕自适应的字号范围
+        const MAX = Math.max(26, Math.min(W, H) * 0.085);
+
+        lines.forEach((text, idx) => {
+          const el = document.createElement("div");
+          el.className = "lyric";
+          el.textContent = text;
+
+          // 随机样式
+          el.style.fontSize = `${rand(MIN, MAX)}px`;
+          el.style.fontWeight = Math.random() < 0.25 ? 800 : 600;
+          el.style.color = choice(colorPool);
+          el.style.opacity = (0.75 + Math.random() * 0.25).toFixed(2);
+
+          // 轻微旋转增加层次
+          const tilt = (Math.random() - 0.5) * 0; // -4°~+4°
+          el.style.transform = `rotate(${tilt}deg)`;
+
+          poster.appendChild(el);
+
+          // 尝试放置，尽量避免重叠与越界
+          let tries = 0,
+            ok = false;
+          while (tries < 120 && !ok) {
+            const pad = 12;
+            const x = rand(pad, W - pad);
+            const y = rand(pad, H - pad);
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+
+            const r = el.getBoundingClientRect();
+            // 将视口 rect 映射到 poster 内局部坐标：
+            const rect = {
+              left: r.left - poster.getBoundingClientRect().left,
+              top: r.top - poster.getBoundingClientRect().top,
+              right: r.right - poster.getBoundingClientRect().left,
+              bottom: r.bottom - poster.getBoundingClientRect().top,
+            };
+
+            const inside =
+              rect.left >= 0 &&
+              rect.top >= 0 &&
+              rect.right <= W &&
+              rect.bottom <= H;
+
+            let overlap = false;
+            if (avoidOverlap) {
+              for (const p of placed) {
+                if (intersects(rect, p)) {
+                  overlap = true;
+                  break;
+                }
+              }
+            }
+
+            ok = inside && !overlap;
+            if (ok) {
+              placed.push(rect);
+              break;
+            }
+            tries++;
+          }
+
+          // 如果尝试很多次仍不成功，放宽条件直接放置
+          if (!ok) {
+            el.style.left = `${rand(0, W)}px`;
+            el.style.top = `${rand(0, H)}px`;
+          }
+        });
+      }
+
+      // 初始与事件
+      layout();
+      window.addEventListener("resize", () => {
+        layout();
+      });
+      btnShuffle.addEventListener("click", () => layout());
+      btnOverlap.addEventListener("click", () => {
+        avoidOverlap = !avoidOverlap;
+        btnOverlap.textContent = `重疊：${avoidOverlap ? "開" : "關"}`;
+        layout();
+      });
+    </script>
+  </body>
+</html>
