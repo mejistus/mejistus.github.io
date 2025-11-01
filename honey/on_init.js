@@ -41,7 +41,7 @@ function createChild() {
   for (let i = 0; i < arr.length; i++) {
     box.innerHTML += wrapper(...arr[i]);
   }
-  window.scrollTo(0, 0);
+  // window.scrollTo(0, 0);
 }
 createChild();
 let box = document.querySelector(".timeline");
@@ -85,7 +85,6 @@ for (let i = 0; i < button.length; i++) {
   button[i].style.alignSelf = "center";
   button[i].style.border = "1px solid #000";
   button[i].style.borderRadius = "5px";
-  // button[i]的大小大一点
   button[i].style.width = "60px";
   button[i].style.height = "30px";
   button[i].style.opacity = "0.5";
