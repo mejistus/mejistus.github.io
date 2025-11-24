@@ -28,9 +28,22 @@
         writing-mode: vertical-rl;
         text-orientation: mixed;
         font-feature-settings: "vert", "vkna";
-        background: #f5f1e8;
+        background: #f5f1e870;
         color: #1a1a1a;
         line-height: 2;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;               
+        background-image: url("asserts/juhua.png");
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: contain;
+        opacity: 0.5;       
+        z-index: -1;                     
+        pointer-events: none;
       }
 
       .page {
@@ -194,7 +207,7 @@
     </style>
   </head>
   <body>
-    <div class="page">
+    <div class="page" >
       <div class="avatar-section">
         <img
           src="https://avatars.githubusercontent.com/u/155681204?v=4"
