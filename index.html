@@ -1,363 +1,397 @@
 <!doctype html>
 <html lang="zh-TW">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Xu</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
 
-      :root:lang(zh-TW) {
-        --tc-sans:
-          "PingFang TC", "Hiragino Sans CNS", "Microsoft JhengHei",
-          /* Windows */ "Noto Sans TC", "Source Han Sans TC", "Heiti TC",
-          "PMingLiU", system-ui, sans-serif;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xu</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-      :root:lang(zh-TW) {
-        --tc-serif:
-          "Noto Serif TC", "Source Han Serif TC", "Songti TC", "PMingLiU", serif;
-      }
+    :root:lang(zh-TW) {
+      --tc-sans:
+        "PingFang TC", "Hiragino Sans CNS", "Microsoft JhengHei",
+        /* Windows */
+        "Noto Sans TC", "Source Han Sans TC", "Heiti TC",
+        "PMingLiU", system-ui, sans-serif;
+    }
 
-      body {
-        font-family: var(--tc-serif);
-        writing-mode: vertical-rl;
-        text-orientation: mixed;
-        font-feature-settings: "vert", "vkna";
-        background: #f5f1e870;
-        color: #1a1a1a;
-        line-height: 2;
-      }
+    :root:lang(zh-TW) {
+      --tc-serif:
+        "Noto Serif TC", "Source Han Serif TC", "Songti TC", "PMingLiU", serif;
+    }
 
-      body::before {
-        content: "";
-        position: fixed;
-        inset: 0;               
-        background-image: url("asserts/juhua.png");
-        background-repeat: no-repeat;
-        background-position: center center;
-        background-size: contain;
-        opacity: 0.4;       
-        z-index: -1;                     
-        pointer-events: none;
-      }
+    body {
+      font-family: var(--tc-serif);
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      font-feature-settings: "vert", "vkna";
+      background: #f5f1e870;
+      color: #1a1a1a;
+      line-height: 2;
+    }
 
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: url("asserts/juhua.png");
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: contain;
+      opacity: 0.4;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 40px;
+      min-height: 100vh;
+    }
+
+    .header {
+      border-right: 3px double #000;
+      padding-right: 40px;
+      margin-right: 40px;
+      display: inline-block;
+      height: auto;
+    }
+
+    .avatar-section {
+      display: inline-block;
+      vertical-align: middle;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 4px solid #000000;
+      object-fit: cover;
+      writing-mode: horizontal-tb;
+    }
+
+    .title {
+      font-size: 48px;
+      letter-spacing: 0.5em;
+      margin-bottom: 30px;
+      font-weight: normal;
+    }
+
+    .subtitle {
+      font-size: 20px;
+      letter-spacing: 0.3em;
+      opacity: 0.7;
+    }
+
+    .section {
+      /* display: inline-block; */
+      display: block;
+      break-inside: avoid;
+      margin-right: 50px;
+      padding-right: 30px;
+      border-right: 1px solid #ccc;
+      max-height: 100%;
+      -webkit-column-break-inside: avoid;
+      column-break-inside: avoid;
+    }
+
+    .section:last-child {
+      border-right: none;
+    }
+
+    .section-title {
+      font-size: 24px;
+      letter-spacing: 0.4em;
+      margin-bottom: 30px;
+      font-weight: bold;
+      position: relative;
+    }
+
+    .section-title::after {
+      content: "";
+      position: absolute;
+      right: -15px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #000;
+    }
+
+    .content {
+      font-size: 18px;
+      letter-spacing: 0.15em;
+    }
+
+    .paragraph {
+      margin-bottom: 25px;
+    }
+
+    .project {
+      margin-bottom: 30px;
+      padding-right: 20px;
+      border-right: 1px dotted #999;
+    }
+
+    .project:last-child {
+      border-right: none;
+    }
+
+    .project-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      letter-spacing: 0.2em;
+    }
+
+    .project-desc {
+      font-size: 16px;
+      opacity: 0.85;
+      line-height: 1.9;
+    }
+
+    .info {
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+
+    a {
+      color: #000;
+      text-decoration: none;
+      border-bottom: 1px solid #000;
+    }
+
+    a:hover {
+      opacity: 0.7;
+    }
+
+    .date {
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+      font-size: 14px;
+      writing-mode: horizontal-tb;
+      opacity: 0.6;
+    }
+
+    @media (max-width: 768px) {
       .page {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 60px 40px;
-        min-height: 100vh;
-      }
-
-      .header {
-        border-right: 3px double #000;
-        padding-right: 40px;
-        margin-right: 40px;
-        display: inline-block;
-        height: auto;
-      }
-
-      .avatar-section {
-        display: inline-block;
-        vertical-align: middle;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .avatar {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        border: 4px solid #000000;
-        object-fit: cover;
-        writing-mode: horizontal-tb;
-      }
-
-      .title {
-        font-size: 48px;
-        letter-spacing: 0.5em;
-        margin-bottom: 30px;
-        font-weight: normal;
-      }
-
-      .subtitle {
-        font-size: 20px;
-        letter-spacing: 0.3em;
-        opacity: 0.7;
+        padding: 30px 20px;
       }
 
       .section {
-        /* display: inline-block; */
-        display: block;
-        break-inside: avoid;
-        margin-right: 50px;
-        padding-right: 30px;
-        border-right: 1px solid #ccc;
-        max-height: 100%;
-        -webkit-column-break-inside: avoid;
-        column-break-inside: avoid;
+        margin-right: 30px;
+        max-height: 600px;
       }
 
-      .section:last-child {
-        border-right: none;
+      .title {
+        font-size: 36px;
       }
 
-      .section-title {
-        font-size: 24px;
-        letter-spacing: 0.4em;
-        margin-bottom: 30px;
-        font-weight: bold;
-        position: relative;
+      .avatar-section {
+        height: 600px;
       }
 
-      .section-title::after {
-        content: "";
-        position: absolute;
-        right: -15px;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: #000;
+      .avatar {
+        width: 80px;
+        height: 80px;
       }
+    }
+  </style>
+</head>
 
-      .content {
-        font-size: 18px;
-        letter-spacing: 0.15em;
-      }
+<body>
+  <div class="page">
+    <div class="avatar-section">
+      <img src="https://avatars.githubusercontent.com/u/155681204?v=4" alt="頭像" class="avatar" />
+    </div>
 
-      .paragraph {
-        margin-bottom: 25px;
-      }
+    <div class="header">
+      <div class="title">❖ 梅姬斯圖斯</div>
+      <div class="subtitle">博士研究生在讀</div>
+    </div>
 
-      .project {
-        margin-bottom: 30px;
-        padding-right: 20px;
-        border-right: 1px dotted #999;
-      }
-
-      .project:last-child {
-        border-right: none;
-      }
-
-      .project-title {
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 15px;
-        letter-spacing: 0.2em;
-      }
-
-      .project-desc {
-        font-size: 16px;
-        opacity: 0.85;
-        line-height: 1.9;
-      }
-
-      .info {
-        font-size: 16px;
-        margin-bottom: 15px;
-      }
-
-      a {
-        color: #000;
-        text-decoration: none;
-        border-bottom: 1px solid #000;
-      }
-
-      a:hover {
-        opacity: 0.7;
-      }
-
-      .date {
-        position: fixed;
-        bottom: 40px;
-        right: 40px;
-        font-size: 14px;
-        writing-mode: horizontal-tb;
-        opacity: 0.6;
-      }
-
-      @media (max-width: 768px) {
-        .page {
-          padding: 30px 20px;
-        }
-
-        .section {
-          margin-right: 30px;
-          max-height: 600px;
-        }
-
-        .title {
-          font-size: 36px;
-        }
-
-        .avatar-section {
-          height: 600px;
-        }
-
-        .avatar {
-          width: 80px;
-          height: 80px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="page" >
-      <div class="avatar-section">
-        <img
-          src="https://avatars.githubusercontent.com/u/155681204?v=4"
-          alt="頭像"
-          class="avatar"
-        />
-      </div>
-
-      <div class="header">
-        <div class="title">❖ 梅姬斯圖斯</div>
-        <div class="subtitle">博士研究生在讀</div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">◈ 履歷</div>
-        <div class="content">
-          <div class="paragraph">華東理工大學，計算機科學與技術，本科</div>
-          <div class="paragraph">
-            華東理工大學，計算機科學與技術，碩士研究生
-          </div>
-          <div class="paragraph">
-            華東理工大學，計算機科學與技術，博士研究生
-          </div>
+    <div class="section">
+      <div class="section-title">◈ 履歷</div>
+      <div class="content">
+        <div class="paragraph">華東理工大學，計算機科學與技術，本科</div>
+        <div class="paragraph">
+          華東理工大學，計算機科學與技術，碩士研究生
         </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">✦ 自述</div>
-        <div class="content">
-          <div class="paragraph">
-            余籍貫所在安徽阜陽。
-            庚子，以安徽省理科六千五百名畢業高中，升學來滬。入「華東理工大學」學習計算機科學。四年，續讀研究生，研究「計算機視覺」。
-          </div>
-          <div class="paragraph">
-            少時即喜好詩賦音樂，致思歷史文學。高中時，遍觀唐詩、詩經、古文觀止、史記。尤好古文，嘗作文以應考試，然以文章混沌，幾乎死去。後常勉勵，才稍微入門。<br />
-            大學以来，常作詩詞小句。為求質量，每每雕琢至於深夜，尤樂此不疲。雖然，余詩有二憾焉。其一，每有巧思，或效李长吉記之海藏，或假藉社娛媒體隨興分發。是故所營拙作，雜者尤多，不知其數。凡余稍為修砌而可謂「成詩」者，不過十之一二。余亦嘗有意整理，然瑣事繁冗，接踵而至，竟不能成，此一憾也。其二，詩者曉情達意第一，格律聲韻上者為佳。蓋余不通聲韻，是故詩體難免不工，終究難登大雅，此二憾也。<br />
-            二憾雖抱，余志趣未減分毫。故每每積累，時時摘錄，句句推敲，字字斟酌，所獲良多。詩亦以日進步，吊打從前。余今日讀從前拙作，仍不免羞恥。想日後再見今日所作，恐怕此心更甚，然必懷念之。
-          </div>
-          <div class="paragraph">
-            性少言，为人淡泊恭谨。故所交者少，然賢者眾。
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">◆ 項目</div>
-        <div class="content">
-          <div class="project">
-            <div class="project-title">
-              <a href="https://github.com/mejistus/python-args-completion"
-                >參數補全插件</a
-              >
-            </div>
-            <div class="project-desc">
-              依託「ast」標準庫，自動解析「Python」程式所含參數。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">
-              <a href="https://github.com/mejistus/fantastic-i3"
-                >fantastic i3</a
-              >
-            </div>
-            <div class="project-desc">
-              系本人自用「i3wm」配置，風格清新淡雅，竊以為「審美尚可」。
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">✿ 詩作</div>
-        <div class="content">
-        <div class="project">
-            <div class="project-title">冬日感懷<div>
-            <div class="project-desc">
-                梧桐盡低語，相約赴黃昏。此期寒氣甚，尤可待來春。
-            </div>
-          </div>
-
-          <div class="project">
-            <div class="project-title">鷓鴣天<div>
-            <div class="project-desc">
-              可憐時光太匆匆，始覚秋老又臨冬。孤燈影落梧桐下，碎葉流浪北風中。<br />兩千裡，八刻鐘。靈犀一處兩心通。翩翩雪落南方客，幸福門下再相擁。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">夜中</div>
-            <div class="project-desc">
-              我亦如常日日醉，夜夜達歡至凌晨。功名利益休縛我，地籟天籟送青春。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">遣使空中</div>
-            <div class="project-desc">
-              馬勞山更遠，雨急肩越沉。天涯多倦客，牛馬荔枝人。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">秋</div>
-            <div class="project-desc">
-              月近中天興愈濃，狂歌醉舞佐金鐘。小飲清釀我將醉，半關秋月半關風。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">無題</div>
-            <div class="project-desc">
-              詩材張口即菲頌，我非天才自雕琢。夏秋冬春花雪月，聊摩雅致共爾說。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">白話和別</div>
-            <div class="project-desc">
-              站裡熙熙過客，街外無限夕陽。回首過去三十日，心裡多少憂傷。<br />
-              今日匆匆離去，春秋何其漫長。動若參商難相聚，無奈又能何妨。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">出分後</div>
-            <div class="project-desc">
-              林鳥驚晨夢，憂心似海深。夢醒知無奈，獨向天色新。
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">◉ 專長</div>
-        <div class="content">
-          <div class="info">表示學習</div>
-          <div class="info">擴散模型</div>
-          <div class="info">生成內容檢測</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">✧ 聯絡</div>
-        <div class="content">
-          <div class="info">
-            <a href="https://github.com/mejistus">倉庫</a>
-            github.com/mejistus
-          </div>
-          <div class="info">
-            <a href="mailto:mejistus@outlook.com">電郵</a> mejistus@outlook.com
-          </div>
-          <div class="info"><a href="mejistus">微信</a> mejistus</div>
+        <div class="paragraph">
+          華東理工大學，計算機科學與技術，博士研究生
         </div>
       </div>
     </div>
 
-    <div class="date">乙巳年八月癸卯</div>
-  </body>
+    <div class="section">
+      <div class="section-title">✦ 自述</div>
+      <div class="content">
+        <div class="paragraph">
+          余籍貫所在安徽阜陽。
+          庚子，以安徽省理科六千五百名畢業高中，升學來滬。入「華東理工大學」學習計算機科學。四年，續讀研究生，研究「計算機視覺」。
+        </div>
+        <div class="paragraph">
+          少時即喜好詩賦音樂，致思歷史文學。高中時，遍觀唐詩、詩經、古文觀止、史記。尤好古文，嘗作文以應考試，然以文章混沌，幾乎死去。後常勉勵，才稍微入門。<br />
+          大學以来，常作詩詞小句。為求質量，每每雕琢至於深夜，尤樂此不疲。雖然，余詩有二憾焉。其一，每有巧思，或效李长吉記之海藏，或假藉社娛媒體隨興分發。是故所營拙作，雜者尤多，不知其數。凡余稍為修砌而可謂「成詩」者，不過十之一二。余亦嘗有意整理，然瑣事繁冗，接踵而至，竟不能成，此一憾也。其二，詩者曉情達意第一，格律聲韻上者為佳。蓋余不通聲韻，是故詩體難免不工，終究難登大雅，此二憾也。<br />
+          二憾雖抱，余志趣未減分毫。故每每積累，時時摘錄，句句推敲，字字斟酌，所獲良多。詩亦以日進步，吊打從前。余今日讀從前拙作，仍不免羞恥。想日後再見今日所作，恐怕此心更甚，然必懷念之。
+        </div>
+        <div class="paragraph">
+          性少言，为人淡泊恭谨。故所交者少，然賢者眾。
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">◆ 項目</div>
+      <div class="content">
+        <div class="project">
+          <div class="project-title">
+            <a href="https://github.com/mejistus/python-args-completion">參數補全插件</a>
+          </div>
+          <div class="project-desc">
+            依託「ast」標準庫，自動解析「Python」程式所含參數。
+          </div>
+        </div>
+        <div class="project">
+          <div class="project-title">
+            <a href="https://github.com/mejistus/fantastic-i3">fantastic i3</a>
+          </div>
+          <div class="project-desc">
+            系本人自用「i3wm」配置，風格清新淡雅，竊以為「審美尚可」。
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="section">
+      <div class="section-title">✿ 詩作</div>
+      <div class="content">
+        <div class="project">
+          <div class="project-title">冬日感懷<div>
+              <div class="project-desc">
+                梧桐盡低語，相約赴黃昏。此期寒氣甚，尤可待來春。
+              </div>
+            </div>
+
+            <div class="project">
+              <div class="project-title">鷓鴣天<div>
+                  <div class="project-desc">
+                    可憐時光太匆匆，始覚秋老又臨冬。孤燈影落梧桐下，碎葉流浪北風中。<br />兩千裡，八刻鐘。靈犀一處兩心通。翩翩雪落南方客，幸福門下再相擁。
+                  </div>
+                </div>
+                <div class="project">
+                  <div class="project-title">夜中</div>
+                  <div class="project-desc">
+                    我亦如常日日醉，夜夜達歡至凌晨。功名利益休縛我，地籟天籟送青春。
+                  </div>
+                </div>
+                <div class="project">
+                  <div class="project-title">遣使空中</div>
+                  <div class="project-desc">
+                    馬勞山更遠，雨急肩越沉。天涯多倦客，牛馬荔枝人。
+                  </div>
+                </div>
+                <div class="project">
+                  <div class="project-title">秋</div>
+                  <div class="project-desc">
+                    月近中天興愈濃，狂歌醉舞佐金鐘。小飲清釀我將醉，半關秋月半關風。
+                  </div>
+                </div>
+                <div class="project">
+                  <div class="project-title">無題</div>
+                  <div class="project-desc">
+                    詩材張口即菲頌，我非天才自雕琢。夏秋冬春花雪月，聊摩雅致共爾說。
+                  </div>
+                </div>
+                <div class="project">
+                  <div class="project-title">白話和別</div>
+                  <div class="project-desc">
+                    站裡熙熙過客，街外無限夕陽。回首過去三十日，心裡多少憂傷。<br />
+                    今日匆匆離去，春秋何其漫長。動若參商難相聚，無奈又能何妨。
+                  </div>
+                </div>
+                <div class="project">
+                  <div class="project-title">出分後</div>
+                  <div class="project-desc">
+                    林鳥驚晨夢，憂心似海深。夢醒知無奈，獨向天色新。
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-title">⚑ 競賽</div>
+              <div class="content">
+                <div class="project">
+                  <div class="project-title"> 編程類</div>
+                  <div class="project-desc">
+                    二〇二二年第五屆傳智杯全國大學生程序設計競賽A組區域賽二等獎<br>
+                    二〇二三年第十四屆藍橋杯程序設計競賽初賽上海市A組一等獎<br>
+                    二〇二三年第十四屆藍橋杯程序設計競賽決賽全國A組三等獎<br>
+                  </div>
+                </div>
+                <div class="project">
+                  <div class="project-title">數學建模類</div>
+                  <div class="project-desc">
+                    二〇二二年第十九届五一數學建模競賽三等獎<br>
+                    二〇二二年第十二屆MathorCup高校數學建模挑戰賽本科組一等獎<br>
+                    二〇二三年第四屆華數杯全國大學生數學建模競賽二等獎<br>
+                    二〇二三年第一屆華數杯國際大學生數學建模競賽O獎<br>
+                    二〇二三年第三十九屆美國大學生數學建模競賽H獎<br>
+                    二〇二四年第二十一屆華為杯中國研究生數學建模競賽二等獎<br>
+                    二〇二五年第二十二屆華為杯中國研究生數學建模競賽二等獎<br>
+                  </div>
+                </div>
+                <div class="project">
+                  <div class="project-title">學業獎學金</div>
+                  <div class="project-desc">
+                    二〇二〇年華東理工大學本科勵志獎學金<br>
+                    二〇二四年華東理工大學研究生新生獎學金二等獎<br>
+                    二〇二五年華東理工大學研究生學業獎學金一等獎<br>
+                  </div>
+                </div>
+                <div class="project">
+                  <div class="project-title">其他競賽</div>
+                  <div class="project-desc">
+                    二〇一九年第二十九屆全國中學生生物學聯賽三等獎<br>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="section">
+              <div class="section-title">◉ 研究興趣</div>
+              <div class="content">
+                <div class="info">擴散模型</div>
+                <div class="info">強化學習</div>
+                <div class="info">生成內容檢測</div>
+              </div>
+            </div>
+
+            <div class="section">
+              <div class="section-title">✧ 聯絡方式</div>
+              <div class="content">
+                <div class="info">
+                  <a href="https://github.com/mejistus">倉庫</a>
+                  github.com/mejistus
+                </div>
+                <div class="info">
+                  <a href="mailto:mejistus@outlook.com">電郵</a> mejistus@outlook.com
+                </div>
+                <div class="info"><a href="mejistus">微信</a> mejistus</div>
+              </div>
+            </div>
+          </div>
+          <div class="date">乙巳年八月癸卯</div>
+</body>
+
 </html>
