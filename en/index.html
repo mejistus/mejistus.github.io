@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Xu - Personal Portfolio</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --serif-font: "Crimson Text", "Palatino", "Georgia", serif;
+        --sans-font: "Helvetica Neue", "Arial", sans-serif;
+      }
+
+      body {
+        font-family: var(--serif-font);
+        background: #f5f1e870;
+        color: #1a1a1a;
+        line-height: 1.8;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: url("asserts/juhua.png");
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: contain;
+        opacity: 0.4;
+        z-index: -1;
+        pointer-events: none;
+      }
+
+      .page {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 60px 40px;
+        min-height: 100vh;
+      }
+
+      .header {
+        text-align: center;
+        border-bottom: 3px double #000;
+        padding-bottom: 40px;
+        margin-bottom: 60px;
+      }
+
+      .avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid #000000;
+        object-fit: cover;
+        margin-bottom: 30px;
+      }
+
+      .title {
+        font-size: 48px;
+        letter-spacing: 0.15em;
+        margin-bottom: 15px;
+        font-weight: normal;
+      }
+
+      .subtitle {
+        font-size: 20px;
+        letter-spacing: 0.08em;
+        opacity: 0.7;
+      }
+
+      .section {
+        margin-bottom: 60px;
+        padding-bottom: 40px;
+        border-bottom: 1px solid #ccc;
+      }
+
+      .section:last-child {
+        border-bottom: none;
+      }
+
+      .section-title {
+        font-size: 32px;
+        letter-spacing: 0.08em;
+        margin-bottom: 30px;
+        font-weight: bold;
+        position: relative;
+        padding-bottom: 15px;
+      }
+
+      .section-title::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 60px;
+        height: 2px;
+        background: #000;
+      }
+
+      .content {
+        font-size: 18px;
+        letter-spacing: 0.02em;
+      }
+
+      .paragraph {
+        margin-bottom: 20px;
+        text-align: justify;
+      }
+
+      .education-item,
+      .project,
+      .award-category {
+        margin-bottom: 30px;
+      }
+
+      .project-title,
+      .award-title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        letter-spacing: 0.03em;
+      }
+
+      .project-desc,
+      .award-list {
+        font-size: 17px;
+        opacity: 0.85;
+        line-height: 1.7;
+      }
+
+      .award-list {
+        padding-left: 20px;
+      }
+
+      .info {
+        font-size: 17px;
+        margin-bottom: 12px;
+      }
+
+      .info-label {
+        font-weight: bold;
+        display: inline-block;
+        min-width: 80px;
+      }
+
+      .poem {
+        margin-bottom: 35px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.3);
+        border-left: 3px solid #000;
+      }
+
+      .poem-title {
+        font-size: 19px;
+        font-weight: bold;
+        margin-bottom: 12px;
+        font-style: italic;
+      }
+
+      .poem-content {
+        font-size: 16px;
+        line-height: 1.9;
+        font-style: italic;
+        opacity: 0.9;
+      }
+
+      a {
+        color: #000;
+        text-decoration: none;
+        border-bottom: 1px solid #000;
+        transition: opacity 0.2s;
+      }
+
+      a:hover {
+        opacity: 0.6;
+      }
+
+      .date {
+        text-align: center;
+        padding: 40px 0 20px;
+        font-size: 14px;
+        opacity: 0.6;
+        font-style: italic;
+      }
+
+      @media (max-width: 768px) {
+        .page {
+          padding: 30px 20px;
+        }
+
+        .title {
+          font-size: 36px;
+        }
+
+        .section-title {
+          font-size: 26px;
+        }
+
+        .avatar {
+          width: 100px;
+          height: 100px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="page">
+      <div class="header">
+        <img
+          src="https://avatars.githubusercontent.com/u/155681204?v=4"
+          alt="Avatar"
+          class="avatar"
+        />
+        <div class="title">❖ Mejistus</div>
+        <div class="subtitle">Ph.D. Candidate</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">◈ Education</div>
+        <div class="content">
+          <div class="education-item">
+            <strong>East China University of Science and Technology</strong><br />
+            B.Sc. in Computer Science and Technology
+          </div>
+          <div class="education-item">
+            <strong>East China University of Science and Technology</strong><br />
+            M.Sc. in Computer Science and Technology
+          </div>
+          <div class="education-item">
+            <strong>East China University of Science and Technology</strong><br />
+            Ph.D. Candidate in Computer Science and Technology
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">✦ About Me</div>
+        <div class="content">
+          <div class="paragraph">
+            I am from Fuyang, Anhui Province. In 2020, I graduated from high
+            school with a ranking of 6,500 in Anhui Province's science track and
+            came to Shanghai to study Computer Science at East China University
+            of Science and Technology. After four years, I continued my graduate
+            studies, focusing on Computer Vision research.
+          </div>
+          <div class="paragraph">
+            Since childhood, I have been passionate about poetry, music,
+            history, and literature. During high school, I immersed myself in
+            Tang poetry, the Book of Songs, classical Chinese prose anthologies,
+            and the Records of the Grand Historian. I particularly enjoyed
+            classical Chinese writing and often composed essays for exams,
+            though my writing was initially chaotic and nearly disastrous. With
+            persistent effort, I gradually improved my skills.
+          </div>
+          <div class="paragraph">
+            Since university, I have frequently written poems and short verses.
+            In pursuit of quality, I often polish them late into the night,
+            finding great joy in this process. However, my poetry has two
+            regrets: First, whenever inspiration strikes, I either jot it down
+            hastily like Li He storing ideas, or casually share them on social
+            media. Therefore, most of my rough drafts are scattered and
+            countless. Only one or two out of ten can be considered "complete
+            poems." Though I have tried to organize them, trivial matters keep
+            intervening—this is my first regret. Second, poetry should primarily
+            convey emotions and meaning, with meter and rhyme being refinements.
+            Unfortunately, I lack mastery of prosody, so my verse inevitably has
+            technical flaws and cannot reach elegant heights—this is my second
+            regret.
+          </div>
+          <div class="paragraph">
+            Despite these regrets, my enthusiasm remains undiminished. Through
+            constant accumulation, careful excerpting, meticulous refinement of
+            phrases, and deliberate word choice, I have gained much. My poetry
+            improves daily, far surpassing my earlier works. When I read my old
+            pieces today, I still feel embarrassed. I imagine that when I look
+            back at today's works in the future, this feeling will be even
+            stronger, yet I will cherish these memories.
+          </div>
+          <div class="paragraph">
+            By nature, I am quiet and reserved, modest and prudent. Therefore, I
+            have few acquaintances, but most are worthy people.
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">◆ Projects</div>
+        <div class="content">
+          <div class="project">
+            <div class="project-title">
+              <a href="https://github.com/mejistus/python-args-completion"
+                >Python Args Completion Plugin</a
+              >
+            </div>
+            <div class="project-desc">
+              Built on the 'ast' standard library, automatically parses
+              parameters contained in Python programs.
+            </div>
+          </div>
+          <div class="project">
+            <div class="project-title">
+              <a href="https://github.com/mejistus/fantastic-i3"
+                >Fantastic i3</a
+              >
+            </div>
+            <div class="project-desc">
+              My personal i3wm configuration with a fresh and elegant style that
+              I humbly consider "aesthetically pleasing."
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">✿ Poetry</div>
+        <div class="content">
+          <div class="poem">
+            <div class="poem-title">
+              Response to a Netizen's Image of Two Suns over Tianshui
+            </div>
+            <div class="poem-content">
+              Hard to tell which crimson orb is sun or water,<br />
+              Unknown if rising dawn or setting dusk approaches.<br />
+              Arms raised high still shouting "Long live!"<br />
+              Capitalist or socialist, each takes a direction.<br />
+              Rivers and mountains change through hundred generations,<br />
+              The republic's glory spans the long years.<br />
+              If different paths lead homeward still,<br />
+              What harm in several transformations?
+            </div>
+          </div>
+
+          <div class="poem">
+            <div class="poem-title">Winter Reflections</div>
+            <div class="poem-content">
+              Plane trees whisper low,<br />
+              Agreeing to meet the dusk.<br />
+              This cold air is severe indeed,<br />
+              Yet we can still await the coming spring.
+            </div>
+          </div>
+
+          <div class="poem">
+            <div class="poem-title">Partridge Sky</div>
+            <div class="poem-content">
+              How pitiful that time passes too hastily,<br />
+              Just realized autumn aged, winter arrives again.<br />
+              Lonely lamp shadow falls beneath the plane tree,<br />
+              Broken leaves drift wandering in the north wind.<br />
+              Two thousand miles, eight hours' journey,<br />
+              Kindred spirits in one place, two hearts connected.<br />
+              Graceful snow falls on this southern traveler,<br />
+              At happiness's door we embrace once more.
+            </div>
+          </div>
+
+          <div class="poem">
+            <div class="poem-title">In the Night</div>
+            <div class="poem-content">
+              I too, as usual, intoxicated daily,<br />
+              Night after night reaching joy until dawn.<br />
+              Fame and profit need not bind me,<br />
+              Earth's sounds and heaven's sounds escort my youth.
+            </div>
+          </div>
+
+          <div class="poem">
+            <div class="poem-title">Dispatching a Messenger Through the Air</div>
+            <div class="poem-content">
+              Horses tire, mountains grow more distant,<br />
+              Rain hastens, shoulders bear heavier weight.<br />
+              Many weary travelers at the world's edge,<br />
+              Oxen and horses bearing lychees for men.
+            </div>
+          </div>
+
+          <div class="poem">
+            <div class="poem-title">Autumn</div>
+            <div class="poem-content">
+              Moon nears mid-heaven, spirits rise higher,<br />
+              Wild songs and drunken dance with golden cups.<br />
+              Small sips of clear brew, I'm getting drunk,<br />
+              Half autumn moon, half autumn wind.
+            </div>
+          </div>
+
+          <div class="poem">
+            <div class="poem-title">Untitled</div>
+            <div class="poem-content">
+              Poetry materials flow from my mouth as praise,<br />
+              I'm no genius, I carve and polish myself.<br />
+              Summer, autumn, winter, spring—flowers, snow, moon,<br />
+              Cultivating elegant taste to share with you.
+            </div>
+          </div>
+
+          <div class="poem">
+            <div class="poem-title">Vernacular Farewell</div>
+            <div class="poem-content">
+              Bustling passersby at the station,<br />
+              Endless sunset beyond the street.<br />
+              Looking back on the past thirty days,<br />
+              How much sorrow fills my heart.<br />
+              Today departing in such haste,<br />
+              Spring and autumn, how long they are.<br />
+              Moving like distant stars, hard to gather,<br />
+              Helpless—what can be done?
+            </div>
+          </div>
+
+          <div class="poem">
+            <div class="poem-title">After Scores Released</div>
+            <div class="poem-content">
+              Forest birds startle morning dreams,<br />
+              Worried heart deep as the sea.<br />
+              Waking from dreams, knowing helplessness,<br />
+              Alone facing the fresh dawn sky.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">⚑ Awards & Competitions</div>
+        <div class="content">
+          <div class="award-category">
+            <div class="award-title">Programming Competitions</div>
+            <div class="award-list">
+              2022 Fifth Chuanzhi Cup National College Programming Competition
+              Group A Regional Second Prize<br />
+              2023 14th Lanqiao Cup Programming Competition Preliminary Shanghai
+              Group A First Prize<br />
+              2023 14th Lanqiao Cup Programming Competition Finals National
+              Group A Third Prize
+            </div>
+          </div>
+
+          <div class="award-category">
+            <div class="award-title">Mathematical Modeling Competitions</div>
+            <div class="award-list">
+              2022 19th May Day Mathematical Modeling Competition Third
+              Prize<br />
+              2022 12th MathorCup College Mathematical Modeling Challenge
+              Undergraduate Group First Prize<br />
+              2023 Fourth Huashu Cup National College Mathematical Modeling
+              Competition Second Prize<br />
+              2023 First Huashu Cup International College Mathematical Modeling
+              Competition O Award<br />
+              2023 39th American College Mathematical Modeling Competition H
+              Award<br />
+              2024 21st Huawei Cup China Graduate Mathematical Modeling
+              Competition Second Prize<br />
+              2025 22nd Huawei Cup China Graduate Mathematical Modeling
+              Competition Second Prize
+            </div>
+          </div>
+
+          <div class="award-category">
+            <div class="award-title">Academic Scholarships</div>
+            <div class="award-list">
+              2020 East China University of Science and Technology
+              Undergraduate励志 Scholarship<br />
+              2024 East China University of Science and Technology Graduate
+              Freshman Scholarship Second Prize<br />
+              2025 East China University of Science and Technology Graduate
+              Academic Scholarship First Prize
+            </div>
+          </div>
+
+          <div class="award-category">
+            <div class="award-title">Other Competitions</div>
+            <div class="award-list">
+              2019 29th National High School Biology League Third Prize
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">◉ Research Interests</div>
+        <div class="content">
+          <div class="info">Diffusion Models</div>
+          <div class="info">Reinforcement Learning</div>
+          <div class="info">Generated Content Detection</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">✧ Contact</div>
+        <div class="content">
+          <div class="info">
+            <span class="info-label">GitHub:</span>
+            <a href="https://github.com/mejistus">github.com/mejistus</a>
+          </div>
+          <div class="info">
+            <span class="info-label">Email:</span>
+            <a href="mailto:mejistus@outlook.com">mejistus@outlook.com</a>
+          </div>
+          <div class="info">
+            <span class="info-label">WeChat:</span>
+            <a href="#">mejistus</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="date">August, Year of Yisi (2025)</div>
+  </body>
+</html>
