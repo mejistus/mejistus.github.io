@@ -1,514 +1,1315 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Xu - Personal Portfolio</title>
+    <title>Xu Chen — Personal Blog</title>
     <style>
-      * {
+      @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap");
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
         margin: 0;
         padding: 0;
-        box-sizing: border-box;
       }
 
       :root {
-        --serif-font: "Crimson Text", "Palatino", "Georgia", serif;
-        --sans-font: "Helvetica Neue", "Arial", sans-serif;
+        --sand: #f5f0ea;
+        --cream: #fdfaf6;
+        --sage: #8aaa8c;
+        --rust: #c47c5a;
+        --ink: #2d2d2d;
+        --muted: #8a8278;
+        --border: #e8e0d6;
+      }
+
+      html {
+        scroll-behavior: smooth;
       }
 
       body {
-        font-family: var(--serif-font);
-        background: #f5f1e870;
-        color: #1a1a1a;
+        font-family: "Inter", sans-serif;
+        background: var(--cream);
+        color: var(--ink);
+        line-height: 1.7;
+        overflow-x: hidden;
+      }
+
+      /* ── NAV ── */
+      nav {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        z-index: 100;
+        background: rgba(253, 250, 246, 0.88);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .nav-logo {
+        font-family: "Playfair Display", serif;
+        font-size: 1.2rem;
+        color: var(--ink);
+        text-decoration: none;
+      }
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        list-style: none;
+      }
+      .nav-links a {
+        text-decoration: none;
+        color: var(--muted);
+        font-size: 0.875rem;
+        letter-spacing: 0.04em;
+        transition: color 0.2s;
+      }
+      .nav-links a:hover {
+        color: var(--rust);
+      }
+
+      /* ── LAYOUT ── */
+      section {
+        padding: 6rem 2rem;
+        max-width: 860px;
+        margin: 0 auto;
+      }
+
+      /* ── HERO ── */
+      #hero {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding-top: 8rem;
+        position: relative;
+      }
+      .hero-deco {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        writing-mode: vertical-rl;
+        font-family: "Noto Serif TC", "Source Han Serif TC", serif;
+        font-size: 1.15rem;
+        letter-spacing: 0.25em;
+        color: var(--border);
+        user-select: none;
+        line-height: 2;
+      }
+      .hero-tag {
+        font-size: 0.75rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--sage);
+        margin-bottom: 1.2rem;
+      }
+      .hero-name {
+        font-family: "Playfair Display", serif;
+        font-size: clamp(2.8rem, 7vw, 5rem);
+        line-height: 1.1;
+        margin-bottom: 1.4rem;
+      }
+      .hero-name em {
+        color: var(--rust);
+        font-style: italic;
+      }
+      .hero-sub {
+        font-size: 1.05rem;
+        color: var(--muted);
+        max-width: 520px;
+        margin-bottom: 2.5rem;
+      }
+      .hero-cta {
+        display: inline-flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      .btn {
+        padding: 0.65rem 1.5rem;
+        border-radius: 2rem;
+        font-size: 0.875rem;
+        text-decoration: none;
+        transition: all 0.2s;
+        cursor: pointer;
+        border: none;
+      }
+      .btn-primary {
+        background: var(--rust);
+        color: #fff;
+      }
+      .btn-primary:hover {
+        background: #b36a48;
+      }
+      .btn-outline {
+        border: 1.5px solid var(--border);
+        color: var(--ink);
+        background: transparent;
+      }
+      .btn-outline:hover {
+        border-color: var(--rust);
+        color: var(--rust);
+      }
+
+      /* ── SECTION TITLES ── */
+      .section-label {
+        font-size: 0.72rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--sage);
+        margin-bottom: 0.6rem;
+      }
+      .section-title {
+        font-family: "Playfair Display", serif;
+        font-size: 2rem;
+        margin-bottom: 3rem;
+      }
+
+      /* ── ABOUT ── */
+      .about-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.6fr;
+        gap: 3.5rem;
+        align-items: start;
+      }
+      .avatar-wrap {
+        position: relative;
+      }
+      .avatar-wrap img {
+        width: 100%;
+        border-radius: 1rem;
+        aspect-ratio: 4/5;
+        object-fit: cover;
+        filter: sepia(10%) saturate(90%);
+      }
+      .avatar-badge {
+        position: absolute;
+        bottom: -1rem;
+        right: -1rem;
+        background: var(--rust);
+        color: #fff;
+        border-radius: 50%;
+        width: 72px;
+        height: 72px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        text-align: center;
+        line-height: 1.3;
+        font-weight: 500;
+      }
+      .about-text p {
+        color: var(--muted);
+        margin-bottom: 1.2rem;
+        font-size: 0.95rem;
+      }
+      .about-quote {
+        border-left: 2px solid var(--rust);
+        padding-left: 1rem;
+        margin: 1.5rem 0;
+        font-size: 0.9rem;
+        color: var(--muted);
+        font-style: italic;
         line-height: 1.8;
       }
+      .skills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+      }
+      .skill-tag {
+        padding: 0.3rem 0.85rem;
+        border-radius: 2rem;
+        background: var(--sand);
+        font-size: 0.78rem;
+        color: var(--ink);
+        border: 1px solid var(--border);
+      }
 
-      body::before {
-        content: "";
+      /* ── BLOG POSTS ── */
+      #posts {
+        background: var(--sand);
+        max-width: 100%;
+        padding: 0;
+      }
+      #posts > .inner {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 6rem 2rem;
+      }
+      .posts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 1.8rem;
+      }
+      .post-card {
+        background: var(--cream);
+        border-radius: 1rem;
+        padding: 1.8rem;
+        border: 1px solid var(--border);
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+        cursor: pointer;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+      }
+      .post-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.07);
+      }
+      .post-meta {
+        font-size: 0.72rem;
+        color: var(--sage);
+        letter-spacing: 0.06em;
+        margin-bottom: 0.8rem;
+      }
+      .post-title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.15rem;
+        margin-bottom: 0.6rem;
+        line-height: 1.4;
+      }
+      .post-excerpt {
+        font-size: 0.875rem;
+        color: var(--muted);
+      }
+      .post-tag {
+        display: inline-block;
+        margin-top: 1rem;
+        font-size: 0.7rem;
+        padding: 0.2rem 0.7rem;
+        border-radius: 2rem;
+        background: var(--sand);
+        color: var(--rust);
+        border: 1px solid #e8cfc4;
+      }
+
+      /* ── POETRY CARDS ── */
+      #poetry {
+        padding: 6rem 2rem;
+        max-width: 860px;
+        margin: 0 auto;
+      }
+      .poetry-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1.5rem;
+      }
+      .poem-card {
+        background: var(--sand);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        padding: 1.6rem;
+        cursor: pointer;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s,
+          border-color 0.2s;
+      }
+      .poem-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.07);
+        border-color: var(--rust);
+      }
+      .poem-card-title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.05rem;
+        margin-bottom: 0.5rem;
+        color: var(--ink);
+      }
+      .poem-card-excerpt {
+        font-size: 0.83rem;
+        color: var(--muted);
+        line-height: 1.7;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .poem-card-hint {
+        margin-top: 0.9rem;
+        font-size: 0.72rem;
+        color: var(--sage);
+        letter-spacing: 0.06em;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+      }
+
+      /* ── BOTTOM SHEET OVERLAY ── */
+      .panel-overlay {
         position: fixed;
         inset: 0;
-        background-image: url("asserts/juhua.png");
-        background-repeat: no-repeat;
-        background-position: center center;
-        background-size: contain;
-        opacity: 0.4;
-        z-index: -1;
+        background: rgba(45, 45, 45, 0.4);
+        backdrop-filter: blur(4px);
+        z-index: 200;
+        opacity: 0;
         pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      .panel-overlay.open {
+        opacity: 1;
+        pointer-events: all;
       }
 
-      .page {
-        max-width: 1000px;
-        margin: 0 auto;
-        padding: 60px 40px;
-        min-height: 100vh;
+      /* ── BOTTOM SHEET ── */
+      .poem-panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 72vh;
+        background: var(--cream);
+        z-index: 201;
+        border-radius: 1.5rem 1.5rem 0 0;
+        border-top: 1px solid var(--border);
+        box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.1);
+        transform: translateY(100%);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+      }
+      .poem-panel.open {
+        transform: translateY(0);
       }
 
-      .header {
-        text-align: center;
-        border-bottom: 3px double #000;
-        padding-bottom: 40px;
-        margin-bottom: 60px;
+      /* drag handle */
+      .panel-handle {
+        flex-shrink: 0;
+        display: flex;
+        justify-content: center;
+        padding: 1rem 0 0.5rem;
+        cursor: grab;
+      }
+      .panel-handle::after {
+        content: "";
+        display: block;
+        width: 40px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--border);
       }
 
-      .avatar {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        border: 4px solid #000000;
-        object-fit: cover;
-        margin-bottom: 30px;
+      /* panel header */
+      .panel-header {
+        flex-shrink: 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 0 2.5rem 1.2rem;
+        border-bottom: 1px solid var(--border);
       }
-
-      .title {
-        font-size: 48px;
+      .panel-header-left {
+      }
+      .panel-label {
+        font-size: 0.72rem;
         letter-spacing: 0.15em;
-        margin-bottom: 15px;
-        font-weight: normal;
+        text-transform: uppercase;
+        color: var(--sage);
+        margin-bottom: 0.35rem;
+      }
+      .panel-title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.6rem;
+        color: var(--ink);
+      }
+      .panel-close {
+        flex-shrink: 0;
+        margin-left: 1rem;
+        margin-top: 0.2rem;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1.5px solid var(--border);
+        background: transparent;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        font-size: 1rem;
+        transition: all 0.2s;
+      }
+      .panel-close:hover {
+        border-color: var(--rust);
+        color: var(--rust);
       }
 
-      .subtitle {
-        font-size: 20px;
-        letter-spacing: 0.08em;
-        opacity: 0.7;
+      /* scrollable body */
+      .panel-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.8rem 2.5rem 3rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+      }
+      @media (max-width: 640px) {
+        .panel-body {
+          grid-template-columns: 1fr;
+          gap: 1.5rem;
+        }
+        .poem-panel {
+          height: 85vh;
+        }
       }
 
-      .section {
-        margin-bottom: 20px;
-        padding-bottom: 20px;
-        border-bottom: 1px solid #ccc;
+      .panel-col-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--rust);
+        margin-bottom: 0.9rem;
+      }
+      .panel-zh {
+        font-family:
+          "Noto Serif TC", "Source Han Serif TC", "PingFang TC", serif;
+        font-size: 1.05rem;
+        line-height: 2.5;
+        color: var(--ink);
+        letter-spacing: 0.05em;
+      }
+      .panel-en {
+        font-family: "Playfair Display", serif;
+        font-style: italic;
+        font-size: 0.95rem;
+        line-height: 2.1;
+        color: var(--muted);
       }
 
-      .section:last-child {
+      /* nav arrows */
+      .panel-nav {
+        flex-shrink: 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.8rem 2.5rem 1.2rem;
+        border-top: 1px solid var(--border);
+      }
+      .panel-nav-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: none;
+        border: 1.5px solid var(--border);
+        border-radius: 2rem;
+        padding: 0.45rem 1rem;
+        font-size: 0.8rem;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+      }
+      .panel-nav-btn:hover:not(:disabled) {
+        border-color: var(--rust);
+        color: var(--rust);
+      }
+      .panel-nav-btn:disabled {
+        opacity: 0.3;
+        cursor: default;
+      }
+      .panel-nav-counter {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+
+      /* ── PROJECTS ── */
+      .projects-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+      }
+      .project-item {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        border-radius: 1rem;
+        border: 1px solid var(--border);
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+        text-decoration: none;
+        color: inherit;
+      }
+      .project-item:hover {
+        border-color: var(--rust);
+        box-shadow: 0 4px 20px rgba(196, 124, 90, 0.1);
+      }
+      .project-icon {
+        font-size: 1.8rem;
+        flex-shrink: 0;
+        width: 52px;
+        height: 52px;
+        background: var(--sand);
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .project-info {
+        flex: 1;
+      }
+      .project-name {
+        font-family: "Playfair Display", serif;
+        font-size: 1.05rem;
+        margin-bottom: 0.3rem;
+      }
+      .project-desc {
+        font-size: 0.875rem;
+        color: var(--muted);
+      }
+      .project-arrow {
+        color: var(--muted);
+        font-size: 1.1rem;
+        transition: transform 0.2s;
+      }
+      .project-item:hover .project-arrow {
+        transform: translateX(4px);
+        color: var(--rust);
+      }
+
+      /* ── AWARDS ── */
+      #awards {
+        background: var(--sand);
+        max-width: 100%;
+        padding: 0;
+      }
+      #awards > .inner {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 6rem 2rem;
+      }
+      .awards-group {
+        margin-bottom: 2.5rem;
+      }
+      .awards-group-title {
+        font-size: 0.78rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--rust);
+        margin-bottom: 1rem;
+        font-weight: 500;
+      }
+      .award-item {
+        display: flex;
+        align-items: baseline;
+        gap: 1rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.9rem;
+      }
+      .award-item:last-child {
         border-bottom: none;
       }
-
-      .section-title {
-        font-size: 32px;
-        letter-spacing: 0.08em;
-        margin-bottom: 25px;
-        font-weight: bold;
-        position: relative;
-        padding-bottom: 15px;
+      .award-year {
+        color: var(--sage);
+        font-size: 0.78rem;
+        white-space: nowrap;
+      }
+      .award-name {
+        color: var(--ink);
+        flex: 1;
+      }
+      .award-level {
+        margin-left: auto;
+        font-size: 0.72rem;
+        padding: 0.15rem 0.6rem;
+        border-radius: 2rem;
+        background: var(--cream);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        white-space: nowrap;
       }
 
-      .section-title::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        width: 60px;
-        height: 2px;
-        background: #000;
-      }
-
-      .content {
-        font-size: 18px;
-        letter-spacing: 0.02em;
-      }
-
-      .paragraph {
-        margin-bottom: 20px;
-        text-align: justify;
-      }
-
-      .education-item,
-      .project,
-      .award-category {
-        margin-bottom: 30px;
-      }
-
-      .project-title,
-      .award-title {
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 10px;
-        letter-spacing: 0.03em;
-      }
-
-      .project-desc,
-      .award-list {
-        font-size: 17px;
-        opacity: 0.85;
-        line-height: 1.7;
-      }
-
-      .award-list {
-        padding-left: 20px;
-      }
-
-      .info {
-        font-size: 17px;
-        margin-bottom: 12px;
-      }
-
-      .info-label {
-        font-weight: bold;
-        display: inline-block;
-        min-width: 80px;
-      }
-
-      .poem {
-        margin-bottom: 35px;
-        padding: 20px;
-        background: rgba(255, 255, 255, 0.3);
-        border-left: 3px solid #000;
-      }
-
-      .poem-title {
-        font-size: 19px;
-        font-weight: bold;
-        margin-bottom: 12px;
-        font-style: italic;
-      }
-
-      .poem-content {
-        font-size: 16px;
-        line-height: 1.9;
-        font-style: italic;
-        opacity: 0.9;
-      }
-
-      a {
-        color: #000;
-        text-decoration: none;
-        border-bottom: 1px solid #000;
-        transition: opacity 0.2s;
-      }
-
-      a:hover {
-        opacity: 0.6;
-      }
-
-      .date {
+      /* ── CONTACT ── */
+      #contact {
         text-align: center;
-        padding: 40px 0 20px;
-        font-size: 14px;
-        opacity: 0.6;
-        font-style: italic;
+      }
+      #contact .section-title {
+        margin-bottom: 1rem;
+      }
+      .contact-sub {
+        color: var(--muted);
+        max-width: 420px;
+        margin: 0 auto 2.5rem;
+      }
+      .social-links {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 2.5rem;
+      }
+      .social-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.4rem;
+        border-radius: 2rem;
+        border: 1.5px solid var(--border);
+        text-decoration: none;
+        color: var(--ink);
+        font-size: 0.875rem;
+        transition: all 0.2s;
+      }
+      .social-btn:hover {
+        border-color: var(--rust);
+        color: var(--rust);
       }
 
-      @media (max-width: 768px) {
-        .page {
-          padding: 30px 20px;
-        }
+      /* ── FOOTER ── */
+      footer {
+        text-align: center;
+        padding: 2rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
 
-        .title {
-          font-size: 36px;
+      @media (max-width: 620px) {
+        .about-grid {
+          grid-template-columns: 1fr;
         }
-
-        .section-title {
-          font-size: 26px;
+        .avatar-wrap {
+          max-width: 240px;
         }
-
-        .avatar {
-          width: 100px;
-          height: 100px;
+        .hero-deco {
+          display: none;
+        }
+        .nav-links {
+          gap: 1rem;
+        }
+        .panel-header {
+          padding: 0 1.2rem 1rem;
+        }
+        .panel-nav {
+          padding: 0.8rem 1.2rem 1.2rem;
         }
       }
     </style>
   </head>
-
   <body>
-    <div class="page">
-      <div class="header">
-        <img
-          src="https://avatars.githubusercontent.com/u/155681204?v=4"
-          alt="Avatar"
-          class="avatar"
-        />
-        <div class="title">❖ Mejistus</div>
-        <div class="subtitle">Ph.D. Candidate</div>
-      </div>
+    <!-- OVERLAY -->
+    <div class="panel-overlay" id="overlay" onclick="closePanel()"></div>
 
-      <div class="section">
-        <div class="section-title">◈ Education</div>
-        <div class="content">
-          <div class="education-item">
-            <strong>East China University of Science and Technology</strong><br />
-            B.Sc. in Computer Science and Technology
-          </div>
-          <div class="education-item">
-            <strong>East China University of Science and Technology</strong><br />
-            M.Sc. in Computer Science and Technology
-          </div>
-          <div class="education-item">
-            <strong>East China University of Science and Technology</strong><br />
-            Ph.D. Candidate in Computer Science and Technology
-          </div>
+    <!-- BOTTOM SHEET -->
+    <div class="poem-panel" id="poemPanel">
+      <div class="panel-handle"></div>
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <p class="panel-label" id="panelLabel">Poetry</p>
+          <h2 class="panel-title" id="panelTitle"></h2>
+        </div>
+        <button class="panel-close" onclick="closePanel()">✕</button>
+      </div>
+      <div class="panel-body">
+        <div>
+          <p class="panel-col-label">Original · 原文</p>
+          <div class="panel-zh" id="panelZh"></div>
+        </div>
+        <div>
+          <p class="panel-col-label">English rendering</p>
+          <div class="panel-en" id="panelEn"></div>
         </div>
       </div>
-
-      <div class="section">
-        <div class="section-title">✦ About Me</div>
-        <div class="content">
-          <div class="paragraph">
-            I am from Fuyang, Anhui Province. In 2020, I graduated from high
-            school with a ranking of 6,500 in Anhui Province's science track and
-            came to Shanghai to study Computer Science at East China University
-            of Science and Technology. After four years, I continued my graduate
-            studies, focusing on Computer Vision research.
-          </div>
-          <div class="paragraph">
-            Since childhood, I have been passionate about poetry, music,
-            history, and literature. During high school, I immersed myself in
-            Tang poetry, the Book of Songs, classical Chinese prose anthologies,
-            and the Records of the Grand Historian. I particularly enjoyed
-            classical Chinese writing and often composed essays for exams,
-            though my writing was initially chaotic and nearly disastrous. With
-            persistent effort, I gradually improved my skills.
-          </div>
-          <div class="paragraph">
-            Since university, I have frequently written poems and short verses.
-            In pursuit of quality, I often polish them late into the night,
-            finding great joy in this process. However, my poetry has two
-            regrets: First, whenever inspiration strikes, I either jot it down
-            hastily like Li He storing ideas, or casually share them on social
-            media. Therefore, most of my rough drafts are scattered and
-            countless. Only one or two out of ten can be considered "complete
-            poems." Though I have tried to organize them, trivial matters keep
-            intervening—this is my first regret. Second, poetry should primarily
-            convey emotions and meaning, with meter and rhyme being refinements.
-            Unfortunately, I lack mastery of prosody, so my verse inevitably has
-            technical flaws and cannot reach elegant heights—this is my second
-            regret.
-          </div>
-          <div class="paragraph">
-            Despite these regrets, my enthusiasm remains undiminished. Through
-            constant accumulation, careful excerpting, meticulous refinement of
-            phrases, and deliberate word choice, I have gained much. My poetry
-            improves daily, far surpassing my earlier works. When I read my old
-            pieces today, I still feel embarrassed. I imagine that when I look
-            back at today's works in the future, this feeling will be even
-            stronger, yet I will cherish these memories.
-          </div>
-          <div class="paragraph">
-            By nature, I am quiet and reserved, modest and prudent. Therefore, I
-            have few acquaintances, but most are worthy people.
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">◆ Projects</div>
-        <div class="content">
-          <div class="project">
-            <div class="project-title">
-              <a href="https://github.com/mejistus/python-args-completion"
-                >Python Args Completion Plugin</a
-              >
-            </div>
-            <div class="project-desc">
-              Built on the 'ast' standard library, automatically parses
-              parameters contained in Python programs.
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">
-              <a href="https://github.com/mejistus/fantastic-i3"
-                >Fantastic i3</a
-              >
-            </div>
-            <div class="project-desc">
-              My personal i3wm configuration with a fresh and elegant style that
-              I humbly consider "aesthetically pleasing."
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">✿ Poetry</div>
-        <div class="content">
-          <div class="poem">
-            <div class="poem-title">
-              Response to a Netizen's Image of Two Suns over Tianshui
-            </div>
-            <div class="poem-content">
-              Hard to tell which crimson orb is sun or water,<br />
-              Unknown if rising dawn or setting dusk approaches.<br />
-              Arms raised high still shouting "Long live!"<br />
-              Capitalist or socialist, each takes a direction.<br />
-              Rivers and mountains change through hundred generations,<br />
-              The republic's glory spans the long years.<br />
-              If different paths lead homeward still,<br />
-              What harm in several transformations?
-            </div>
-          </div>
-
-          <div class="poem">
-            <div class="poem-title">Winter Reflections</div>
-            <div class="poem-content">
-              Plane trees whisper low,<br />
-              Agreeing to meet the dusk.<br />
-              This cold air is severe indeed,<br />
-              Yet we can still await the coming spring.
-            </div>
-          </div>
-
-          <div class="poem">
-            <div class="poem-title">Partridge Sky</div>
-            <div class="poem-content">
-              How pitiful that time passes too hastily,<br />
-              Just realized autumn aged, winter arrives again.<br />
-              Lonely lamp shadow falls beneath the plane tree,<br />
-              Broken leaves drift wandering in the north wind.<br />
-              Two thousand miles, eight hours' journey,<br />
-              Kindred spirits in one place, two hearts connected.<br />
-              Graceful snow falls on this southern traveler,<br />
-              At happiness's door we embrace once more.
-            </div>
-          </div>
-
-          <div class="poem">
-            <div class="poem-title">In the Night</div>
-            <div class="poem-content">
-              I too, as usual, intoxicated daily,<br />
-              Night after night reaching joy until dawn.<br />
-              Fame and profit need not bind me,<br />
-              Earth's sounds and heaven's sounds escort my youth.
-            </div>
-          </div>
-
-          <div class="poem">
-            <div class="poem-title">Dispatching a Messenger Through the Air</div>
-            <div class="poem-content">
-              Horses tire, mountains grow more distant,<br />
-              Rain hastens, shoulders bear heavier weight.<br />
-              Many weary travelers at the world's edge,<br />
-              Oxen and horses bearing lychees for men.
-            </div>
-          </div>
-
-          <div class="poem">
-            <div class="poem-title">Autumn</div>
-            <div class="poem-content">
-              Moon nears mid-heaven, spirits rise higher,<br />
-              Wild songs and drunken dance with golden cups.<br />
-              Small sips of clear brew, I'm getting drunk,<br />
-              Half autumn moon, half autumn wind.
-            </div>
-          </div>
-
-          <div class="poem">
-            <div class="poem-title">Untitled</div>
-            <div class="poem-content">
-              Poetry materials flow from my mouth as praise,<br />
-              I'm no genius, I carve and polish myself.<br />
-              Summer, autumn, winter, spring—flowers, snow, moon,<br />
-              Cultivating elegant taste to share with you.
-            </div>
-          </div>
-
-          <div class="poem">
-            <div class="poem-title">Vernacular Farewell</div>
-            <div class="poem-content">
-              Bustling passersby at the station,<br />
-              Endless sunset beyond the street.<br />
-              Looking back on the past thirty days,<br />
-              How much sorrow fills my heart.<br />
-              Today departing in such haste,<br />
-              Spring and autumn, how long they are.<br />
-              Moving like distant stars, hard to gather,<br />
-              Helpless—what can be done?
-            </div>
-          </div>
-
-          <div class="poem">
-            <div class="poem-title">After Scores Released</div>
-            <div class="poem-content">
-              Forest birds startle morning dreams,<br />
-              Worried heart deep as the sea.<br />
-              Waking from dreams, knowing helplessness,<br />
-              Alone facing the fresh dawn sky.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">⚑ Awards & Competitions</div>
-        <div class="content">
-          <div class="award-category">
-            <div class="award-title">Programming Competitions</div>
-            <div class="award-list">
-              2022 Fifth Chuanzhi Cup National College Programming Competition
-              Group A Regional Second Prize<br />
-              2023 14th Lanqiao Cup Programming Competition Preliminary Shanghai
-              Group A First Prize<br />
-              2023 14th Lanqiao Cup Programming Competition Finals National
-              Group A Third Prize
-            </div>
-          </div>
-
-          <div class="award-category">
-            <div class="award-title">Mathematical Modeling Competitions</div>
-            <div class="award-list">
-              2022 19th May Day Mathematical Modeling Competition Third
-              Prize<br />
-              2022 12th MathorCup College Mathematical Modeling Challenge
-              Undergraduate Group First Prize<br />
-              2023 Fourth Huashu Cup National College Mathematical Modeling
-              Competition Second Prize<br />
-              2023 First Huashu Cup International College Mathematical Modeling
-              Competition O Award<br />
-              2023 39th American College Mathematical Modeling Competition H
-              Award<br />
-              2024 21st Huawei Cup China Graduate Mathematical Modeling
-              Competition Second Prize<br />
-              2025 22nd Huawei Cup China Graduate Mathematical Modeling
-              Competition Second Prize
-            </div>
-          </div>
-
-          <div class="award-category">
-            <div class="award-title">Academic Scholarships</div>
-            <div class="award-list">
-              2020 East China University of Science and Technology
-              Undergraduate Encouraging Scholarship<br />
-              2024 East China University of Science and Technology Graduate
-              Freshman Scholarship Second Prize<br />
-              2025 East China University of Science and Technology Graduate
-              Academic Scholarship First Prize
-            </div>
-          </div>
-
-          <div class="award-category">
-            <div class="award-title">Other Competitions</div>
-            <div class="award-list">
-              2019 29th National High School Biology League Third Prize
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">◉ Research Interests</div>
-        <div class="content">
-          <div class="info">Diffusion Models</div>
-          <div class="info">Reinforcement Learning</div>
-          <div class="info">Generated Content Detection</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-title">✧ Contact</div>
-        <div class="content">
-          <div class="info">
-            <span class="info-label">GitHub:</span>
-            <a href="https://github.com/mejistus">github.com/mejistus</a>
-          </div>
-          <div class="info">
-            <span class="info-label">Email:</span>
-            <a href="mailto:mejistus@outlook.com">mejistus@outlook.com</a>
-          </div>
-          <div class="info">
-            <span class="info-label">WeChat:</span>
-            <a href="#">mejistus</a>
-          </div>
-        </div>
+      <div class="panel-nav">
+        <button class="panel-nav-btn" id="btnPrev" onclick="navigate(-1)">
+          ← Prev
+        </button>
+        <span class="panel-nav-counter" id="panelCounter"></span>
+        <button class="panel-nav-btn" id="btnNext" onclick="navigate(1)">
+          Next →
+        </button>
       </div>
     </div>
 
-    <div class="date">August, Year of Yisi (2025)</div>
+    <!-- NAV -->
+    <nav>
+      <a href="#hero" class="nav-logo">Xu Chen</a>
+      <ul class="nav-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#posts">Blog</a></li>
+        <li><a href="#poetry">Poetry</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#awards">Awards</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+
+    <!-- HERO -->
+    <section id="hero">
+      <div class="hero-deco">
+        故所交者少，然賢者眾。 <br />
+        性少言，为人淡泊恭谨。
+      </div>
+      <p class="hero-tag">✦ Researcher · Developer · Poet</p>
+      <h1 class="hero-name">Hello, I'm<br /><em>Xu Chen.</em></h1>
+      <p class="hero-sub">
+        A PhD student in Computer Science at ECUST, working on diffusion models,
+        reinforcement learning, and AIGC detection — with a quiet side life
+        writing classical Chinese poetry.
+      </p>
+      <div class="hero-cta">
+        <a href="#about" class="btn btn-primary">Learn more</a>
+        <a href="#poetry" class="btn btn-outline">Read my poems</a>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about">
+      <p class="section-label">About Me</p>
+      <h2 class="section-title">A bit about myself</h2>
+      <div class="about-grid">
+        <div class="avatar-wrap">
+          <img
+            src="https://avatars.githubusercontent.com/u/155681204?v=4"
+            alt="Mejistus"
+          />
+          <div class="avatar-badge">PhD<br />Student</div>
+        </div>
+        <div class="about-text">
+          <p>
+            I'm from Fuyang, Anhui. In 2020 I came to Shanghai for my
+            undergraduate degree in Computer Science at East China University of
+            Science and Technology, where I stayed on for my Master's and am now
+            a PhD candidate focusing on Computer Vision.
+          </p>
+          <p>
+            Beyond research I have a deep love for classical Chinese poetry,
+            history, and literature. Since university I've been composing my own
+            verses — polishing each one late into the night, happily lost in the
+            craft. Every time I revisit old poems I feel a little embarrassed,
+            which I take as a sign of growth.
+          </p>
+          <div class="about-quote">
+            "Each time I reread old verses I cannot help but feel a little
+            ashamed — and I suppose that is exactly what progress feels like."
+          </div>
+          <p>Quiet by nature, few in friends but rich in quality.</p>
+          <div class="skills">
+            <span class="skill-tag">Diffusion Models</span>
+            <span class="skill-tag">Reinforcement Learning</span>
+            <span class="skill-tag">Computer Vision</span>
+            <span class="skill-tag">AIGC Detection</span>
+            <span class="skill-tag">Python</span>
+            <span class="skill-tag">Classical Poetry</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BLOG POSTS -->
+    <section id="posts" style="padding: 0">
+      <div class="inner">
+        <p class="section-label">Recent Writing</p>
+        <h2 class="section-title">From the blog</h2>
+        <div class="posts-grid">
+          <a class="post-card" href="#">
+            <p class="post-meta">Coming soon · Dev</p>
+            <h3 class="post-title">
+              On diffusion models and the art of generation
+            </h3>
+            <p class="post-excerpt">
+              What generative models taught me about creativity, randomness...
+            </p>
+            <span class="post-tag">Research</span>
+          </a>
+          <a class="post-card" href="#">
+            <p class="post-meta">Coming soon · Reflection</p>
+            <h3 class="post-title">
+              Writing classical poetry in the age of LLMs
+            </h3>
+            <p class="post-excerpt">
+              Why I still carve verses by hand, even when AI can do it in...
+            </p>
+            <span class="post-tag">Poetry</span>
+          </a>
+          <a class="post-card" href="#">
+            <p class="post-meta">Coming soon · Dev</p>
+            <h3 class="post-title">
+              My i3wm setup: calm aesthetics for a busy mind
+            </h3>
+            <p class="post-excerpt">
+              A walkthrough of the window manager config I actually enjoy...
+            </p>
+            <span class="post-tag">Dev</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- POETRY -->
+    <section id="poetry">
+      <p class="section-label">Selected Verses</p>
+      <h2 class="section-title">Poems I've written</h2>
+      <div class="poetry-grid">
+        <div class="poem-card" onclick="openPanel(0)">
+          <div class="poem-card-title">Untitled · Fireworks</div>
+          <div class="poem-card-excerpt">
+            Fireworks scatter upward in splendour, violet and crimson in a
+            flash...
+          </div>
+          <div class="poem-card-hint">↑ Read full poem</div>
+        </div>
+        <div class="poem-card" onclick="openPanel(1)">
+          <div class="poem-card-title">Parting</div>
+          <div class="poem-card-excerpt">
+            Two hearts tethered across distant cities, a year of snow and
+            separation...
+          </div>
+          <div class="poem-card-hint">↑ Read full poem</div>
+        </div>
+        <div class="poem-card" onclick="openPanel(2)">
+          <div class="poem-card-title">Reply to a Friend's Sky Photo</div>
+          <div class="poem-card-excerpt">
+            Two crimson discs in the sky — impossible to tell dawn from dusk...
+          </div>
+          <div class="poem-card-hint">↑ Read full poem</div>
+        </div>
+        <div class="poem-card" onclick="openPanel(3)">
+          <div class="poem-card-title">Winter Reverie</div>
+          <div class="poem-card-excerpt">
+            The paulownia whispers low, as if calling dusk to come early...
+          </div>
+          <div class="poem-card-hint">↑ Read full poem</div>
+        </div>
+        <div class="poem-card" onclick="openPanel(4)">
+          <div class="poem-card-title">Partridge Sky · Zhè Gū Tiān</div>
+          <div class="poem-card-excerpt">
+            How swiftly time flies — autumn ages before winter even arrives...
+          </div>
+          <div class="poem-card-hint">↑ Read full poem</div>
+        </div>
+        <div class="poem-card" onclick="openPanel(5)">
+          <div class="poem-card-title">Night</div>
+          <div class="poem-card-excerpt">
+            I drink as always, night after night revelling until the small
+            hours...
+          </div>
+          <div class="poem-card-hint">↑ Read full poem</div>
+        </div>
+        <div class="poem-card" onclick="openPanel(6)">
+          <div class="poem-card-title">Messenger in the Sky</div>
+          <div class="poem-card-excerpt">
+            The road grows longer as the horse tires; rain quickens, shoulders
+            heavy...
+          </div>
+          <div class="poem-card-hint">↑ Read full poem</div>
+        </div>
+        <div class="poem-card" onclick="openPanel(7)">
+          <div class="poem-card-title">Autumn</div>
+          <div class="poem-card-excerpt">
+            The moon nears zenith and the mood soars — wild song, dance, wine...
+          </div>
+          <div class="poem-card-hint">↑ Read full poem</div>
+        </div>
+        <div class="poem-card" onclick="openPanel(8)">
+          <div class="poem-card-title">Untitled · On Writing</div>
+          <div class="poem-card-excerpt">
+            Poetic material comes easily but praise is cheap — I am no genius...
+          </div>
+          <div class="poem-card-hint">↑ Read full poem</div>
+        </div>
+        <div class="poem-card" onclick="openPanel(9)">
+          <div class="poem-card-title">Farewell in Vernacular</div>
+          <div class="poem-card-excerpt">
+            The station swells with passing strangers; outside, endless evening
+            light...
+          </div>
+          <div class="poem-card-hint">↑ Read full poem</div>
+        </div>
+        <div class="poem-card" onclick="openPanel(10)">
+          <div class="poem-card-title">After the Results</div>
+          <div class="poem-card-excerpt">
+            A forest bird shatters the morning dream; dread deep as the ocean...
+          </div>
+          <div class="poem-card-hint">↑ Read full poem</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects">
+      <p class="section-label">Selected Work</p>
+      <h2 class="section-title">Projects I'm proud of</h2>
+      <div class="projects-list">
+        <a
+          class="project-item"
+          href="https://github.com/mejistus/python-args-completion"
+        >
+          <div class="project-icon">⚙️</div>
+          <div class="project-info">
+            <p class="project-name">Python Args Completion</p>
+            <p class="project-desc">
+              Auto-parses Python script arguments via the
+              <code>ast</code> standard library — a shell plugin for effortless
+              argument auto-completion.
+            </p>
+          </div>
+          <span class="project-arrow">→</span>
+        </a>
+        <a class="project-item" href="https://github.com/mejistus/fantastic-i3">
+          <div class="project-icon">🪟</div>
+          <div class="project-info">
+            <p class="project-name">Fantastic i3</p>
+            <p class="project-desc">
+              My personal i3wm configuration — clean, minimal, and aesthetically
+              considered. Self-described as "decent taste."
+            </p>
+          </div>
+          <span class="project-arrow">→</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- AWARDS -->
+    <section id="awards" style="padding: 0">
+      <div class="inner">
+        <p class="section-label">Honors & Awards</p>
+        <h2 class="section-title">Competition results</h2>
+        <div class="awards-group">
+          <div class="awards-group-title">Programming</div>
+          <div class="award-item">
+            <span class="award-year">2022</span>
+            <span class="award-name"
+              >5th ChuanZhi Cup National College Programming Contest, Group A
+              Regional</span
+            >
+            <span class="award-level">2nd Prize</span>
+          </div>
+          <div class="award-item">
+            <span class="award-year">2023</span>
+            <span class="award-name"
+              >14th LanQiao Cup — Shanghai Preliminary, Group A</span
+            >
+            <span class="award-level">1st Prize</span>
+          </div>
+          <div class="award-item">
+            <span class="award-year">2023</span>
+            <span class="award-name"
+              >14th LanQiao Cup — National Finals, Group A</span
+            >
+            <span class="award-level">3rd Prize</span>
+          </div>
+        </div>
+        <div class="awards-group">
+          <div class="awards-group-title">Mathematical Modeling</div>
+          <div class="award-item">
+            <span class="award-year">2022</span>
+            <span class="award-name"
+              >19th May Day Mathematical Modeling Contest</span
+            >
+            <span class="award-level">3rd Prize</span>
+          </div>
+          <div class="award-item">
+            <span class="award-year">2022</span>
+            <span class="award-name"
+              >12th MathorCup — Undergraduate Division</span
+            >
+            <span class="award-level">1st Prize</span>
+          </div>
+          <div class="award-item">
+            <span class="award-year">2023</span>
+            <span class="award-name"
+              >4th HuaShu Cup National Mathematical Modeling</span
+            >
+            <span class="award-level">2nd Prize</span>
+          </div>
+          <div class="award-item">
+            <span class="award-year">2023</span>
+            <span class="award-name"
+              >1st HuaShu Cup International Mathematical Modeling</span
+            >
+            <span class="award-level">Outstanding (O)</span>
+          </div>
+          <div class="award-item">
+            <span class="award-year">2023</span>
+            <span class="award-name"
+              >39th MCM/ICM (American Mathematical Modeling)</span
+            >
+            <span class="award-level">Honorable Mention</span>
+          </div>
+          <div class="award-item">
+            <span class="award-year">2024</span>
+            <span class="award-name"
+              >21st Huawei Cup Graduate Mathematical Modeling</span
+            >
+            <span class="award-level">2nd Prize</span>
+          </div>
+          <div class="award-item">
+            <span class="award-year">2025</span>
+            <span class="award-name"
+              >22nd Huawei Cup Graduate Mathematical Modeling</span
+            >
+            <span class="award-level">2nd Prize</span>
+          </div>
+        </div>
+        <div class="awards-group">
+          <div class="awards-group-title">Scholarships</div>
+          <div class="award-item">
+            <span class="award-year">2020</span>
+            <span class="award-name"
+              >ECUST Undergraduate Encouragement Scholarship</span
+            >
+            <span class="award-level">—</span>
+          </div>
+          <div class="award-item">
+            <span class="award-year">2024</span>
+            <span class="award-name">ECUST Graduate Entrance Scholarship</span>
+            <span class="award-level">2nd Prize</span>
+          </div>
+          <div class="award-item">
+            <span class="award-year">2025</span>
+            <span class="award-name">ECUST Graduate Academic Scholarship</span>
+            <span class="award-level">1st Prize</span>
+          </div>
+        </div>
+        <div class="awards-group">
+          <div class="awards-group-title">Other</div>
+          <div class="award-item">
+            <span class="award-year">2019</span>
+            <span class="award-name"
+              >29th National High School Biology Olympiad</span
+            >
+            <span class="award-level">3rd Prize</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact">
+      <p class="section-label">Get In Touch</p>
+      <h2 class="section-title">Let's say hello</h2>
+      <p class="contact-sub">
+        Whether it's research, collaboration, or just a conversation about
+        poetry and classical Chinese literature — I'm always happy to hear from
+        you.
+      </p>
+      <a href="mailto:mejistus@outlook.com" class="btn btn-primary"
+        >mejistus@outlook.com</a
+      >
+      <div class="social-links">
+        <a class="social-btn" href="https://github.com/mejistus">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.218.694.825.576C20.565 21.795 24 17.298 24 12c0-6.63-5.37-12-12-12z"
+            />
+          </svg>
+          GitHub
+        </a>
+        <a class="social-btn" href="mailto:mejistus@outlook.com">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <rect x="2" y="4" width="20" height="16" rx="2" />
+            <path d="m2 7 10 7 10-7" />
+          </svg>
+          Email
+        </a>
+        <a class="social-btn" href="#">
+          <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+            <path
+              d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-5.972 2.754-7.965 1.376-1.062 3.133-1.72 5.018-1.72.28 0 .556.022.834.048C17.298 4.205 13.324 2.188 8.691 2.188zm-1.47 3.62a1.065 1.065 0 1 1 0 2.13 1.065 1.065 0 0 1 0-2.13zm5.04 0a1.065 1.065 0 1 1 0 2.13 1.065 1.065 0 0 1 0-2.13zm6.985 1.958c-4.26 0-7.714 2.863-7.714 6.398 0 3.535 3.454 6.399 7.714 6.399.943 0 1.845-.132 2.682-.377a.723.723 0 0 1 .599.082l1.594.933a.274.274 0 0 0 .14.046c.134 0 .244-.11.244-.247 0-.06-.024-.12-.04-.179l-.327-1.241a.495.495 0 0 1 .178-.557C23.092 17.625 24 16.056 24 14.164c0-3.535-3.454-6.398-7.754-6.398zm-2.678 3.62a.888.888 0 1 1 0 1.776.888.888 0 0 1 0-1.776zm5.356 0a.888.888 0 1 1 0 1.776.888.888 0 0 1 0-1.776z"
+            />
+          </svg>
+          WeChat: mejistus
+        </a>
+      </div>
+    </section>
+
+    <footer>
+      <p>© 2025 Mejistus · East China University of Science and Technology</p>
+    </footer>
+
+    <script>
+      const poems = [
+        {
+          title: "Untitled · Fireworks",
+          zh: `煙花散落升絢麗，霎時紫粉霎時紅。
+原來情人意難斷，都付午夢煙火中。`,
+          en: `Fireworks burst upward in radiant splendour,
+one moment violet, the next a blaze of red.
+So this is how a lover's heart refuses to let go —
+all of it surrendered to smoke and fire in an afternoon dream.`,
+        },
+        {
+          title: "Parting",
+          zh: `異地兩處情難系，風雪一年各天涯。
+而今難忘尋常日，君愛情濃我愛花。`,
+          en: `Love stretched thin across two distant cities,
+a whole year of wind and snow, each at the edge of the world.
+Now I cannot forget the ordinary days —
+you so full of feeling, and I so full of flowers.`,
+        },
+        {
+          title: "Reply to a Friend's Sky Photo from Tianshui",
+          zh: `難辨天水兩輪赤，不知旭日或殘陽。
+振臂高呼仍萬歲，走資走社各一方。
+江山百代桑田變，共和光輝歲月長。
+向使途殊歸者同，幾番變化又何妨？`,
+          en: `Two crimson discs hang in the sky of Tianshui —
+impossible to say which is the rising sun and which the dying one.
+Still we raise our arms and cry long live,
+though the road to capital or commune forks sharply in two.
+Mountains and rivers shift across a hundred generations;
+the republic's light endures through all its long years.
+If roads however different lead in the end to the same place,
+what does it matter how many times the world turns over?`,
+        },
+        {
+          title: "Winter Reverie",
+          zh: `梧桐盡低語，相約赴黃昏。
+此期寒氣甚，尤可待來春。`,
+          en: `The paulownia trees murmur softly to one another,
+making a quiet appointment to meet the dusk.
+The cold bites deep this season —
+all the more reason to wait for spring.`,
+        },
+        {
+          title: "Partridge Sky · Zhè Gū Tiān",
+          zh: `可憐時光太匆匆，始覚秋老又臨冬。
+孤燈影落梧桐下，碎葉流浪北風中。
+兩千裡，八刻鐘。靈犀一處兩心通。
+翩翩雪落南方客，幸福門下再相擁。`,
+          en: `How pitifully swift the hours — barely noticing autumn age
+before winter is already at the door.
+A lone lamp casts its shadow beneath the paulownia;
+broken leaves wander as vagrants in the north wind.
+Two thousand li apart, yet only eight quarter-hours by train.
+One shared thought — and two hearts speak without a single word.
+Light as snowflakes falling on a southbound traveller,
+we will embrace again at the doorway of happiness.`,
+        },
+        {
+          title: "Night",
+          zh: `我亦如常日日醉，夜夜達歡至凌晨。
+功名利益休縛我，地籟天籟送青春。`,
+          en: `I drink as always, day after day lost in wine,
+revelling every night until the small hours come.
+Let fame and fortune leave me well alone —
+the music of earth and sky will see my youth out.`,
+        },
+        {
+          title: "Messenger in the Sky",
+          zh: `馬勞山更遠，雨急肩越沉。
+天涯多倦客，牛馬荔枝人。`,
+          en: `The horse grows weary and the mountain recedes ever further;
+the rain quickens its pace and the burden on the shoulder grows heavier.
+The ends of the earth are full of exhausted travellers —
+people who labour like oxen and horses just to carry lychees home.`,
+        },
+        {
+          title: "Autumn",
+          zh: `月近中天興愈濃，狂歌醉舞佐金鐘。
+小飲清釀我將醉，半關秋月半關風。`,
+          en: `As the moon nears its zenith the spirit swells ever higher,
+wild song and drunken dance beside a golden cup.
+A little clear wine and I am nearly gone —
+half bewitched by the autumn moon, half carried away by the wind.`,
+        },
+        {
+          title: "Untitled · On Writing",
+          zh: `詩材張口即菲頌，我非天才自雕琢。
+夏秋冬春花雪月，聊摩雅致共爾說。`,
+          en: `Open your mouth for poetic material and hollow praise flows out with ease —
+I am no genius; every line must be earned through patient carving.
+Summer and autumn, winter and spring: flowers, snow, and the moon —
+I polish them slowly, and share whatever small refinement I reach with you.`,
+        },
+        {
+          title: "Farewell in Vernacular",
+          zh: `站裡熙熙過客，街外無限夕陽。
+回首過去三十日，心裡多少憂傷。
+今日匆匆離去，春秋何其漫長。
+動若參商難相聚，無奈又能何妨。`,
+          en: `The station hums with strangers passing through;
+outside, the sunset stretches without end.
+Looking back across these thirty days —
+how much sorrow can a single heart hold?
+Today we part in haste,
+and the seasons stretching ahead seem impossibly long.
+We move apart like Orion and Antares, rarely to meet —
+and yet, what is there to be done?`,
+        },
+        {
+          title: "After the Results",
+          zh: `林鳥驚晨夢，憂心似海深。
+夢醒知無奈，獨向天色新。`,
+          en: `A forest bird shatters the morning dream;
+dread settles in, as deep and still as the ocean floor.
+Waking, I know there is nothing to be done —
+alone I turn and face the new light breaking in the sky.`,
+        },
+      ];
+
+      let current = 0;
+
+      function render(i) {
+        const p = poems[i];
+        document.getElementById("panelLabel").textContent =
+          `Poetry · ${i + 1} of ${poems.length}`;
+        document.getElementById("panelTitle").textContent = p.title;
+        document.getElementById("panelZh").innerHTML = p.zh.replace(
+          /\n/g,
+          "<br>",
+        );
+        document.getElementById("panelEn").innerHTML = p.en.replace(
+          /\n/g,
+          "<br>",
+        );
+        document.getElementById("panelCounter").textContent =
+          `${i + 1} / ${poems.length}`;
+        document.getElementById("btnPrev").disabled = i === 0;
+        document.getElementById("btnNext").disabled = i === poems.length - 1;
+        // scroll body back to top on switch
+        document.querySelector(".panel-body").scrollTop = 0;
+      }
+
+      function openPanel(i) {
+        current = i;
+        render(i);
+        document.getElementById("overlay").classList.add("open");
+        document.getElementById("poemPanel").classList.add("open");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closePanel() {
+        document.getElementById("overlay").classList.remove("open");
+        document.getElementById("poemPanel").classList.remove("open");
+        document.body.style.overflow = "";
+      }
+
+      function navigate(dir) {
+        const next = current + dir;
+        if (next < 0 || next >= poems.length) return;
+        current = next;
+        render(current);
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (!document.getElementById("poemPanel").classList.contains("open"))
+          return;
+        if (e.key === "Escape") closePanel();
+        if (e.key === "ArrowLeft") navigate(-1);
+        if (e.key === "ArrowRight") navigate(1);
+      });
+    </script>
   </body>
 </html>
