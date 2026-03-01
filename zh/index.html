@@ -206,7 +206,6 @@
       }
     </style>
   </head>
-
   <body>
     <div class="page">
       <div class="avatar-section">
@@ -279,82 +278,11 @@
         </div>
       </div>
 
-      <div class="section">
+      <div class="section poems-section">
         <div class="section-title">✿ 詩作</div>
-        <div class="content">
-          <div class="project">
-            <div class="project-title">無題</div>
-            <div class="project-desc">
-              煙花散落升絢麗，霎時紫粉霎時紅。<br />
-              原來情人意難斷，都付午夢煙火中。<br />
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">分手</div>
-            <div class="project-desc">
-              異地兩處情難系，風雪一年各天涯。<br />
-              而今難忘尋常日，君愛情濃我愛花。<br />
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">答網友天水二日圖</div>
-            <div class="project-desc">
-              難辨天水兩輪赤，不知旭日或殘陽。振臂高呼仍萬歲，走資走社各一方。<br />
-              江山百代桑田變，共和光輝歲月長。向使途殊歸者同，幾番變化又何妨？<br />
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">冬日感懷</div>
-            <div class="project-desc">
-              梧桐盡低語，相約赴黃昏。此期寒氣甚，尤可待來春。
-            </div>
-          </div>
-
-          <div class="project">
-            <div class="project-title">鷓鴣天</div>
-            <div class="project-desc">
-              可憐時光太匆匆，始覚秋老又臨冬。孤燈影落梧桐下，碎葉流浪北風中。<br />兩千裡，八刻鐘。靈犀一處兩心通。翩翩雪落南方客，幸福門下再相擁。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">夜中</div>
-            <div class="project-desc">
-              我亦如常日日醉，夜夜達歡至凌晨。功名利益休縛我，地籟天籟送青春。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">遣使空中</div>
-            <div class="project-desc">
-              馬勞山更遠，雨急肩越沉。天涯多倦客，牛馬荔枝人。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">秋</div>
-            <div class="project-desc">
-              月近中天興愈濃，狂歌醉舞佐金鐘。小飲清釀我將醉，半關秋月半關風。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">無題</div>
-            <div class="project-desc">
-              詩材張口即菲頌，我非天才自雕琢。夏秋冬春花雪月，聊摩雅致共爾說。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">白話和別</div>
-            <div class="project-desc">
-              站裡熙熙過客，街外無限夕陽。回首過去三十日，心裡多少憂傷。<br />
-              今日匆匆離去，春秋何其漫長。動若參商難相聚，無奈又能何妨。
-            </div>
-          </div>
-          <div class="project">
-            <div class="project-title">出分後</div>
-            <div class="project-desc">
-              林鳥驚晨夢，憂心似海深。夢醒知無奈，獨向天色新。
-            </div>
-          </div>
-        </div>
+        <div class="content"></div>
       </div>
+      
       <div class="section">
         <div class="section-title">⚑ 競賽</div>
         <div class="content">
@@ -418,5 +346,28 @@
       </div>
     </div>
     <div class="date">乙巳年八月癸卯</div>
+    <script>
+      fetch("../data/poems.jsonl")
+        .then((r) => r.text())
+        .then((text) => {
+          const poems = text
+            .trim()
+            .split("\n")
+            .map((line) => JSON.parse(line));
+          const container = document.querySelector(
+            ".section.poems-section .content",
+          );
+          container.innerHTML = poems
+            .map(
+              (p) => `
+            <div class="project">
+              <div class="project-title">${p.zh_title ?? p.title}</div>
+              <div class="project-desc">${p.zh.replace(/\n/g, "<br />")}</div>
+            </div>
+          `,
+            )
+            .join("");
+        });
+    </script>
   </body>
 </html>
