@@ -772,10 +772,7 @@
       <h2 class="section-title">A bit about myself</h2>
       <div class="about-grid">
         <div class="avatar-wrap">
-          <img
-            src="assets/me.jpg"
-            alt="Mejistus"
-          />
+          <img src="assets/me.jpg" alt="Mejistus" />
           <div class="avatar-badge">PhD<br />Student</div>
         </div>
         <div class="about-text">
@@ -788,9 +785,9 @@
           <p>
             Beyond research I have a deep love for classical Chinese poetry,
             history, and literature. Since university I've been composing my own
-            verses — polishing each one late into the night, while happily lost in the
-            craft. Every time I revisit old poems I feel a little embarrassed,
-            but I take it as a sign of growth.
+            verses — polishing each one late into the night, while happily lost
+            in the craft. Every time I revisit old poems I feel a little
+            embarrassed, but I take it as a sign of growth.
           </p>
           <div class="about-quote">
             "Each time I reread old verses I cannot help but feel a little
@@ -853,90 +850,7 @@
     <section id="poetry">
       <p class="section-label">Selected Verses</p>
       <h2 class="section-title">Poems I've written</h2>
-      <div class="poetry-grid">
-        <div class="poem-card" onclick="openPanel(0)">
-          <div class="poem-card-title">Untitled · Fireworks</div>
-          <div class="poem-card-excerpt">
-            Fireworks scatter upward in splendour, violet and crimson in a
-            flash...
-          </div>
-          <div class="poem-card-hint">↑ Read full poem</div>
-        </div>
-        <div class="poem-card" onclick="openPanel(1)">
-          <div class="poem-card-title">Parting</div>
-          <div class="poem-card-excerpt">
-            Two hearts tethered across distant cities, a year of snow and
-            separation...
-          </div>
-          <div class="poem-card-hint">↑ Read full poem</div>
-        </div>
-        <div class="poem-card" onclick="openPanel(2)">
-          <div class="poem-card-title">Reply to a Friend's Sky Photo</div>
-          <div class="poem-card-excerpt">
-            Two crimson discs in the sky — impossible to tell dawn from dusk...
-          </div>
-          <div class="poem-card-hint">↑ Read full poem</div>
-        </div>
-        <div class="poem-card" onclick="openPanel(3)">
-          <div class="poem-card-title">Winter Reverie</div>
-          <div class="poem-card-excerpt">
-            The paulownia whispers low, as if calling dusk to come early...
-          </div>
-          <div class="poem-card-hint">↑ Read full poem</div>
-        </div>
-        <div class="poem-card" onclick="openPanel(4)">
-          <div class="poem-card-title">Partridge Sky · Zhè Gū Tiān</div>
-          <div class="poem-card-excerpt">
-            How swiftly time flies — autumn ages before winter even arrives...
-          </div>
-          <div class="poem-card-hint">↑ Read full poem</div>
-        </div>
-        <div class="poem-card" onclick="openPanel(5)">
-          <div class="poem-card-title">Night</div>
-          <div class="poem-card-excerpt">
-            I drink as always, night after night revelling until the small
-            hours...
-          </div>
-          <div class="poem-card-hint">↑ Read full poem</div>
-        </div>
-        <div class="poem-card" onclick="openPanel(6)">
-          <div class="poem-card-title">Messenger in the Sky</div>
-          <div class="poem-card-excerpt">
-            The road grows longer as the horse tires; rain quickens, shoulders
-            heavy...
-          </div>
-          <div class="poem-card-hint">↑ Read full poem</div>
-        </div>
-        <div class="poem-card" onclick="openPanel(7)">
-          <div class="poem-card-title">Autumn</div>
-          <div class="poem-card-excerpt">
-            The moon nears zenith and the mood soars — wild song, dance, wine...
-          </div>
-          <div class="poem-card-hint">↑ Read full poem</div>
-        </div>
-        <div class="poem-card" onclick="openPanel(8)">
-          <div class="poem-card-title">Untitled · On Writing</div>
-          <div class="poem-card-excerpt">
-            Poetic material comes easily but praise is cheap — I am no genius...
-          </div>
-          <div class="poem-card-hint">↑ Read full poem</div>
-        </div>
-        <div class="poem-card" onclick="openPanel(9)">
-          <div class="poem-card-title">Farewell in Vernacular</div>
-          <div class="poem-card-excerpt">
-            The station swells with passing strangers; outside, endless evening
-            light...
-          </div>
-          <div class="poem-card-hint">↑ Read full poem</div>
-        </div>
-        <div class="poem-card" onclick="openPanel(10)">
-          <div class="poem-card-title">After the Results</div>
-          <div class="poem-card-excerpt">
-            A forest bird shatters the morning dream; dread deep as the ocean...
-          </div>
-          <div class="poem-card-hint">↑ Read full poem</div>
-        </div>
-      </div>
+      <div class="poetry-grid"></div>
     </section>
 
     <!-- PROJECTS -->
@@ -1098,7 +1012,7 @@
         you.
       </p>
       <a href="mailto:mejistus@outlook.com" class="btn btn-primary"
-            >「友直、友諒、友多聞」</a
+        >「友直、友諒、友多聞」</a
       >
       <div class="social-links">
         <a class="social-btn" href="https://github.com/mejistus">
@@ -1139,148 +1053,38 @@
     </footer>
 
     <script>
-      const poems = [
-        {
-          title: "Untitled · Fireworks",
-          zh: `煙花散落升絢麗，霎時紫粉霎時紅。
-原來情人意難斷，都付午夢煙火中。`,
-          en: `Fireworks burst upward in radiant splendour,
-one moment violet, the next a blaze of red.
-So this is how a lover's heart refuses to let go —
-all of it surrendered to smoke and fire in an afternoon dream.`,
-        },
-        {
-          title: "Parting",
-          zh: `異地兩處情難系，風雪一年各天涯。
-而今難忘尋常日，君愛情濃我愛花。`,
-          en: `Love stretched thin across two distant cities,
-a whole year of wind and snow, each at the edge of the world.
-Now I cannot forget the ordinary days —
-you so full of feeling, and I so full of flowers.`,
-        },
-        {
-          title: "Reply to a Friend's Sky Photo from Tianshui",
-          zh: `難辨天水兩輪赤，不知旭日或殘陽。
-振臂高呼仍萬歲，走資走社各一方。
-江山百代桑田變，共和光輝歲月長。
-向使途殊歸者同，幾番變化又何妨？`,
-          en: `Two crimson discs hang in the sky of Tianshui —
-impossible to say which is the rising sun and which the dying one.
-Still we raise our arms and cry long live,
-though the road to capital or commune forks sharply in two.
-Mountains and rivers shift across a hundred generations;
-the republic's light endures through all its long years.
-If roads however different lead in the end to the same place,
-what does it matter how many times the world turns over?`,
-        },
-        {
-          title: "Winter Reverie",
-          zh: `梧桐盡低語，相約赴黃昏。
-此期寒氣甚，尤可待來春。`,
-          en: `The paulownia trees murmur softly to one another,
-making a quiet appointment to meet the dusk.
-The cold bites deep this season —
-all the more reason to wait for spring.`,
-        },
-        {
-          title: "Partridge Sky · Zhè Gū Tiān",
-          zh: `可憐時光太匆匆，始覚秋老又臨冬。
-孤燈影落梧桐下，碎葉流浪北風中。
-兩千裡，八刻鐘。靈犀一處兩心通。
-翩翩雪落南方客，幸福門下再相擁。`,
-          en: `How pitifully swift the hours — barely noticing autumn age
-before winter is already at the door.
-A lone lamp casts its shadow beneath the paulownia;
-broken leaves wander as vagrants in the north wind.
-Two thousand li apart, yet only eight quarter-hours by train.
-One shared thought — and two hearts speak without a single word.
-Light as snowflakes falling on a southbound traveller,
-we will embrace again at the doorway of happiness.`,
-        },
-        {
-          title: "Night",
-          zh: `我亦如常日日醉，夜夜達歡至凌晨。
-功名利益休縛我，地籟天籟送青春。`,
-          en: `I drink as always, day after day lost in wine,
-revelling every night until the small hours come.
-Let fame and fortune leave me well alone —
-the music of earth and sky will see my youth out.`,
-        },
-        {
-          title: "Messenger in the Sky",
-          zh: `馬勞山更遠，雨急肩越沉。
-天涯多倦客，牛馬荔枝人。`,
-          en: `The horse grows weary and the mountain recedes ever further;
-the rain quickens its pace and the burden on the shoulder grows heavier.
-The ends of the earth are full of exhausted travellers —
-people who labour like oxen and horses just to carry lychees home.`,
-        },
-        {
-          title: "Autumn",
-          zh: `月近中天興愈濃，狂歌醉舞佐金鐘。
-小飲清釀我將醉，半關秋月半關風。`,
-          en: `As the moon nears its zenith the spirit swells ever higher,
-wild song and drunken dance beside a golden cup.
-A little clear wine and I am nearly gone —
-half bewitched by the autumn moon, half carried away by the wind.`,
-        },
-        {
-          title: "Untitled · On Writing",
-          zh: `詩材張口即菲頌，我非天才自雕琢。
-夏秋冬春花雪月，聊摩雅致共爾說。`,
-          en: `Open your mouth for poetic material and hollow praise flows out with ease —
-I am no genius; every line must be earned through patient carving.
-Summer and autumn, winter and spring: flowers, snow, and the moon —
-I polish them slowly, and share whatever small refinement I reach with you.`,
-        },
-        {
-          title: "Farewell in Vernacular",
-          zh: `站裡熙熙過客，街外無限夕陽。
-回首過去三十日，心裡多少憂傷。
-今日匆匆離去，春秋何其漫長。
-動若參商難相聚，無奈又能何妨。`,
-          en: `The station hums with strangers passing through;
-outside, the sunset stretches without end.
-Looking back across these thirty days —
-how much sorrow can a single heart hold?
-Today we part in haste,
-and the seasons stretching ahead seem impossibly long.
-We move apart like Orion and Antares, rarely to meet —
-and yet, what is there to be done?`,
-        },
-        {
-          title: "After the Results",
-          zh: `林鳥驚晨夢，憂心似海深。
-夢醒知無奈，獨向天色新。`,
-          en: `A forest bird shatters the morning dream;
-dread settles in, as deep and still as the ocean floor.
-Waking, I know there is nothing to be done —
-alone I turn and face the new light breaking in the sky.`,
-        },
-      ];
-
+      let poems = [];
       let current = 0;
 
-      function render(i) {
+      const nl = (s) => s.replace(/\n/g, "<br>");
+
+      const renderCards = () => {
+        document.querySelector(".poetry-grid").innerHTML = poems
+          .map(
+            (p, i) => `
+      <div class="poem-card" onclick="openPanel(${i})">
+        <div class="poem-card-title">${p.card_title}</div>
+        <div class="poem-card-excerpt">${p.card_excerpt}</div>
+        <div class="poem-card-hint">↑ Read full poem</div>
+      </div>
+    `,
+          )
+          .join("");
+      };
+
+      const render = (i) => {
         const p = poems[i];
         document.getElementById("panelLabel").textContent =
           `Poetry · ${i + 1} of ${poems.length}`;
         document.getElementById("panelTitle").textContent = p.title;
-        document.getElementById("panelZh").innerHTML = p.zh.replace(
-          /\n/g,
-          "<br>",
-        );
-        document.getElementById("panelEn").innerHTML = p.en.replace(
-          /\n/g,
-          "<br>",
-        );
+        document.getElementById("panelZh").innerHTML = nl(p.zh);
+        document.getElementById("panelEn").innerHTML = nl(p.en);
         document.getElementById("panelCounter").textContent =
           `${i + 1} / ${poems.length}`;
         document.getElementById("btnPrev").disabled = i === 0;
         document.getElementById("btnNext").disabled = i === poems.length - 1;
-        // scroll body back to top on switch
         document.querySelector(".panel-body").scrollTop = 0;
-      }
+      };
 
       function openPanel(i) {
         current = i;
@@ -1310,6 +1114,17 @@ alone I turn and face the new light breaking in the sky.`,
         if (e.key === "ArrowLeft") navigate(-1);
         if (e.key === "ArrowRight") navigate(1);
       });
+
+      // 启动：fetch jsonl，解析每一行
+      fetch("data/poems.jsonl")
+        .then((r) => r.text())
+        .then((text) => {
+          poems = text
+            .trim()
+            .split("\n")
+            .map((line) => JSON.parse(line));
+          renderCards();
+        });
     </script>
   </body>
 </html>
