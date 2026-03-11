@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Xu Chen — Personal Blog</title>
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- KaTeX for math formulas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap");
 
@@ -482,6 +488,14 @@
       }
       .blog-content tr:hover {
         background: rgba(196, 124, 90, 0.05);
+      }
+      .blog-content .katex-display {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0.5rem 0;
+      }
+      .blog-content .katex {
+        font-size: 1.05em;
       }
 
       /* ── POETRY CARDS ── */
@@ -1245,79 +1259,66 @@
 
       const nl = (s) => s.replace(/\n/g, "<br>");
 
-      // Simple Markdown parser
-      const parseMarkdown = (text, hideH1 = false) => {
-        let html = text;
-
-        // Escape HTML
-        html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-        // Code blocks (must be before other replacements)
-        html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-          return '<pre><code>' + code.trim() + '</code></pre>';
+      // Protect math blocks before parsing, restore after
+      const mathPlaceholders = [];
+      const protectMath = (text) => {
+        let protectedText = text;
+        // Protect display math $$ ... $$
+        protectedText = protectedText.replace(/\$\$([\s\S]+?)\$\$/g, (match, tex) => {
+          const idx = mathPlaceholders.length;
+          mathPlaceholders.push({ tex, display: true });
+          return `%%MATH_PLACEHOLDER_${idx}%%`;
         });
+        // Protect inline math $ ... $ (but not $$)
+        protectedText = protectedText.replace(/\$([^\n$]+?)\$/g, (match, tex) => {
+          const idx = mathPlaceholders.length;
+          mathPlaceholders.push({ tex, display: false });
+          return `%%MATH_PLACEHOLDER_${idx}%%`;
+        });
+        return protectedText;
+      };
 
-        // Inline code
-        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+      const restoreMath = (html) => {
+        mathPlaceholders.forEach((item, idx) => {
+          const placeholder = `%%MATH_PLACEHOLDER_${idx}%%`;
+          try {
+            const rendered = katex.renderToString(item.tex, { 
+              displayMode: item.display, 
+              throwOnError: false 
+            });
+            html = html.replace(placeholder, rendered);
+          } catch (e) {
+            html = html.replace(placeholder, item.tex);
+          }
+        });
+        return html;
+      };
 
-        // Headers (must check longer patterns first)
-        html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
-        html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+      // Configure marked.js
+      marked.use({
+        breaks: true,
+        gfm: true
+      });
+
+      // Parse Markdown with marked.js + KaTeX
+      const parseMarkdown = (text, hideH1 = false) => {
+        // Reset placeholders
+        mathPlaceholders.length = 0;
+        
+        // Protect math blocks
+        const protectedText = protectMath(text);
+        
+        // Parse with marked
+        let html = marked.parse(protectedText);
+        
         // Hide H1 if requested (already shown in panel title)
         if (hideH1) {
-          html = html.replace(/^# (.+)$/gm, '');
-        } else {
-          html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+          html = html.replace(/<h1>.*?<\/h1>/g, '');
         }
-
-        // Images
-        html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1rem 0;">');
-
-        // Tables - extract and convert before other processing
-        html = html.replace(/^(\|.+\|\n\|[-:| ]+\|\n(?:\|.+\|\n?)+)/gm, (match, table) => {
-          const lines = table.trim().split('\n');
-          const rows = [];
-          lines.forEach((line, idx) => {
-            const cells = line.replace(/^\||\|$/g, '').split('|').map(c => c.trim());
-            if (idx === 0) {
-              rows.push('<tr>' + cells.map(c => `<th>${c}</th>`).join('') + '</tr>');
-            } else if (!cells.every(c => c === '' || /^[-:| ]+$/.test(c))) {
-              rows.push('<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>');
-            }
-          });
-          return '<table>' + rows.join('') + '</table>';
-        });
-
-        // Blockquotes
-        html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
-
-        // Horizontal rule
-        html = html.replace(/^---$/gm, '<hr>');
-
-        // Bold and italic
-        html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
-        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-        // Links
-        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
-
-        // Unordered lists
-        html = html.replace(/^\s*[-*+]\s+(.+)$/gm, '<li>$1</li>');
-        html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
-
-        // Paragraphs (lines that aren't already HTML tags)
-        html = html.split('\n\n').map(para => {
-          para = para.trim();
-          if (!para) return '';
-          if (para.startsWith('<h') || para.startsWith('<ul') || para.startsWith('<pre') ||
-              para.startsWith('<blockquote') || para.startsWith('<hr') || para.startsWith('<img') ||
-              para.startsWith('<table')) {
-            return para;
-          }
-          return '<p>' + para.replace(/\n/g, '<br>') + '</p>';
-        }).join('\n');
-
+        
+        // Restore and render math
+        html = restoreMath(html);
+        
         return html;
       };
 
