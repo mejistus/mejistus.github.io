@@ -866,7 +866,7 @@
   </head>
   <body>
     <!-- OVERLAY -->
-    <div class="panel-overlay" id="overlay" onclick="closePanel()"></div>
+    <div class="panel-overlay" id="overlay" onclick="closeAllPanels()"></div>
 
     <!-- BOTTOM SHEET -->
     <div class="poem-panel" id="poemPanel">
@@ -911,6 +911,15 @@
       </div>
       <div class="panel-body">
         <div class="blog-content" id="blogPanelContent"></div>
+      </div>
+      <div class="panel-nav">
+        <button class="panel-nav-btn" id="blogBtnPrev" onclick="navigateBlog(-1)">
+          ← Prev
+        </button>
+        <span class="panel-nav-counter" id="blogCounter"></span>
+        <button class="panel-nav-btn" id="blogBtnNext" onclick="navigateBlog(1)">
+          Next →
+        </button>
       </div>
     </div>
 
@@ -1334,8 +1343,19 @@
           `Blog · ${i + 1} of ${blogs.length}`;
         document.getElementById("blogPanelTitle").textContent = b.title;
         document.getElementById("blogPanelContent").innerHTML = parseMarkdown(b.content);
+        document.getElementById("blogCounter").textContent =
+          `${i + 1} / ${blogs.length}`;
+        document.getElementById("blogBtnPrev").disabled = i === 0;
+        document.getElementById("blogBtnNext").disabled = i === blogs.length - 1;
         document.querySelector(".blog-panel .panel-body").scrollTop = 0;
       };
+
+      function navigateBlog(dir) {
+        const next = currentBlog + dir;
+        if (next < 0 || next >= blogs.length) return;
+        currentBlog = next;
+        renderBlog(currentBlog);
+      }
 
       function openPanel(i) {
         current = i;
@@ -1348,6 +1368,13 @@
       function closePanel() {
         document.getElementById("overlay").classList.remove("open");
         document.getElementById("poemPanel").classList.remove("open");
+        document.body.style.overflow = "";
+      }
+
+      function closeAllPanels() {
+        document.getElementById("overlay").classList.remove("open");
+        document.getElementById("poemPanel").classList.remove("open");
+        document.getElementById("blogPanel").classList.remove("open");
         document.body.style.overflow = "";
       }
 
@@ -1375,15 +1402,23 @@
       }
 
       document.addEventListener("keydown", (e) => {
-        if (!document.getElementById("poemPanel").classList.contains("open") &&
-            !document.getElementById("blogPanel").classList.contains("open"))
-          return;
+        const poemPanelOpen = document.getElementById("poemPanel").classList.contains("open");
+        const blogPanelOpen = document.getElementById("blogPanel").classList.contains("open");
+        
+        if (!poemPanelOpen && !blogPanelOpen) return;
+        
         if (e.key === "Escape") {
           closePanel();
           closeBlogPanel();
         }
-        if (e.key === "ArrowLeft") navigate(-1);
-        if (e.key === "ArrowRight") navigate(1);
+        if (e.key === "ArrowLeft") {
+          if (poemPanelOpen) navigate(-1);
+          if (blogPanelOpen) navigateBlog(-1);
+        }
+        if (e.key === "ArrowRight") {
+          if (poemPanelOpen) navigate(1);
+          if (blogPanelOpen) navigateBlog(1);
+        }
       });
 
       // Fetch poems
