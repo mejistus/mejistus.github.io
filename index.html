@@ -278,6 +278,9 @@
         font-size: 1.15rem;
         margin-bottom: 0.6rem;
         line-height: 1.4;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
       .post-excerpt {
         font-size: 0.875rem;
@@ -457,6 +460,28 @@
       }
       .blog-content li {
         margin-bottom: 0.5rem;
+      }
+      .blog-content table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0;
+        font-size: 0.9rem;
+      }
+      .blog-content th, .blog-content td {
+        border: 1px solid var(--border);
+        padding: 0.75rem 1rem;
+        text-align: left;
+      }
+      .blog-content th {
+        background: var(--sand);
+        font-weight: 500;
+        color: var(--ink);
+      }
+      .blog-content td {
+        color: var(--muted);
+      }
+      .blog-content tr:hover {
+        background: rgba(196, 124, 90, 0.05);
       }
 
       /* ── POETRY CARDS ── */
@@ -1221,54 +1246,78 @@
       const nl = (s) => s.replace(/\n/g, "<br>");
 
       // Simple Markdown parser
-      const parseMarkdown = (text) => {
+      const parseMarkdown = (text, hideH1 = false) => {
         let html = text;
-        
+
         // Escape HTML
         html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        
+
         // Code blocks (must be before other replacements)
         html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
           return '<pre><code>' + code.trim() + '</code></pre>';
         });
-        
+
         // Inline code
         html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-        
+
         // Headers (must check longer patterns first)
         html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
         html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
-        html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-        
+        // Hide H1 if requested (already shown in panel title)
+        if (hideH1) {
+          html = html.replace(/^# (.+)$/gm, '');
+        } else {
+          html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+        }
+
+        // Images
+        html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1rem 0;">');
+
+        // Tables - extract and convert before other processing
+        html = html.replace(/^(\|.+\|\n\|[-:| ]+\|\n(?:\|.+\|\n?)+)/gm, (match, table) => {
+          const lines = table.trim().split('\n');
+          const rows = [];
+          lines.forEach((line, idx) => {
+            const cells = line.replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+            if (idx === 0) {
+              rows.push('<tr>' + cells.map(c => `<th>${c}</th>`).join('') + '</tr>');
+            } else if (!cells.every(c => c === '' || /^[-:| ]+$/.test(c))) {
+              rows.push('<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>');
+            }
+          });
+          return '<table>' + rows.join('') + '</table>';
+        });
+
         // Blockquotes
         html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
-        
+
         // Horizontal rule
         html = html.replace(/^---$/gm, '<hr>');
-        
+
         // Bold and italic
         html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
         html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
         html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-        
+
         // Links
         html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
-        
+
         // Unordered lists
         html = html.replace(/^\s*[-*+]\s+(.+)$/gm, '<li>$1</li>');
         html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
-        
+
         // Paragraphs (lines that aren't already HTML tags)
         html = html.split('\n\n').map(para => {
           para = para.trim();
           if (!para) return '';
-          if (para.startsWith('<h') || para.startsWith('<ul') || para.startsWith('<pre') || 
-              para.startsWith('<blockquote') || para.startsWith('<hr')) {
+          if (para.startsWith('<h') || para.startsWith('<ul') || para.startsWith('<pre') ||
+              para.startsWith('<blockquote') || para.startsWith('<hr') || para.startsWith('<img') ||
+              para.startsWith('<table')) {
             return para;
           }
           return '<p>' + para.replace(/\n/g, '<br>') + '</p>';
         }).join('\n');
-        
+
         return html;
       };
 
@@ -1342,7 +1391,7 @@
         document.getElementById("blogPanelLabel").textContent =
           `Blog · ${i + 1} of ${blogs.length}`;
         document.getElementById("blogPanelTitle").textContent = b.title;
-        document.getElementById("blogPanelContent").innerHTML = parseMarkdown(b.content);
+        document.getElementById("blogPanelContent").innerHTML = parseMarkdown(b.content, true);
         document.getElementById("blogCounter").textContent =
           `${i + 1} / ${blogs.length}`;
         document.getElementById("blogBtnPrev").disabled = i === 0;
@@ -1434,6 +1483,13 @@
 
       // Pre-load blog data (fallback if fetch fails)
       const blogListData = [
+        {
+          file: "i3wm-setup.md",
+          title: "My i3wm setup: calm aesthetics for a busy mind",
+          date: "2025 · Setup",
+          tag: "Productivity",
+          excerpt: "How a tiling window manager helped me find focus — and a colour palette that stays out of the way."
+        },
         {
           file: "diffusion-models-art.md",
           title: "On diffusion models and the art of generation",
