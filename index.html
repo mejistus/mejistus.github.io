@@ -10,6 +10,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <!-- Prism.js for code highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap");
 
@@ -1294,22 +1298,36 @@
         return html;
       };
 
-      // Configure marked.js
-      marked.use({
-        breaks: true,
-        gfm: true
-      });
-
-      // Parse Markdown with marked.js + KaTeX
+      // Parse Markdown with marked.js + KaTeX + Prism
       const parseMarkdown = (text, hideH1 = false) => {
         // Reset placeholders
         mathPlaceholders.length = 0;
         
+        // Protect code blocks first
+        const codeBlocks = [];
+        let protectedText = text.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+          const idx = codeBlocks.length;
+          codeBlocks.push({ lang, code });
+          return `%%CODE_BLOCK_${idx}%%`;
+        });
+        
         // Protect math blocks
-        const protectedText = protectMath(text);
+        protectedText = protectMath(protectedText);
         
         // Parse with marked
-        let html = marked.parse(protectedText);
+        let html = marked.parse(protectedText, {
+          breaks: true,
+          gfm: true
+        });
+        
+        // Restore code blocks with Prism highlighting
+        codeBlocks.forEach((block, idx) => {
+          const language = block.lang || 'plaintext';
+          const grammar = Prism.languages[language] || Prism.languages.plaintext;
+          const highlighted = Prism.highlight(block.code, grammar, language);
+          const codeHtml = `<pre class="language-${language}"><code class="language-${language}">${highlighted}</code></pre>`;
+          html = html.replace(`%%CODE_BLOCK_${idx}%%`, codeHtml);
+        });
         
         // Hide H1 if requested (already shown in panel title)
         if (hideH1) {
@@ -1351,9 +1369,7 @@
       };
 
       const renderBlogCards = () => {
-        console.log("renderBlogCards called, blogs.length =", blogs.length);
         const grid = document.getElementById("postsGrid");
-        console.log("postsGrid element:", grid);
         if (!blogs.length) {
           grid.innerHTML = '<p style="color: var(--muted); text-align: center;">No blog posts yet.</p>';
           return;
@@ -1370,7 +1386,6 @@
     `,
           )
           .join("");
-        console.log("postsGrid innerHTML set, length:", grid.innerHTML.length);
       };
 
       const render = (i) => {
@@ -1429,13 +1444,11 @@
       }
 
       function openBlogPanel(i) {
-        console.log("openBlogPanel called with index:", i, "blogs array length:", blogs.length);
         currentBlog = i;
         renderBlog(i);
         document.getElementById("overlay").classList.add("open");
         document.getElementById("blogPanel").classList.add("open");
         document.body.style.overflow = "hidden";
-        console.log("Blog panel classes:", document.getElementById("blogPanel").classList);
       }
 
       function closeBlogPanel() {
@@ -1510,24 +1523,17 @@
       // Fetch blog list and content
       async function loadBlogs() {
         try {
-          console.log("Loading blogs...");
-          
           // Use pre-defined list
           const list = blogListData;
-          console.log("Blog list:", list);
 
           blogs = [];
           for (const item of list) {
             const filePath = `blogs/${item.file}`;
-            console.log(`Loading blog file: ${filePath}`);
             const contentResp = await fetch(filePath);
-            console.log(`Response for ${item.file}:`, contentResp.status);
             if (!contentResp.ok) {
-              console.warn(`Failed to load ${filePath}, skipping...`);
               continue;
             }
             const content = await contentResp.text();
-            console.log(`Content length for ${item.file}:`, content.length);
             blogs.push({
               file: item.file,
               title: item.title || extractTitle(content),
@@ -1537,8 +1543,6 @@
               excerpt: item.excerpt || excerpt(content)
             });
           }
-          console.log("All blogs loaded:", blogs);
-          console.log("Total blogs:", blogs.length);
           renderBlogCards();
         } catch (err) {
           console.error("Blog load error:", err);
