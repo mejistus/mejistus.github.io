@@ -294,6 +294,171 @@
         border: 1px solid #e8cfc4;
       }
 
+      /* ── BLOG PANEL ── */
+      .blog-panel {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 80vh;
+        background: var(--cream);
+        z-index: 201;
+        border-radius: 1.5rem 1.5rem 0 0;
+        border-top: 1px solid var(--border);
+        box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.1);
+        transform: translateY(100%);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+      }
+      .blog-panel.open {
+        transform: translateY(0);
+      }
+      .blog-panel .panel-handle {
+        flex-shrink: 0;
+        display: flex;
+        justify-content: center;
+        padding: 1rem 0 0.5rem;
+        cursor: grab;
+      }
+      .blog-panel .panel-handle::after {
+        content: "";
+        display: block;
+        width: 40px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--border);
+      }
+      .blog-panel .panel-header {
+        flex-shrink: 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 0 2.5rem 1.2rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .blog-panel .panel-header-left {
+      }
+      .blog-panel .panel-label {
+        font-size: 0.72rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--sage);
+        margin-bottom: 0.35rem;
+      }
+      .blog-panel .panel-title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.6rem;
+        color: var(--ink);
+      }
+      .blog-panel .panel-close {
+        flex-shrink: 0;
+        margin-left: 1rem;
+        margin-top: 0.2rem;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1.5px solid var(--border);
+        background: transparent;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        font-size: 1rem;
+        transition: all 0.2s;
+      }
+      .blog-panel .panel-close:hover {
+        border-color: var(--rust);
+        color: var(--rust);
+      }
+      .blog-panel .panel-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 2rem 2.5rem 3rem;
+        display: block !important;
+      }
+
+      /* Blog content styles */
+      .blog-content {
+        font-size: 0.95rem;
+        line-height: 1.9;
+        color: var(--ink);
+      }
+      .blog-content h1 {
+        font-family: "Playfair Display", serif;
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+        color: var(--ink);
+      }
+      .blog-content h2 {
+        font-family: "Playfair Display", serif;
+        font-size: 1.4rem;
+        margin: 2rem 0 1rem;
+        color: var(--ink);
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border);
+      }
+      .blog-content h3 {
+        font-family: "Playfair Display", serif;
+        font-size: 1.15rem;
+        margin: 1.5rem 0 0.8rem;
+        color: var(--ink);
+      }
+      .blog-content p {
+        margin-bottom: 1.2rem;
+        color: var(--muted);
+      }
+      .blog-content code {
+        font-family: "JetBrains Mono", "Fira Code", monospace;
+        font-size: 0.85em;
+        background: var(--sand);
+        padding: 0.15rem 0.4rem;
+        border-radius: 0.3rem;
+        color: var(--rust);
+      }
+      .blog-content pre {
+        background: var(--sand);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 1.2rem;
+        overflow-x: auto;
+        margin: 1.5rem 0;
+      }
+      .blog-content pre code {
+        background: transparent;
+        padding: 0;
+        color: var(--ink);
+      }
+      .blog-content blockquote {
+        border-left: 3px solid var(--rust);
+        padding-left: 1.2rem;
+        margin: 1.5rem 0;
+        font-style: italic;
+        color: var(--muted);
+      }
+      .blog-content hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 2rem 0;
+      }
+      .blog-content a {
+        color: var(--rust);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+      .blog-content a:hover {
+        color: var(--sage);
+      }
+      .blog-content ul, .blog-content ol {
+        margin: 1rem 0;
+        padding-left: 1.5rem;
+        color: var(--muted);
+      }
+      .blog-content li {
+        margin-bottom: 0.5rem;
+      }
+
       /* ── POETRY CARDS ── */
       #poetry {
         padding: 6rem 2rem;
@@ -734,6 +899,21 @@
       </div>
     </div>
 
+    <!-- BLOG BOTTOM SHEET -->
+    <div class="blog-panel" id="blogPanel">
+      <div class="panel-handle"></div>
+      <div class="panel-header">
+        <div class="panel-header-left">
+          <p class="panel-label" id="blogPanelLabel">Blog</p>
+          <h2 class="panel-title" id="blogPanelTitle"></h2>
+        </div>
+        <button class="panel-close" onclick="closeBlogPanel()">✕</button>
+      </div>
+      <div class="panel-body">
+        <div class="blog-content" id="blogPanelContent"></div>
+      </div>
+    </div>
+
     <!-- NAV -->
     <nav>
       <a href="#hero" class="nav-logo">Xu Chen</a>
@@ -811,37 +991,8 @@
       <div class="inner">
         <p class="section-label">Recent Writing</p>
         <h2 class="section-title">From the blog</h2>
-        <div class="posts-grid">
-          <a class="post-card" href="#">
-            <p class="post-meta">Coming soon · Dev</p>
-            <h3 class="post-title">
-              On diffusion models and the art of generation
-            </h3>
-            <p class="post-excerpt">
-              What generative models taught me about creativity, randomness...
-            </p>
-            <span class="post-tag">Research</span>
-          </a>
-          <a class="post-card" href="#">
-            <p class="post-meta">Coming soon · Reflection</p>
-            <h3 class="post-title">
-              Writing classical poetry in the age of LLMs
-            </h3>
-            <p class="post-excerpt">
-              Why I still carve verses by hand, even when AI can do it in...
-            </p>
-            <span class="post-tag">Poetry</span>
-          </a>
-          <a class="post-card" href="#">
-            <p class="post-meta">Coming soon · Dev</p>
-            <h3 class="post-title">
-              My i3wm setup: calm aesthetics for a busy mind
-            </h3>
-            <p class="post-excerpt">
-              A walkthrough of the window manager config I actually enjoy...
-            </p>
-            <span class="post-tag">Dev</span>
-          </a>
+        <div class="posts-grid" id="postsGrid">
+          <!-- Dynamically loaded -->
         </div>
       </div>
     </section>
@@ -1055,8 +1206,76 @@
     <script>
       let poems = [];
       let current = 0;
+      let blogs = [];
+      let currentBlog = null;
 
       const nl = (s) => s.replace(/\n/g, "<br>");
+
+      // Simple Markdown parser
+      const parseMarkdown = (text) => {
+        let html = text;
+        
+        // Escape HTML
+        html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        
+        // Code blocks (must be before other replacements)
+        html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+          return '<pre><code>' + code.trim() + '</code></pre>';
+        });
+        
+        // Inline code
+        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+        
+        // Headers (must check longer patterns first)
+        html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+        html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+        html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+        
+        // Blockquotes
+        html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+        
+        // Horizontal rule
+        html = html.replace(/^---$/gm, '<hr>');
+        
+        // Bold and italic
+        html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        
+        // Links
+        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+        
+        // Unordered lists
+        html = html.replace(/^\s*[-*+]\s+(.+)$/gm, '<li>$1</li>');
+        html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+        
+        // Paragraphs (lines that aren't already HTML tags)
+        html = html.split('\n\n').map(para => {
+          para = para.trim();
+          if (!para) return '';
+          if (para.startsWith('<h') || para.startsWith('<ul') || para.startsWith('<pre') || 
+              para.startsWith('<blockquote') || para.startsWith('<hr')) {
+            return para;
+          }
+          return '<p>' + para.replace(/\n/g, '<br>') + '</p>';
+        }).join('\n');
+        
+        return html;
+      };
+
+      // Extract first N words from text (stripped of markdown)
+      const excerpt = (text, limit = 50) => {
+        const stripped = text.replace(/[#*`>\[\]\-]/g, ' ').replace(/\s+/g, ' ').trim();
+        const words = stripped.split(' ');
+        if (words.length <= limit) return stripped;
+        return words.slice(0, limit).join(' ') + '...';
+      };
+
+      // Extract title from markdown (first h1)
+      const extractTitle = (text) => {
+        const match = text.match(/^# (.+)$/m);
+        return match ? match[1] : 'Untitled';
+      };
 
       const renderCards = () => {
         document.querySelector(".poetry-grid").innerHTML = poems
@@ -1070,6 +1289,29 @@
     `,
           )
           .join("");
+      };
+
+      const renderBlogCards = () => {
+        console.log("renderBlogCards called, blogs.length =", blogs.length);
+        const grid = document.getElementById("postsGrid");
+        console.log("postsGrid element:", grid);
+        if (!blogs.length) {
+          grid.innerHTML = '<p style="color: var(--muted); text-align: center;">No blog posts yet.</p>';
+          return;
+        }
+        grid.innerHTML = blogs
+          .map(
+            (b, i) => `
+      <div class="post-card" onclick="openBlogPanel(${i}); return false;">
+        <p class="post-meta">${b.date || 'Untitled'}</p>
+        <h3 class="post-title">${b.title}</h3>
+        <p class="post-excerpt">${b.excerpt}</p>
+        <span class="post-tag">${b.tag || 'Blog'}</span>
+      </div>
+    `,
+          )
+          .join("");
+        console.log("postsGrid innerHTML set, length:", grid.innerHTML.length);
       };
 
       const render = (i) => {
@@ -1086,6 +1328,15 @@
         document.querySelector(".panel-body").scrollTop = 0;
       };
 
+      const renderBlog = (i) => {
+        const b = blogs[i];
+        document.getElementById("blogPanelLabel").textContent =
+          `Blog · ${i + 1} of ${blogs.length}`;
+        document.getElementById("blogPanelTitle").textContent = b.title;
+        document.getElementById("blogPanelContent").innerHTML = parseMarkdown(b.content);
+        document.querySelector(".blog-panel .panel-body").scrollTop = 0;
+      };
+
       function openPanel(i) {
         current = i;
         render(i);
@@ -1100,6 +1351,22 @@
         document.body.style.overflow = "";
       }
 
+      function openBlogPanel(i) {
+        console.log("openBlogPanel called with index:", i, "blogs array length:", blogs.length);
+        currentBlog = i;
+        renderBlog(i);
+        document.getElementById("overlay").classList.add("open");
+        document.getElementById("blogPanel").classList.add("open");
+        document.body.style.overflow = "hidden";
+        console.log("Blog panel classes:", document.getElementById("blogPanel").classList);
+      }
+
+      function closeBlogPanel() {
+        document.getElementById("overlay").classList.remove("open");
+        document.getElementById("blogPanel").classList.remove("open");
+        document.body.style.overflow = "";
+      }
+
       function navigate(dir) {
         const next = current + dir;
         if (next < 0 || next >= poems.length) return;
@@ -1108,14 +1375,18 @@
       }
 
       document.addEventListener("keydown", (e) => {
-        if (!document.getElementById("poemPanel").classList.contains("open"))
+        if (!document.getElementById("poemPanel").classList.contains("open") &&
+            !document.getElementById("blogPanel").classList.contains("open"))
           return;
-        if (e.key === "Escape") closePanel();
+        if (e.key === "Escape") {
+          closePanel();
+          closeBlogPanel();
+        }
         if (e.key === "ArrowLeft") navigate(-1);
         if (e.key === "ArrowRight") navigate(1);
       });
 
-      // 启动：fetch jsonl，解析每一行
+      // Fetch poems
       fetch("data/poems.jsonl")
         .then((r) => r.text())
         .then((text) => {
@@ -1125,6 +1396,66 @@
             .map((line) => JSON.parse(line));
           renderCards();
         });
+
+      // Pre-load blog data (fallback if fetch fails)
+      const blogListData = [
+        {
+          file: "diffusion-models-art.md",
+          title: "On diffusion models and the art of generation",
+          date: "2025 · Research",
+          tag: "Research",
+          excerpt: "What generative models taught me about creativity, randomness, and the space between intention and emergence."
+        },
+        {
+          file: "classical-poetry-llm.md",
+          title: "Writing classical poetry in the age of LLMs",
+          date: "2025 · Reflection",
+          tag: "Poetry",
+          excerpt: "Why I still carve verses by hand, even when AI can do it in seconds."
+        }
+      ];
+
+      // Fetch blog list and content
+      async function loadBlogs() {
+        try {
+          console.log("Loading blogs...");
+          
+          // Use pre-defined list
+          const list = blogListData;
+          console.log("Blog list:", list);
+
+          blogs = [];
+          for (const item of list) {
+            const filePath = `blogs/${item.file}`;
+            console.log(`Loading blog file: ${filePath}`);
+            const contentResp = await fetch(filePath);
+            console.log(`Response for ${item.file}:`, contentResp.status);
+            if (!contentResp.ok) {
+              console.warn(`Failed to load ${filePath}, skipping...`);
+              continue;
+            }
+            const content = await contentResp.text();
+            console.log(`Content length for ${item.file}:`, content.length);
+            blogs.push({
+              file: item.file,
+              title: item.title || extractTitle(content),
+              date: item.date || '',
+              tag: item.tag || 'Blog',
+              content: content,
+              excerpt: item.excerpt || excerpt(content)
+            });
+          }
+          console.log("All blogs loaded:", blogs);
+          console.log("Total blogs:", blogs.length);
+          renderBlogCards();
+        } catch (err) {
+          console.error("Blog load error:", err);
+          blogs = [];
+          renderBlogCards();
+        }
+      }
+
+      loadBlogs();
     </script>
   </body>
 </html>

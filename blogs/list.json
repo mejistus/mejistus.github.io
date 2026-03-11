@@ -1,0 +1,16 @@
+[
+  {
+    "file": "diffusion-models-art.md",
+    "title": "On diffusion models and the art of generation",
+    "date": "2025 · Research",
+    "tag": "Research",
+    "excerpt": "What generative models taught me about creativity, randomness, and the space between intention and emergence."
+  },
+  {
+    "file": "classical-poetry-llm.md",
+    "title": "Writing classical poetry in the age of LLMs",
+    "date": "2025 · Reflection",
+    "tag": "Poetry",
+    "excerpt": "Why I still carve verses by hand, even when AI can do it in seconds."
+  }
+]
