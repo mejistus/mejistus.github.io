@@ -612,7 +612,7 @@
         border-top: 1px solid var(--border);
         box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.1);
         transform: translateY(100%);
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         flex-direction: column;
         will-change: transform, height;
@@ -623,6 +623,7 @@
       .poem-panel.fullscreen {
         border-radius: 0;
         height: 100vh;
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       }
       .poem-panel.fullscreen .panel-handle {
         display: none;
@@ -1386,7 +1387,7 @@
         }
         
         currentPanel.style.height = `${newHeight}px`;
-        currentPanel.style.transition = 'none';
+        currentPanel.style.transition = 'height 0s, border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1)'; // 高度立即响应，保留圆角过渡
       });
 
       document.addEventListener('touchmove', (e) => {
@@ -1419,18 +1420,18 @@
         }
         
         currentPanel.style.height = `${newHeight}px`;
-        currentPanel.style.transition = 'none';
+        currentPanel.style.transition = 'height 0s, border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1)'; // 高度立即响应，保留圆角过渡
       });
 
       const snapToFullscreen = (panel) => {
-        panel.style.transition = 'height 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        panel.style.transition = 'height 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
         panel.style.height = '100vh';
         isFullscreen = true;
         panel.classList.add('fullscreen');
       };
 
       const snapToClose = (panel) => {
-        panel.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        panel.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
         panel.style.height = '80vh';
         panel.classList.remove('fullscreen');
         
@@ -1448,7 +1449,7 @@
 
         // If in fullscreen, exit to half screen
         if (panel.classList.contains('fullscreen')) {
-          panel.style.transition = 'height 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+          panel.style.transition = 'height 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
           panel.style.height = '80vh';
           isFullscreen = false;
           panel.classList.remove('fullscreen');
@@ -1475,7 +1476,7 @@
       document.addEventListener('mouseup', () => {
         if (currentPanel && dragDistance >= DRAG_THRESHOLD) {
           // Was dragging - snap back to default height
-          currentPanel.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+          currentPanel.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
           currentPanel.style.height = '80vh';
         }
         // If dragDistance < DRAG_THRESHOLD, it was just a click - do nothing
@@ -1487,7 +1488,7 @@
       document.addEventListener('touchend', () => {
         if (currentPanel && dragDistance >= DRAG_THRESHOLD) {
           // Was dragging - snap back to default height
-          currentPanel.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+          currentPanel.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
           currentPanel.style.height = '80vh';
         }
         // If dragDistance < DRAG_THRESHOLD, it was just a click - do nothing
