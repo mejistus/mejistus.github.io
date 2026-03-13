@@ -320,7 +320,7 @@
         border-top: 1px solid var(--border);
         box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.1);
         transform: translateY(100%);
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         flex-direction: column;
         will-change: transform, height;
@@ -330,44 +330,14 @@
       }
       .blog-panel.fullscreen {
         border-radius: 0;
-        height: 100vh !important;
-      }
-      .blog-panel.fullscreen .panel-handle {
-        display: none;
-      }
-      .blog-panel .panel-handle {
-        flex-shrink: 0;
-        display: flex;
-        justify-content: center;
-        padding: 1rem 0 0.5rem;
-        cursor: grab;
-        user-select: none;
-        -webkit-user-select: none;
-      }
-      .blog-panel .panel-handle::after {
-        content: "";
-        display: block;
-        width: 40px;
-        height: 4px;
-        border-radius: 2px;
-        background: var(--border);
-      }
-      .blog-panel.fullscreen {
-        border-radius: 0;
         height: 100vh;
-      }
-      .blog-panel.fullscreen .panel-handle {
-        display: none;
-      }
-      .blog-panel.fullscreen .panel-body {
-        padding: 2rem 4rem 3rem;
       }
       .blog-panel .panel-header {
         flex-shrink: 0;
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
-        padding: 0 2.5rem 1.2rem;
+        padding: 0.8rem 2.5rem 1.2rem;
         border-bottom: 1px solid var(--border);
       }
       .blog-panel .panel-header-left {
@@ -390,7 +360,6 @@
       .blog-panel .panel-close {
         flex-shrink: 0;
         margin-left: 1rem;
-        margin-top: 0.2rem;
         width: 34px;
         height: 34px;
         border-radius: 50%;
@@ -612,7 +581,7 @@
         border-top: 1px solid var(--border);
         box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.1);
         transform: translateY(100%);
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         flex-direction: column;
         will-change: transform, height;
@@ -623,13 +592,6 @@
       .poem-panel.fullscreen {
         border-radius: 0;
         height: 100vh;
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      .poem-panel.fullscreen .panel-handle {
-        display: none;
-      }
-      .poem-panel.fullscreen .panel-body {
-        padding: 2rem 4rem 3rem;
       }
 
       /* drag handle */
@@ -637,12 +599,13 @@
         flex-shrink: 0;
         display: flex;
         justify-content: center;
-        padding: 1rem 0 0.5rem;
-        cursor: grab;
+        padding: 0.8rem 0;
+        cursor: pointer;
         user-select: none;
         -webkit-user-select: none;
         -moz-user-select: none;
         -ms-user-select: none;
+        transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
       }
       .panel-handle::after {
         content: "";
@@ -651,22 +614,30 @@
         height: 4px;
         border-radius: 2px;
         background: var(--border);
-        transition: background 0.2s;
+        transition: background 0.2s ease, transform 0.3s ease;
       }
-      .panel-handle:active {
-        cursor: grabbing;
+      .panel-handle:hover::after {
+        background: var(--rust);
+        transform: translateY(-2px);
       }
       .panel-handle:active::after {
-        background: var(--rust);
+        transform: translateY(0);
+      }
+      .blog-panel.fullscreen .panel-handle,
+      .poem-panel.fullscreen .panel-handle {
+        opacity: 0;
+        pointer-events: none;
+        padding: 0;
+        height: 0;
       }
 
       /* panel header */
       .panel-header {
         flex-shrink: 0;
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
-        padding: 0 2.5rem 1.2rem;
+        padding: 0.8rem 2.5rem 1.2rem;
         border-bottom: 1px solid var(--border);
       }
       .panel-header-left {
@@ -685,11 +656,11 @@
         font-family: "Playfair Display", serif;
         font-size: 1.6rem;
         color: var(--ink);
+        line-height: 1.2;
       }
       .panel-close {
         flex-shrink: 0;
         margin-left: 1rem;
-        margin-top: 0.2rem;
         width: 34px;
         height: 34px;
         border-radius: 50%;
@@ -717,7 +688,7 @@
         flex: 1;
         overflow-y: auto;
         overflow-x: hidden;
-        padding: 1.8rem 2.5rem 3rem;
+        padding: 2rem 2.5rem 3rem;
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 3rem;
@@ -1322,180 +1293,33 @@
       let blogs = [];
       let currentBlog = null;
 
-      // Panel drag functionality
-      let isDragging = false;
-      let startY = 0;
-      let startHeight = 0;
-      let currentPanel = null;
+      // Panel click functionality (no drag)
       let isFullscreen = false;
-      let dragDistance = 0;
-      const DRAG_THRESHOLD = 10; // pixels - must drag this much to trigger
 
-      const initDrag = (panel, handle) => {
-        handle.addEventListener('mousedown', (e) => {
-          isDragging = true;
-          currentPanel = panel;
-          startY = e.clientY;
-          startHeight = panel.offsetHeight;
-          dragDistance = 0;
-          // Prevent text selection during drag
-          e.preventDefault();
+      const initHandleClick = (panel, handle) => {
+        handle.addEventListener('click', () => {
+          if (!panel.classList.contains('open')) return;
+
+          if (panel.classList.contains('fullscreen')) {
+            // Exit fullscreen to half screen
+            panel.classList.remove('fullscreen');
+            isFullscreen = false;
+          } else {
+            // Expand to fullscreen
+            panel.classList.add('fullscreen');
+            isFullscreen = true;
+          }
         });
-
-        handle.addEventListener('touchstart', (e) => {
-          isDragging = true;
-          currentPanel = panel;
-          startY = e.touches[0].clientY;
-          startHeight = panel.offsetHeight;
-          dragDistance = 0;
-          // Prevent text selection during drag
-          e.preventDefault();
-        }, { passive: false });
-        
-        // Prevent text selection
-        handle.style.userSelect = 'none';
-        handle.style.webkitUserSelect = 'none';
-      };
-
-      document.addEventListener('mousemove', (e) => {
-        if (!isDragging || !currentPanel) return;
-        
-        const deltaY = startY - e.clientY;
-        dragDistance = Math.abs(deltaY);
-        
-        // Only start dragging if moved past threshold
-        if (dragDistance < DRAG_THRESHOLD) {
-          return;
-        }
-        
-        let newHeight = startHeight + deltaY;
-        
-        // Check if dragging to top (fullscreen trigger)
-        if (newHeight > window.innerHeight * 0.75) {
-          snapToFullscreen(currentPanel);
-          isDragging = false;
-          currentPanel = null;
-          return;
-        }
-        
-        // Check if dragging to bottom (close trigger)
-        if (newHeight < window.innerHeight * 0.5) {
-          snapToClose(currentPanel);
-          isDragging = false;
-          currentPanel = null;
-          return;
-        }
-        
-        currentPanel.style.height = `${newHeight}px`;
-        currentPanel.style.transition = 'height 0s, border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1)'; // 高度立即响应，保留圆角过渡
-      });
-
-      document.addEventListener('touchmove', (e) => {
-        if (!isDragging || !currentPanel) return;
-        
-        const deltaY = startY - e.touches[0].clientY;
-        dragDistance = Math.abs(deltaY);
-        
-        // Only start dragging if moved past threshold
-        if (dragDistance < DRAG_THRESHOLD) {
-          return;
-        }
-        
-        let newHeight = startHeight + deltaY;
-        
-        // Check if dragging to top (fullscreen trigger)
-        if (newHeight > window.innerHeight * 0.75) {
-          snapToFullscreen(currentPanel);
-          isDragging = false;
-          currentPanel = null;
-          return;
-        }
-        
-        // Check if dragging to bottom (close trigger)
-        if (newHeight < window.innerHeight * 0.5) {
-          snapToClose(currentPanel);
-          isDragging = false;
-          currentPanel = null;
-          return;
-        }
-        
-        currentPanel.style.height = `${newHeight}px`;
-        currentPanel.style.transition = 'height 0s, border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1)'; // 高度立即响应，保留圆角过渡
-      });
-
-      const snapToFullscreen = (panel) => {
-        panel.style.transition = 'height 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-        panel.style.height = '100vh';
-        isFullscreen = true;
-        panel.classList.add('fullscreen');
-      };
-
-      const snapToClose = (panel) => {
-        panel.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-        panel.style.height = '80vh';
-        panel.classList.remove('fullscreen');
-        
-        // Animate closing
-        setTimeout(() => {
-          panel.classList.remove("open");
-          document.getElementById("overlay").classList.remove("open");
-          document.body.style.overflow = "";
-        }, 300);
       };
 
       const exitFullscreenOrClose = (panelId) => {
         const panel = document.getElementById(panelId);
         if (!panel) return;
 
-        // If in fullscreen, exit to half screen
-        if (panel.classList.contains('fullscreen')) {
-          panel.style.transition = 'height 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-          panel.style.height = '80vh';
-          isFullscreen = false;
-          panel.classList.remove('fullscreen');
-          
-          // Clean up all inline styles after animation so close animation works
-          setTimeout(() => {
-            panel.style.height = '';
-            panel.style.transition = '';
-          }, 400);
-        } else {
-          // Otherwise close the panel
-          panel.classList.remove("open");
-          document.getElementById("overlay").classList.remove("open");
-          document.body.style.overflow = "";
-
-          // Clean up inline styles after animation
-          setTimeout(() => {
-            panel.style.height = '';
-            panel.style.transition = '';
-          }, 400);
-        }
+        // Exit fullscreen to half screen
+        panel.classList.remove('fullscreen');
+        isFullscreen = false;
       };
-
-      document.addEventListener('mouseup', () => {
-        if (currentPanel && dragDistance >= DRAG_THRESHOLD) {
-          // Was dragging - snap back to default height
-          currentPanel.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-          currentPanel.style.height = '80vh';
-        }
-        // If dragDistance < DRAG_THRESHOLD, it was just a click - do nothing
-        isDragging = false;
-        currentPanel = null;
-        dragDistance = 0;
-      });
-
-      document.addEventListener('touchend', () => {
-        if (currentPanel && dragDistance >= DRAG_THRESHOLD) {
-          // Was dragging - snap back to default height
-          currentPanel.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-          currentPanel.style.height = '80vh';
-        }
-        // If dragDistance < DRAG_THRESHOLD, it was just a click - do nothing
-        isDragging = false;
-        currentPanel = null;
-        dragDistance = 0;
-      });
 
       const nl = (s) => s.replace(/\n/g, "<br>");
 
@@ -1809,9 +1633,9 @@
 
       loadBlogs();
 
-      // Initialize drag functionality
-      initDrag(document.getElementById("poemPanel"), document.getElementById("poemHandle"));
-      initDrag(document.getElementById("blogPanel"), document.getElementById("blogHandle"));
+      // Initialize click functionality
+      initHandleClick(document.getElementById("poemPanel"), document.getElementById("poemHandle"));
+      initHandleClick(document.getElementById("blogPanel"), document.getElementById("blogHandle"));
     </script>
   </body>
 </html>
