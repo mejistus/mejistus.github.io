@@ -1538,7 +1538,7 @@
         const b = blogs[i];
         document.getElementById("blogPanelLabel").textContent =
           `Blog · ${i + 1} of ${blogs.length}`;
-        document.getElementById("blogPanelTitle").textContent = b.title;
+        document.getElementById("blogPanelTitle").innerHTML = renderInline(b.title);
         document.getElementById("blogPanelContent").innerHTML = parseMarkdown(b.content, true);
         document.getElementById("blogCounter").textContent =
           `${i + 1} / ${blogs.length}`;
