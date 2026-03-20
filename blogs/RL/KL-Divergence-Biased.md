@@ -1,6 +1,6 @@
 ---
 tag: RL
-title: Difference of KL in Loss with reward
+title: Difference with KL in Loss and reward
 ---
 
 # 问题陈述

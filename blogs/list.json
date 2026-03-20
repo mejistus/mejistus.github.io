@@ -1,7 +1,7 @@
 [
   {
     "file": "RL/KL-Divergence-Biased.md",
-    "title": "Difference of KL in Loss with reward",
+    "title": "Difference with KL in Loss and reward",
     "date": "2026 · Notes",
     "tag": "RL",
     "excerpt": "为什么在GRPO中进行微调时，在损失（Loss）里添加散度项（Reverse KL Divergence)本质上和在奖励（Reward）中添加散度项是不同的，并且会造成Bias？"
