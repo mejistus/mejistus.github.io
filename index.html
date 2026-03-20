@@ -1465,6 +1465,38 @@
           .join("");
       };
 
+      // Render inline markdown (bold, italic, links, math) for titles/excerpts
+      const renderInline = (text) => {
+        if (!text) return '';
+        let html = text;
+        const mathPh = [];
+        // Protect math
+        html = html.replace(/\$\$([\s\S]+?)\$\$/g, (m, tex) => {
+          const idx = mathPh.length;
+          mathPh.push({ tex, display: false });
+          return `%%MATH_PH_${idx}%%`;
+        });
+        html = html.replace(/\$([^\n$]+?)\$/g, (m, tex) => {
+          const idx = mathPh.length;
+          mathPh.push({ tex, display: false });
+          return `%%MATH_PH_${idx}%%`;
+        });
+        // Bold, italic, links
+        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>');
+        // Restore math
+        mathPh.forEach((item, idx) => {
+          try {
+            const rendered = katex.renderToString(item.tex, { displayMode: item.display, throwOnError: false });
+            html = html.replace(`%%MATH_PH_${idx}%%`, rendered);
+          } catch (e) {
+            html = html.replace(`%%MATH_PH_${idx}%%`, item.tex);
+          }
+        });
+        return html;
+      };
+
       const renderBlogCards = () => {
         const grid = document.getElementById("postsGrid");
         if (!blogs.length) {
@@ -1473,41 +1505,7 @@
         }
         grid.innerHTML = blogs
           .map(
-            (b, i) => {
-              // Render title and excerpt with markdown support (inline only, no code blocks)
-              const renderInline = (text) => {
-                if (!text) return '';
-                let html = text;
-                // Protect and render math
-                const mathPh = [];
-                html = html.replace(/\$\$([\s\S]+?)\$\$/g, (m, tex) => {
-                  const idx = mathPh.length;
-                  mathPh.push({ tex, display: false });
-                  return `%%MATH_PH_${idx}%%`;
-                });
-                html = html.replace(/\$([^\n$]+?)\$/g, (m, tex) => {
-                  const idx = mathPh.length;
-                  mathPh.push({ tex, display: false });
-                  return `%%MATH_PH_${idx}%%`;
-                });
-                // Bold
-                html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-                // Italic
-                html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-                // Links
-                html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>');
-                // Restore math
-                mathPh.forEach((item, idx) => {
-                  try {
-                    const rendered = katex.renderToString(item.tex, { displayMode: item.display, throwOnError: false });
-                    html = html.replace(`%%MATH_PH_${idx}%%`, rendered);
-                  } catch (e) {
-                    html = html.replace(`%%MATH_PH_${idx}%%`, item.tex);
-                  }
-                });
-                return html;
-              };
-              return `
+            (b, i) => `
       <div class="post-card" onclick="openBlogPanel(${i}); return false;">
         <p class="post-meta">${b.date || 'Untitled'}</p>
         <h3 class="post-title">${renderInline(b.title)}</h3>
