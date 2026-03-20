@@ -1363,6 +1363,9 @@
         // Reset placeholders
         mathPlaceholders.length = 0;
         
+        // Remove YAML front matter (--- ... ---)
+        text = text.replace(/^---\n[\s\S]*?\n---\n/, '');
+        
         // Protect code blocks first
         const codeBlocks = [];
         let protectedText = text.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
@@ -1565,7 +1568,7 @@
       });
 
       // Fetch poems
-      fetch("data/poems.jsonl")
+      fetch("poems/poems.jsonl")
         .then((r) => r.text())
         .then((text) => {
           poems = text
@@ -1575,36 +1578,17 @@
           renderCards();
         });
 
-      // Pre-load blog data (fallback if fetch fails)
-      const blogListData = [
-        {
-          file: "i3wm-setup.md",
-          title: "My i3wm setup: calm aesthetics for a busy mind",
-          date: "2025 · Setup",
-          tag: "Productivity",
-          excerpt: "How a tiling window manager helped me find focus — and a colour palette that stays out of the way."
-        },
-        {
-          file: "diffusion-models-art.md",
-          title: "On diffusion models and the art of generation",
-          date: "2025 · Research",
-          tag: "Research",
-          excerpt: "What generative models taught me about creativity, randomness, and the space between intention and emergence."
-        },
-        {
-          file: "classical-poetry-llm.md",
-          title: "Writing classical poetry in the age of LLMs",
-          date: "2025 · Reflection",
-          tag: "Poetry",
-          excerpt: "Why I still carve verses by hand, even when AI can do it in seconds."
-        }
-      ];
+      // Fetch blog list from blogs/list.json
+      let blogListData = [];
 
       // Fetch blog list and content
       async function loadBlogs() {
         try {
-          // Use pre-defined list
-          const list = blogListData;
+          // Fetch list from JSON file
+          const listResp = await fetch("blogs/list.json");
+          if (!listResp.ok) throw new Error("Failed to load list.json");
+          const list = await listResp.json();
+          blogListData = list;
 
           blogs = [];
           for (const item of list) {
