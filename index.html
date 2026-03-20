@@ -1358,15 +1358,21 @@
         return html;
       };
 
+      // Configure marked
+      marked.setOptions({
+        breaks: true,
+        gfm: true
+      });
+
       // Parse Markdown with marked.js + KaTeX + Prism
       const parseMarkdown = (text, hideH1 = false) => {
         // Reset placeholders
         mathPlaceholders.length = 0;
         
-        // Remove YAML front matter (--- ... ---)
-        text = text.replace(/^---\n[\s\S]*?\n---\n/, '');
+        // Remove YAML front matter (--- ... ---) FIRST
+        text = text.replace(/^---\s*\n[\s\S]*?\n\s*---\s*\n/m, '');
         
-        // Protect code blocks first
+        // Protect code blocks
         const codeBlocks = [];
         let protectedText = text.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
           const idx = codeBlocks.length;
@@ -1374,14 +1380,11 @@
           return `%%CODE_BLOCK_${idx}%%`;
         });
         
-        // Protect math blocks
+        // Protect math blocks (after removing front matter and code blocks)
         protectedText = protectMath(protectedText);
         
         // Parse with marked
-        let html = marked.parse(protectedText, {
-          breaks: true,
-          gfm: true
-        });
+        let html = marked.parse(protectedText);
         
         // Restore code blocks with Prism highlighting
         codeBlocks.forEach((block, idx) => {
@@ -1598,12 +1601,24 @@
               continue;
             }
             const content = await contentResp.text();
+            // Convert relative image paths to absolute
+            const dir = item.file.substring(0, item.file.lastIndexOf('/'));
+            let processedContent = content;
+            if (dir) {
+              // Convert ../../assets/ to blogs/assets/
+              processedContent = processedContent.replace(/!\[([^\]]*)\]\(\.\.\/\.\.\/assets\//g, '![$1](blogs/assets/');
+              // Convert ../assets/ to blogs/assets/
+              processedContent = processedContent.replace(/!\[([^\]]*)\]\(\.\.\/assets\//g, '![$1](blogs/assets/');
+              // Convert ./assets/ to blogs/assets/
+              processedContent = processedContent.replace(/!\[([^\]]*)\]\(\.\/assets\//g, '![$1](blogs/assets/');
+            }
+            
             blogs.push({
               file: item.file,
               title: item.title || extractTitle(content),
               date: item.date || '',
               tag: item.tag || 'Blog',
-              content: content,
+              content: processedContent,
               excerpt: item.excerpt || excerpt(content)
             });
           }
