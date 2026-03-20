@@ -1595,8 +1595,15 @@
         }, 400);
       }
 
-      function openBlogPanel(i) {
+      async function openBlogPanel(i) {
         currentBlog = i;
+        const b = blogs[i];
+        
+        // Load content if not cached
+        if (!b.content) {
+          b.content = await loadBlogContent(b.file);
+        }
+        
         renderBlog(i);
 
         // Reset any inline height/transition styles before opening
@@ -1649,8 +1656,35 @@
 
       // Fetch blog list from blogs/list.json
       let blogListData = [];
+      
+      // Cache for blog content (lazy load)
+      const blogContentCache = new Map();
+      
+      // Load blog content on demand
+      async function loadBlogContent(file) {
+        if (blogContentCache.has(file)) {
+          return blogContentCache.get(file);
+        }
+        try {
+          const resp = await fetch(`blogs/${file}`);
+          if (!resp.ok) throw new Error("Failed to load");
+          let content = await resp.text();
+          // Convert relative image paths
+          const dir = file.substring(0, file.lastIndexOf('/'));
+          if (dir) {
+            content = content.replace(/!\[([^\]]*)\]\(\.\.\/\.\.\/assets\//g, '![$1](blogs/assets/');
+            content = content.replace(/!\[([^\]]*)\]\(\.\.\/assets\//g, '![$1](blogs/assets/');
+            content = content.replace(/!\[([^\]]*)\]\(\.\/assets\//g, '![$1](blogs/assets/');
+          }
+          blogContentCache.set(file, content);
+          return content;
+        } catch (err) {
+          console.error("Failed to load blog:", file, err);
+          return "";
+        }
+      }
 
-      // Fetch blog list and content
+      // Fetch blog list and content (lazy load full content)
       async function loadBlogs() {
         try {
           // Fetch list from JSON file
@@ -1659,35 +1693,43 @@
           const list = await listResp.json();
           blogListData = list;
 
+          // Extract excerpt from text (first ~100 chars)
+          const getExcerpt = (text) => {
+            text = text.replace(/^---\s*\n[\s\S]*?\n\s*---\s*\n/m, '');
+            text = text.replace(/```[\s\S]*?```/g, '');
+            text = text.replace(/^#+\s*/gm, '');
+            text = text.replace(/^>\s*/gm, '');
+            text = text.replace(/!\[[^\]]*\]\([^)]*\)/g, '');
+            text = text.trim();
+            if (text.length <= 100) return text;
+            return text.slice(0, 100) + '...';
+          };
+          
           blogs = [];
           for (const item of list) {
-            const filePath = `blogs/${item.file}`;
-            const contentResp = await fetch(filePath);
-            if (!contentResp.ok) {
-              continue;
-            }
-            const content = await contentResp.text();
-            // Convert relative image paths to absolute
-            const dir = item.file.substring(0, item.file.lastIndexOf('/'));
-            let processedContent = content;
-            if (dir) {
-              // Convert ../../assets/ to blogs/assets/
-              processedContent = processedContent.replace(/!\[([^\]]*)\]\(\.\.\/\.\.\/assets\//g, '![$1](blogs/assets/');
-              // Convert ../assets/ to blogs/assets/
-              processedContent = processedContent.replace(/!\[([^\]]*)\]\(\.\.\/assets\//g, '![$1](blogs/assets/');
-              // Convert ./assets/ to blogs/assets/
-              processedContent = processedContent.replace(/!\[([^\]]*)\]\(\.\/assets\//g, '![$1](blogs/assets/');
-            }
-            
             blogs.push({
               file: item.file,
-              title: item.title || extractTitle(content),
-              date: item.date || '',
-              tag: item.tag || 'Blog',
-              content: processedContent,
-              excerpt: excerpt(content)  // Always generate fresh excerpt from content
+              title: item.title,
+              date: item.date,
+              tag: item.tag,
+              content: null,  // Lazy load
+              excerpt: ""     // Will preload
             });
           }
+          
+          // Preload excerpts (lightweight)
+          await Promise.all(blogs.map(async (b) => {
+            try {
+              const resp = await fetch(`blogs/${b.file}`);
+              if (resp.ok) {
+                const text = await resp.text();
+                b.excerpt = getExcerpt(text);
+              }
+            } catch (e) {
+              console.warn("Could not load excerpt for", b.file);
+            }
+          }));
+          
           renderBlogCards();
         } catch (err) {
           console.error("Blog load error:", err);
