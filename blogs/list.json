@@ -1,5 +1,26 @@
 [
   {
+    "file": "ML/Residual.md",
+    "title": "Residual to HC, mHC, and Attention-Residual",
+    "date": "2026 · Notes",
+    "tag": "ML",
+    "excerpt": "From Standard Residual Connection to Hyper-Connections, mHC and Attention-Residual."
+  },
+  {
+    "file": "Diffusion/How-to-calculate-logp.md",
+    "title": "Calculate Log Probability of Diffusion",
+    "date": "2026 · Notes",
+    "tag": "Diffusion",
+    "excerpt": "在流匹配中，使用策略模型下的条件对数概率通过高斯概率公式计算："
+  },
+  {
+    "file": "Diffusion/Diffusion-LogPi.md",
+    "title": "Calculate $log \\pi_\\theta$ in code",
+    "date": "2026 · Notes",
+    "tag": "Diffusion",
+    "excerpt": "在扩散模型（Diffusion  Model）的上下文中， 指的是生成整张图片过程的对数概率。它不是一次性计算出来的，而是反向扩散（去噪）过程中每一步的对数概率的累加和。"
+  },
+  {
     "file": "RL/KL-Divergence-Biased.md",
     "title": "Difference with KL in Loss and reward",
     "date": "2026 · Notes",
@@ -54,27 +75,6 @@
     "date": "2026 · Notes",
     "tag": "RL",
     "excerpt": "This blog is a summary of GRPO, DAPO and λGRPO."
-  },
-  {
-    "file": "ML/Residual.md",
-    "title": "Residual to HC, mHC, and Attention-Residual",
-    "date": "2026 · Notes",
-    "tag": "ML",
-    "excerpt": "标准残差层写成."
-  },
-  {
-    "file": "Diffusion/Diffusion-LogPi.md",
-    "title": "Calculate $log \\pi_\\theta$ in code",
-    "date": "2026 · Notes",
-    "tag": "Diffusion",
-    "excerpt": "在扩散模型（Diffusion  Model）的上下文中，指的是生成整张图片过程的对数概率。它不是一次性计算出来的，而是反向扩散（去噪）过程中每一步的对数概率的累加和。"
-  },
-  {
-    "file": "Diffusion/How-to-calculate-logp.md",
-    "title": "Calculate Log Probability of Diffusion",
-    "date": "2026 · Notes",
-    "tag": "Diffusion",
-    "excerpt": "在流匹配中，使用策略模型下的条件对数概率通过高斯概率公式计算："
   },
   {
     "file": "ML/MiniMax.md",

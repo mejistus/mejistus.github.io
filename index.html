@@ -1407,11 +1407,42 @@
       };
 
       // Extract first N words from text (stripped of markdown)
-      const excerpt = (text, limit = 50) => {
-        const stripped = text.replace(/[#*`>\[\]\-]/g, ' ').replace(/\s+/g, ' ').trim();
-        const words = stripped.split(' ');
-        if (words.length <= limit) return stripped;
-        return words.slice(0, limit).join(' ') + '...';
+      const excerpt = (text, limit = 120) => {
+        // Remove front matter
+        text = text.replace(/^---\s*\n[\s\S]*?\n\s*---\s*\n/m, '');
+        // Remove code blocks
+        text = text.replace(/```[\s\S]*?```/g, '');
+        // Remove heading markers but keep text
+        text = text.replace(/^#+\s*/gm, '');
+        // Remove blockquote markers
+        text = text.replace(/^>\s*/gm, '');
+        // Remove image syntax ![alt](url)
+        text = text.replace(/!\[[^\]]*\]\([^)]*\)/g, '');
+        // Simplify links [text](url) -> text
+        text = text.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1');
+        
+        text = text.trim();
+        if (text.length <= limit) return text;
+        
+        // Smart truncation: don't cut in the middle of math
+        let truncated = text.slice(0, limit);
+        
+        // If we're inside inline math $...$, find the closing $
+        const mathStart = truncated.lastIndexOf('$');
+        const mathEnd = truncated.lastIndexOf('$$');
+        if (mathStart !== -1 && mathStart > mathEnd) {
+          // We're inside $...$, try to find closing $ in original text
+          const remaining = text.slice(mathStart);
+          const closeMatch = remaining.match(/^\$([^\n$]+?)\$/);
+          if (closeMatch && closeMatch[0].length <= 50) {
+            truncated = text.slice(0, mathStart + closeMatch[0].length);
+          } else {
+            // Math too long, cut before it
+            truncated = text.slice(0, mathStart - 1).trim() + '...';
+          }
+        }
+        
+        return truncated + '...';
       };
 
       // Extract title from markdown (first h1)
@@ -1442,14 +1473,49 @@
         }
         grid.innerHTML = blogs
           .map(
-            (b, i) => `
+            (b, i) => {
+              // Render title and excerpt with markdown support (inline only, no code blocks)
+              const renderInline = (text) => {
+                if (!text) return '';
+                let html = text;
+                // Protect and render math
+                const mathPh = [];
+                html = html.replace(/\$\$([\s\S]+?)\$\$/g, (m, tex) => {
+                  const idx = mathPh.length;
+                  mathPh.push({ tex, display: false });
+                  return `%%MATH_PH_${idx}%%`;
+                });
+                html = html.replace(/\$([^\n$]+?)\$/g, (m, tex) => {
+                  const idx = mathPh.length;
+                  mathPh.push({ tex, display: false });
+                  return `%%MATH_PH_${idx}%%`;
+                });
+                // Bold
+                html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                // Italic
+                html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+                // Links
+                html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>');
+                // Restore math
+                mathPh.forEach((item, idx) => {
+                  try {
+                    const rendered = katex.renderToString(item.tex, { displayMode: item.display, throwOnError: false });
+                    html = html.replace(`%%MATH_PH_${idx}%%`, rendered);
+                  } catch (e) {
+                    html = html.replace(`%%MATH_PH_${idx}%%`, item.tex);
+                  }
+                });
+                return html;
+              };
+              return `
       <div class="post-card" onclick="openBlogPanel(${i}); return false;">
         <p class="post-meta">${b.date || 'Untitled'}</p>
-        <h3 class="post-title">${b.title}</h3>
-        <p class="post-excerpt">${b.excerpt}</p>
+        <h3 class="post-title">${renderInline(b.title)}</h3>
+        <p class="post-excerpt">${renderInline(b.excerpt)}</p>
         <span class="post-tag">${b.tag || 'Blog'}</span>
       </div>
-    `,
+    `;
+            },
           )
           .join("");
       };
@@ -1619,7 +1685,7 @@
               date: item.date || '',
               tag: item.tag || 'Blog',
               content: processedContent,
-              excerpt: item.excerpt || excerpt(content)
+              excerpt: excerpt(content)  // Always generate fresh excerpt from content
             });
           }
           renderBlogCards();

@@ -2,8 +2,8 @@
 tag: ML
 title: Residual to HC, mHC, and Attention-Residual
 ---
-
-## 从 Residual 到 HC、mHC，再到 Attention-Residual 的一条线
+# Introduction
+From Standard Residual Connection to Hyper-Connections, mHC and Attention-Residual.
 
 ### 1. 起点：标准残差为什么强
 
