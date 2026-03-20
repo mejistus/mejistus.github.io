@@ -3,6 +3,8 @@ tag: Diffusion
 title: Calculate Log Probability of Diffusion
 ---
 
+# Calculate Log Probability of Diffusion
+
 ## 推导
 
 
