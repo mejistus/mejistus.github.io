@@ -297,9 +297,9 @@
       .post-excerpt {
         font-size: 0.875rem;
         color: var(--muted);
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
+        display: block;
+        max-height: calc(1.5em * 3);
+        
         overflow: hidden;
         line-height: 1.5;
       }
@@ -547,9 +547,9 @@
         font-size: 0.83rem;
         color: var(--muted);
         line-height: 1.7;
-        display: -webkit-box;
+        display: block;
         -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
+        
         overflow: hidden;
       }
       .poem-card-hint {
