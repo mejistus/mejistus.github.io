@@ -1654,7 +1654,7 @@
       async function loadBlogs() {
         try {
           // Fetch list from JSON file
-          const listResp = await fetch("blogs/list.json");
+          const listResp = await fetch("./blogs/list.json");
           if (!listResp.ok) throw new Error("Failed to load list.json");
           const list = await listResp.json();
           blogListData = list;
