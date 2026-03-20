@@ -1698,48 +1698,15 @@
           const list = await listResp.json();
           blogListData = list;
 
-          // Extract excerpt from text (first ~100 chars)
-          const getExcerpt = (text) => {
-            text = text.replace(/^---\s*\n[\s\S]*?\n\s*---\s*\n/m, '');
-            text = text.replace(/```[\s\S]*?```/g, '');
-            text = text.replace(/^#+\s*/gm, '');
-            text = text.replace(/^>\s*/gm, '');
-            text = text.replace(/!\[[^\]]*\]\([^)]*\)/g, '');
-            // Convert links to just text (remove URL)
-            text = text.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1');
-            // Remove inline math
-            text = text.replace(/\$\$[\s\S]*?\$\$/g, '');
-            text = text.replace(/\$([^\n$]+)\$/g, '');
-            // Remove bold/italic markers
-            text = text.replace(/\*\*([^*]+)\*\*/g, '$1');
-            text = text.replace(/\*([^*]+)\*/g, '$1');
-            text = text.trim();
-            return text;
-          };
           
-          blogs = [];
-          for (const item of list) {
-            blogs.push({
-              file: item.file,
-              title: item.title,
-              date: item.date,
-              tag: item.tag,
-              content: null,  // Lazy load
-              excerpt: ""     // Will preload
-            });
-          }
-          
-          // Preload excerpts (lightweight)
-          await Promise.all(blogs.map(async (b) => {
-            try {
-              const resp = await fetch(`blogs/${b.file}`);
-              if (resp.ok) {
-                const text = await resp.text();
-                b.excerpt = getExcerpt(text);
-              }
-            } catch (e) {
-              console.warn("Could not load excerpt for", b.file);
-            }
+          // Use excerpt from list.json (no need to fetch content for excerpts)
+          blogs = list.map(item => ({
+            file: item.file,
+            title: item.title,
+            date: item.date,
+            tag: item.tag,
+            content: null,  // Lazy load
+            excerpt: item.excerpt || ""  // From list.json
           }));
           
           renderBlogCards();

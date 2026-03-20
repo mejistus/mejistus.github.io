@@ -1,10 +1,11 @@
 ---
 tag: RL
 title: GRPO, DAPO and λGRPO
+
 ---
 
-# 简介
 This blog is a summary of GRPO, DAPO and λGRPO.
+
 ## GRPO
 
 $$\mathcal{J}_{GRPO}(\theta) = \frac{1}{\sum_{i=1}^{G} \mid o_i \mid} \sum_{i=1}^{G} \cdot \textcolor{yellow}{\frac{\text{mean}(o)}{\mid o_i \mid}} \cdot \sum_{t=1}^{|o_i|} r_{i,t}(\theta) \widehat{A_{i,t}}$$
