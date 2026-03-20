@@ -6,7 +6,7 @@ title: Calculate $log \pi_\theta$ in code
 
 # 扩散模型中$log \pi_\theta$是如何计算的?
 
-在扩散模型（Diffusion  Model）的上下文中，指的是<span style="background-color:#ff0000;color:#ffffff;">生成整张图片过程的对数概率</span>。它不是一次性计算出来的，而是反向扩散（去噪）过程中<span style="background-color:#ff0000;color:#ffffff;">每一步的对数概率的累加和</span>。
+在扩散模型（Diffusion  Model）的上下文中，$log\Pi_{\theta}$ 指的是<span style="background-color:#ff0000;color:#ffffff;">生成整张图片过程的对数概率</span>。它不是一次性计算出来的，而是反向扩散（去噪）过程中<span style="background-color:#ff0000;color:#ffffff;">每一步的对数概率的累加和</span>。
 
   这个计算主要发生在 `flow_grpo/diffusers_patch/pipeline_with_logprob.py` 文件中。
 
