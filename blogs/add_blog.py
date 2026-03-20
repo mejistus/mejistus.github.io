@@ -47,9 +47,13 @@ def extract_title(content: str, front_matter: dict = None) -> str:
     return Path(content).stem
 
 
-def extract_excerpt(content: str) -> str:
-    """从 markdown 内容提取摘要（标题后的第一段正文）"""
-    # 跳过 front matter
+def extract_excerpt(content: str, front_matter: dict = None) -> str:
+    """从 front matter 或内容提取摘要"""
+    # 优先使用 front matter 中的 excerpt
+    if front_matter and 'excerpt' in front_matter:
+        return front_matter['excerpt']
+    
+    # 否则从内容提取（跳过 front matter）
     content_no_fm = re.sub(r'^---\s*\n.*?\n---\s*\n', '', content, flags=re.DOTALL)
     
     lines = content_no_fm.split('\n')
@@ -59,11 +63,12 @@ def extract_excerpt(content: str) -> str:
             continue
         # 移除 markdown 格式，保留纯文本
         text = re.sub(r'\*\*(.+?)\*\*', r'\1', stripped)
+        text = re.sub(r'\*(.+?)\*', r'\1', text)
         text = re.sub(r'\[(.+?)\]\(.+?\)', r'\1', text)
         text = re.sub(r'<[^>]+>', '', text)
         text = re.sub(r'\$\$?.*?\$\$?', '', text)
         if text:
-            return text[:150] + '...' if len(text) > 150 else text
+            return text[:100] + '...' if len(text) > 100 else text
     return ''
 
 
@@ -77,7 +82,6 @@ def extract_tag_from_comment(content: str) -> str:
 
 def guess_tag_from_path(md_path: Path) -> str:
     """根据文件路径推断标签"""
-    # 检查父目录名
     parent_name = md_path.parent.name
     return DIR_TO_TAG.get(parent_name, 'Notes')
 
@@ -94,7 +98,7 @@ def get_tag(content: str, front_matter: dict, md_path: Path, explicit_tag: str =
     return guess_tag_from_path(md_path)
 
 
-def add_blog(md_file: str, date_str: str = None, tag: str = None, dry_run: bool = False):
+def add_blog(md_file: str, date_str: str = None, tag: str = None, excerpt: str = None, dry_run: bool = False):
     """添加博客到 list.json"""
     md_path = Path(md_file)
     if not md_path.exists():
@@ -109,7 +113,13 @@ def add_blog(md_file: str, date_str: str = None, tag: str = None, dry_run: bool 
     front_matter = parse_front_matter(content)
     
     title = extract_title(content, front_matter)
-    excerpt = extract_excerpt(content)
+    
+    # 使用命令行指定的 excerpt，否则从 front matter 或内容提取
+    if excerpt:
+        final_excerpt = excerpt
+    else:
+        final_excerpt = extract_excerpt(content, front_matter)
+    
     final_tag = get_tag(content, front_matter, md_path, tag)
     
     if date_str is None:
@@ -119,16 +129,12 @@ def add_blog(md_file: str, date_str: str = None, tag: str = None, dry_run: bool 
             date_str = f"{datetime.now().year} · Notes"
     
     entry = {
-        "file": str(rel_path),
+        "file": md_path.name,
         "title": title,
         "date": date_str,
         "tag": final_tag,
-        "excerpt": excerpt
+        "excerpt": final_excerpt
     }
-    
-    list_json_path = md_path.parent.parent / 'list.json' if md_path.parent.name in DIR_TO_TAG else md_path.parent / 'list.json'
-    if not (md_path.parent.parent / 'list.json').exists():
-        list_json_path = md_path.parent / 'list.json'
     
     # 查找根目录的 list.json
     root_dir = md_path.parent
@@ -169,27 +175,23 @@ def add_blog(md_file: str, date_str: str = None, tag: str = None, dry_run: bool 
 
 def sync_all(dry_run: bool = False):
     """同步所有 markdown 文件到 list.json"""
-    # 查找根目录（包含 list.json 或 add_blog.py 的目录）
     script_dir = Path(__file__).parent
     list_json_path = script_dir / 'list.json'
     
-    # 递归查找所有 md 文件
     md_files = []
     for pattern in ['*.md', '*/*.md']:
         md_files.extend(script_dir.glob(pattern))
     
-    # 排除脚本自身可能创建的临时文件
     md_files = [f for f in md_files if f.name != 'README.md']
     md_files = sorted(md_files, key=lambda p: p.stat().st_mtime, reverse=True)
     
     if list_json_path.exists():
         with open(list_json_path, 'r', encoding='utf-8') as f:
             existing = json.load(f)
-        # 使用相对路径进行比较
         existing_files = {e.get('file') for e in existing}
     else:
         existing_files = set()
-
+    
     new_entries = []
     for md_file in md_files:
         rel_path = md_file.relative_to(script_dir) if md_file.is_relative_to(script_dir) else md_file.name
@@ -197,10 +199,9 @@ def sync_all(dry_run: bool = False):
             content = md_file.read_text(encoding='utf-8')
             front_matter = parse_front_matter(content)
             title = extract_title(content, front_matter)
-            excerpt = extract_excerpt(content)
+            excerpt = extract_excerpt(content, front_matter)
             tag = get_tag(content, front_matter, md_file)
             date_str = front_matter.get('date', f"{datetime.now().year} · Notes")
-            rel_path = md_file.relative_to(script_dir) if md_file.is_relative_to(script_dir) else md_file.name
             new_entries.append({
                 "file": str(rel_path),
                 "title": title,
@@ -240,7 +241,6 @@ def rebuild_all(dry_run: bool = False):
     script_dir = Path(__file__).parent
     list_json_path = script_dir / 'list.json'
     
-    # 递归查找所有 md 文件
     md_files = []
     for pattern in ['*.md', '*/*.md']:
         md_files.extend(script_dir.glob(pattern))
@@ -253,13 +253,11 @@ def rebuild_all(dry_run: bool = False):
         content = md_file.read_text(encoding='utf-8')
         front_matter = parse_front_matter(content)
         title = extract_title(content, front_matter)
-        excerpt = extract_excerpt(content)
+        excerpt = extract_excerpt(content, front_matter)
         tag = get_tag(content, front_matter, md_file)
         date_str = front_matter.get('date', f"{datetime.now().year} · Notes")
-        # 使用相对路径（相对于 list.json 所在目录）
-        rel_path = md_file.relative_to(script_dir) if md_file.is_relative_to(script_dir) else md_file.name
         entries.append({
-            "file": str(rel_path),
+            "file": md_file.name,
             "title": title,
             "date": date_str,
             "tag": tag,
@@ -286,6 +284,7 @@ def main():
     parser.add_argument('file', nargs='?', help='markdown 文件路径')
     parser.add_argument('-d', '--date', help='日期字符串，如 "2025 · Research"')
     parser.add_argument('-t', '--tag', help='标签，如 "Research"')
+    parser.add_argument('-e', '--excerpt', help='摘要内容（可选，覆盖自动提取）')
     parser.add_argument('-n', '--dry-run', action='store_true', help='预览模式，不写入文件')
     parser.add_argument('--sync-all', action='store_true', help='同步所有未收录的 markdown 文件')
     parser.add_argument('--rebuild', action='store_true', help='重建整个 list.json（覆盖现有内容）')
@@ -297,7 +296,7 @@ def main():
     elif args.sync_all:
         sync_all(dry_run=args.dry_run)
     elif args.file:
-        add_blog(args.file, args.date, args.tag, args.dry_run)
+        add_blog(args.file, args.date, args.tag, args.excerpt, args.dry_run)
     else:
         parser.print_help()
 
