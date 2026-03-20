@@ -1,3 +1,8 @@
+---
+tag: Notes
+title: My i3wm setup: calm aesthetics for a busy mind
+---
+
 # My i3wm setup: calm aesthetics for a busy mind
 
 How a tiling window manager helped me find focus — and a colour palette that stays out of the way.
