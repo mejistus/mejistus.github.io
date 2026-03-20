@@ -1,5 +1,26 @@
 [
   {
+    "file": "RL/KL-Divergence-Biased.md",
+    "title": "Difference of KL in Loss with reward",
+    "date": "2026 · Notes",
+    "tag": "RL",
+    "excerpt": "为什么在GRPO中进行微调时，在损失（Loss）里添加散度项（Reverse KL Divergence)本质上和在奖励（Reward）中添加散度项是不同的，并且会造成Bias？"
+  },
+  {
+    "file": "ML/Variational-method.md",
+    "title": "Variational Method",
+    "date": "2026 · Notes",
+    "tag": "ML",
+    "excerpt": "变分法 （或称变分法 ）是数学分析的一个领域，利用变分，变分是函数)中的微小变化 以及泛函 )，用于求函数的极大值和最小值：从一组函数)映射到实数的映射 )。[a\\] 泛函通常表示为包含函数及其导数的确定积分 。最大化或最小泛函的函数可以通过变分法的欧拉-拉格朗日方程找到。"
+  },
+  {
+    "file": "Math/KKT-Conditions.md",
+    "title": "經典帶約束優化問題",
+    "date": "2026 · Notes",
+    "tag": "Math",
+    "excerpt": "在數學中，卡魯什-庫恩-塔克條件（英語：Karush-Kuhn-Tucker Conditions，常見別名：Kuhn-Tucker，KKT條件，Karush-Kuhn-Tucker最優化條件，Karush-Kuhn-Tucker條件，Kuhn-Tucker最優化條件，Kuhn-Tucker條件）是..."
+  },
+  {
     "file": "ML/GUMBEL-SOFTMAX.md",
     "title": "GUMBEL-SOFTMAX",
     "date": "2026 · Notes",
@@ -49,13 +70,6 @@
     "excerpt": "在扩散模型（Diffusion  Model）的上下文中，指的是生成整张图片过程的对数概率。它不是一次性计算出来的，而是反向扩散（去噪）过程中每一步的对数概率的累加和。"
   },
   {
-    "file": "ML/Variational-method.md",
-    "title": "Variational Method",
-    "date": "2026 · Notes",
-    "tag": "ML",
-    "excerpt": "变分法 （或称变分法 ）是数学分析的一个领域，利用变分，变分是函数)中的微小变化 以及泛函 )，用于求函数的极大值和最小值：从一组函数)映射到实数的映射 )。[a\\] 泛函通常表示为包含函数及其导数的确定积分 。最大化或最小泛函的函数可以通过变分法的欧拉-拉格朗日方程找到。"
-  },
-  {
     "file": "Diffusion/How-to-calculate-logp.md",
     "title": "Calculate Log Probability of Diffusion",
     "date": "2026 · Notes",
@@ -103,20 +117,6 @@
     "date": "2026 · Notes",
     "tag": "RL",
     "excerpt": "在使用在线 RL（例如 GRPO / PPO）时，经常会出现："
-  },
-  {
-    "file": "RL/KL-Divergence-Biased.md",
-    "title": "问题陈述",
-    "date": "2026 · Notes",
-    "tag": "RL",
-    "excerpt": "为什么在GRPO中进行微调时，在损失（Loss）里添加散度项（Reverse KL Divergence)本质上和在奖励（Reward）中添加散度项是不同的，并且会造成Bias？"
-  },
-  {
-    "file": "Math/KKT-Conditions.md",
-    "title": "經典帶約束優化問題",
-    "date": "2026 · Notes",
-    "tag": "Math",
-    "excerpt": "在數學中，卡魯什-庫恩-塔克條件（英語：Karush-Kuhn-Tucker Conditions，常見別名：Kuhn-Tucker，KKT條件，Karush-Kuhn-Tucker最優化條件，Karush-Kuhn-Tucker條件，Kuhn-Tucker最優化條件，Kuhn-Tucker條件）是..."
   },
   {
     "file": "Math/Fubini定理.md",

@@ -21,7 +21,7 @@ S=\int_a^b{f(x,y(x),y'(x),\cdots y^{(n)}(x))}dx
 $$
 则 $y$ 必须满足欧拉-[ 泊松](https://en.wikipedia.org/wiki/Siméon_Denis_Poisson)方程，
 $$
-\frac{\part f}{\part y}-\frac{\part}{\part x}\frac{\part f}{\part y'}+\frac{\part^2}{\part x^2}\frac{\part f}{\part y''}-\cdots+(-1)^n\cdot \frac{\part^n}{\part x^n}\left[\frac{\part f}{\part y^{(n)}}\right]=0
+\frac{\partial f}{\partial y}-\frac{\partial}{\partial x}\frac{\partial f}{\partial y'}+\frac{\partial^2}{\partial x^2}\frac{\partial f}{\partial y''}-\cdots+(-1)^n\cdot \frac{\partial^n}{\partial x^n}\left[\frac{\partial f}{\partial y^{(n)}}\right]=0
 $$
 
 ## 示例
@@ -32,11 +32,11 @@ A[y]=\int_{x_1}^{x_2}{\sqrt{1+[y'(x)]^2}}dx
 $$
 所以
 $$
-\frac{\part f}{\part y}=\frac{\part}{\part x}\frac{\part f}{\part y'}=0
+\frac{\partial f}{\partial y}=\frac{\partial}{\partial x}\frac{\partial f}{\partial y'}=0
 $$
 即
 $$
-\frac{\part}{\part x}\left[\frac{y'(x)}{\sqrt{1+[y'(x)]^2}}\right]=0
+\frac{\partial}{\partial x}\left[\frac{y'(x)}{\sqrt{1+[y'(x)]^2}}\right]=0
 $$
 
 $$
