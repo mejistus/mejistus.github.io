@@ -1504,17 +1504,14 @@
           return;
         }
         grid.innerHTML = blogs
-          .map(
-            (b, i) => `
+          .map((b, i) => `
       <div class="post-card" onclick="openBlogPanel(${i}); return false;">
         <p class="post-meta">${b.date || 'Untitled'}</p>
         <h3 class="post-title">${renderInline(b.title)}</h3>
         <p class="post-excerpt">${renderInline(b.excerpt)}</p>
         <span class="post-tag">${b.tag || 'Blog'}</span>
       </div>
-    `;
-            },
-          )
+    `)
           .join("");
       };
 
