@@ -240,14 +240,14 @@ def rebuild_all(dry_run: bool = False):
     """重建整个 list.json（覆盖现有内容）"""
     script_dir = Path(__file__).parent
     list_json_path = script_dir / 'list.json'
-    
+
     md_files = []
     for pattern in ['*.md', '*/*.md']:
         md_files.extend(script_dir.glob(pattern))
-    
+
     md_files = [f for f in md_files if f.name != 'README.md']
     md_files = sorted(md_files, key=lambda p: p.stat().st_mtime, reverse=True)
-    
+
     entries = []
     for md_file in md_files:
         content = md_file.read_text(encoding='utf-8')
@@ -256,8 +256,10 @@ def rebuild_all(dry_run: bool = False):
         excerpt = extract_excerpt(content, front_matter)
         tag = get_tag(content, front_matter, md_file)
         date_str = front_matter.get('date', f"{datetime.now().year} · Notes")
+        # 使用相对路径（相对于 list.json 所在目录）
+        rel_path = md_file.relative_to(script_dir) if md_file.is_relative_to(script_dir) else md_file.name
         entries.append({
-            "file": md_file.name,
+            "file": str(rel_path),
             "title": title,
             "date": date_str,
             "tag": tag,
