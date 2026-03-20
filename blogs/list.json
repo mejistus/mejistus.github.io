@@ -1,5 +1,12 @@
 [
   {
+    "file": "Diffusion/擴散模型邊緣分布.md",
+    "title": "擴散模型邊緣分布",
+    "date": "2026 · Notes",
+    "tag": "Diffusion",
+    "excerpt": "当前时刻的 score function 可以通过条件分布来计算：$\\nabla \\log p_t(x_t) = \\mathbb{E}_{x_0 \\sim p(x_0|x_t)}[\\nabla \\log p(x_t|x_0)]$"
+  },
+  {
     "file": "RL/GRPO-DAPO-λGRPO.md",
     "title": "GRPO, DAPO and λGRPO",
     "date": "2026 · Notes",
@@ -103,13 +110,6 @@
     "date": "2026 · Notes",
     "tag": "RL",
     "excerpt": "为什么得到奖励函数的梯度这么重要呢？"
-  },
-  {
-    "file": "Diffusion/擴散模型邊緣分布.md",
-    "title": "擴散模型邊緣分布",
-    "date": "2026 · Notes",
-    "tag": "Diffusion",
-    "excerpt": "`当前时刻的score function可以通过条件分布来计算`"
   },
   {
     "file": "RL/Reward-hacking.md",
