@@ -315,6 +315,191 @@
         border: 1px solid #e8cfc4;
       }
 
+      /* ── BLOG TOOLBAR (search & sort) ── */
+      .blog-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-left: auto;
+      }
+      .section-title-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0;
+      }
+      .section-title-row .section-title {
+        margin-bottom: 0;
+      }
+      .toolbar-btn {
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        background: var(--cream);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, border-color 0.2s;
+        color: var(--muted);
+        padding: 0;
+      }
+      .toolbar-btn:hover {
+        background: var(--sand);
+        border-color: var(--rust);
+        color: var(--rust);
+      }
+      .toolbar-btn.active {
+        background: var(--sand);
+        border-color: var(--rust);
+        color: var(--rust);
+      }
+      .toolbar-btn svg {
+        width: 16px;
+        height: 16px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* ── Search bar (macOS Spotlight style) ── */
+      .blog-search-container {
+        position: relative;
+      }
+      .blog-search-bar {
+        display: none;
+        align-items: center;
+        background: var(--cream);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 0.6rem 1rem;
+        margin-top: 1rem;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        gap: 0.6rem;
+        opacity: 0;
+        transform: translateY(-8px);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+      }
+      .blog-search-bar.visible {
+        display: flex;
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .blog-search-bar svg {
+        width: 16px;
+        height: 16px;
+        stroke: var(--muted);
+        fill: none;
+        stroke-width: 2;
+        flex-shrink: 0;
+      }
+      .blog-search-bar input {
+        border: none;
+        outline: none;
+        background: transparent;
+        font-family: "Inter", sans-serif;
+        font-size: 0.9rem;
+        color: var(--ink);
+        flex: 1;
+        min-width: 0;
+      }
+      .blog-search-bar input::placeholder {
+        color: var(--muted);
+      }
+      .blog-search-bar .search-clear {
+        width: 20px;
+        height: 20px;
+        border: none;
+        background: var(--sand);
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        font-size: 0.75rem;
+        line-height: 1;
+        padding: 0;
+        transition: background 0.15s;
+      }
+      .blog-search-bar .search-clear:hover {
+        background: var(--border);
+        color: var(--ink);
+      }
+
+      /* ── Search results dropdown ── */
+      .search-results {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        background: var(--cream);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        max-height: 320px;
+        overflow-y: auto;
+        z-index: 100;
+        display: none;
+        opacity: 0;
+        transform: translateY(-4px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+      }
+      .search-results.visible {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .search-result-item {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid var(--border);
+        transition: background 0.15s;
+      }
+      .search-result-item:last-child {
+        border-bottom: none;
+      }
+      .search-result-item:hover,
+      .search-result-item.selected {
+        background: var(--sand);
+      }
+      .search-result-item .result-title {
+        font-family: "Playfair Display", serif;
+        font-size: 0.95rem;
+        color: var(--ink);
+        margin-bottom: 0.2rem;
+      }
+      .search-result-item .result-meta {
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+      .search-result-item .result-meta .result-tag {
+        color: var(--rust);
+        margin-left: 0.5rem;
+      }
+      .search-no-results {
+        padding: 1rem;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      /* ── Sort indicator ── */
+      .sort-indicator {
+        font-size: 0.72rem;
+        color: var(--rust);
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+      }
+      .sort-indicator.visible {
+        opacity: 1;
+      }
+
       /* ── BLOG PANEL ── */
       .blog-panel {
         position: fixed;
@@ -1085,7 +1270,26 @@
     <section id="posts" style="padding: 0">
       <div class="inner">
         <p class="section-label">Recent Writing</p>
-        <h2 class="section-title">From the blog</h2>
+        <div class="section-title-row">
+          <h2 class="section-title">From the blog</h2>
+          <div class="blog-toolbar">
+            <button class="toolbar-btn" id="btnSearch" title="Search posts" onclick="toggleBlogSearch()">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </button>
+            <button class="toolbar-btn" id="btnSort" title="Sort posts" onclick="toggleBlogSort()">
+              <svg viewBox="0 0 24 24"><polyline points="11 8 8 4 5 8"/><line x1="8" y1="4" x2="8" y2="16"/><polyline points="13 16 16 20 19 16"/><line x1="16" y1="20" x2="16" y2="8"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="blog-search-container" id="searchContainer">
+          <div class="blog-search-bar" id="blogSearchBar">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="blogSearchInput" placeholder="Search blog posts..." autocomplete="off" />
+            <button class="search-clear" id="searchClear" onclick="clearBlogSearch()">&times;</button>
+          </div>
+          <div class="search-results" id="searchResults"></div>
+        </div>
+        <p class="sort-indicator" id="sortIndicator"></p>
         <div class="posts-grid" id="postsGrid">
           <!-- Dynamically loaded -->
         </div>
@@ -1508,23 +1712,248 @@
         return html;
       };
 
+      // Display order: blogs array indices may differ from displayBlogs
+      let displayBlogs = []; // indices into blogs[]
+      let isSorted = false;
+
+      const formatDate = (dateStr) => {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d)) return dateStr;
+        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      };
+
       const renderBlogCards = () => {
         const grid = document.getElementById("postsGrid");
         if (!blogs.length) {
           grid.innerHTML = '<p style="color: var(--muted); text-align: center;">No blog posts yet.</p>';
           return;
         }
-        grid.innerHTML = blogs
-          .map((b, i) => `
-      <div class="post-card" onclick="openBlogPanel(${i}); return false;">
-        <p class="post-meta">${b.date || 'Untitled'}</p>
+        // If no custom display order, show original order
+        const order = displayBlogs.length ? displayBlogs : blogs.map((_, i) => i);
+        grid.innerHTML = order
+          .map(i => {
+            const b = blogs[i];
+            return `
+      <div class="post-card" data-blog-index="${i}" onclick="openBlogPanel(${i}); return false;">
+        <p class="post-meta">${formatDate(b.date)}</p>
         <h3 class="post-title">${renderInline(b.title)}</h3>
         <p class="post-excerpt">${renderInline(b.excerpt)}</p>
         <span class="post-tag">${b.tag || 'Blog'}</span>
       </div>
-    `)
+    `;
+          })
           .join("");
       };
+
+      /* ── Search functionality ── */
+      let searchOpen = false;
+      let searchSelectedIdx = -1;
+      let searchResultIndices = [];
+
+      function toggleBlogSearch() {
+        const bar = document.getElementById("blogSearchBar");
+        const btn = document.getElementById("btnSearch");
+        searchOpen = !searchOpen;
+        if (searchOpen) {
+          bar.style.display = "flex";
+          // Force reflow then animate
+          void bar.offsetWidth;
+          bar.classList.add("visible");
+          btn.classList.add("active");
+          document.getElementById("blogSearchInput").focus();
+        } else {
+          closeBlogSearch();
+        }
+      }
+
+      function closeBlogSearch() {
+        const bar = document.getElementById("blogSearchBar");
+        const results = document.getElementById("searchResults");
+        const btn = document.getElementById("btnSearch");
+        bar.classList.remove("visible");
+        results.classList.remove("visible");
+        btn.classList.remove("active");
+        searchOpen = false;
+        searchSelectedIdx = -1;
+        searchResultIndices = [];
+        setTimeout(() => {
+          bar.style.display = "none";
+          results.style.display = "none";
+          document.getElementById("blogSearchInput").value = "";
+        }, 250);
+      }
+
+      function clearBlogSearch() {
+        document.getElementById("blogSearchInput").value = "";
+        document.getElementById("searchResults").classList.remove("visible");
+        setTimeout(() => {
+          document.getElementById("searchResults").style.display = "none";
+        }, 200);
+        searchSelectedIdx = -1;
+        searchResultIndices = [];
+        document.getElementById("blogSearchInput").focus();
+      }
+
+      // Fuzzy-ish search: split query into tokens and check if all tokens appear in text
+      function blogSearch(query) {
+        if (!query.trim()) return [];
+        const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
+        const scored = [];
+        blogs.forEach((b, i) => {
+          const haystack = `${b.title} ${b.tag} ${b.excerpt} ${b.date}`.toLowerCase();
+          const allMatch = tokens.every(t => haystack.includes(t));
+          if (allMatch) {
+            // Score: earlier/more matches = better
+            let score = 0;
+            tokens.forEach(t => {
+              if (b.title.toLowerCase().includes(t)) score += 3;
+              if (b.tag.toLowerCase().includes(t)) score += 2;
+              if (b.excerpt.toLowerCase().includes(t)) score += 1;
+            });
+            scored.push({ index: i, score });
+          }
+        });
+        scored.sort((a, b) => b.score - a.score);
+        return scored.map(s => s.index);
+      }
+
+      function renderSearchResults(indices) {
+        const container = document.getElementById("searchResults");
+        searchResultIndices = indices;
+        searchSelectedIdx = -1;
+        if (!indices.length) {
+          container.innerHTML = '<div class="search-no-results">No matching posts</div>';
+        } else {
+          container.innerHTML = indices.map((idx, pos) => {
+            const b = blogs[idx];
+            return `<div class="search-result-item" data-pos="${pos}" onmouseenter="searchHover(${pos})" onclick="selectSearchResult(${idx})">
+              <div class="result-title">${renderInline(b.title)}</div>
+              <div class="result-meta">${formatDate(b.date)}<span class="result-tag">${b.tag}</span></div>
+            </div>`;
+          }).join("");
+        }
+        container.style.display = "block";
+        void container.offsetWidth;
+        container.classList.add("visible");
+      }
+
+      function searchHover(pos) {
+        searchSelectedIdx = pos;
+        updateSearchSelection();
+      }
+
+      function updateSearchSelection() {
+        const items = document.querySelectorAll(".search-result-item");
+        items.forEach((el, i) => {
+          el.classList.toggle("selected", i === searchSelectedIdx);
+        });
+        // scroll into view
+        if (searchSelectedIdx >= 0 && items[searchSelectedIdx]) {
+          items[searchSelectedIdx].scrollIntoView({ block: "nearest" });
+        }
+      }
+
+      function selectSearchResult(blogIndex) {
+        // Fade out search UI
+        closeBlogSearch();
+        // Scroll to the post card
+        setTimeout(() => {
+          const card = document.querySelector(`.post-card[data-blog-index="${blogIndex}"]`);
+          if (card) {
+            card.scrollIntoView({ behavior: "smooth", block: "center" });
+            // Brief highlight
+            card.style.boxShadow = "0 0 0 3px var(--rust)";
+            card.style.transition = "box-shadow 0.3s ease";
+            setTimeout(() => {
+              card.style.boxShadow = "";
+            }, 1500);
+          }
+        }, 300);
+      }
+
+      // Click outside to close search
+      document.addEventListener("click", (e) => {
+        if (!searchOpen) return;
+        const container = document.getElementById("searchContainer");
+        const btn = document.getElementById("btnSearch");
+        if (!container.contains(e.target) && !btn.contains(e.target)) {
+          closeBlogSearch();
+        }
+      });
+
+      // Search input handler
+      document.addEventListener("DOMContentLoaded", () => {
+        const input = document.getElementById("blogSearchInput");
+        if (input) {
+          input.addEventListener("input", (e) => {
+            const q = e.target.value;
+            if (q.trim()) {
+              const results = blogSearch(q);
+              renderSearchResults(results);
+            } else {
+              const container = document.getElementById("searchResults");
+              container.classList.remove("visible");
+              setTimeout(() => { container.style.display = "none"; }, 200);
+              searchResultIndices = [];
+              searchSelectedIdx = -1;
+            }
+          });
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              if (searchResultIndices.length) {
+                searchSelectedIdx = Math.min(searchSelectedIdx + 1, searchResultIndices.length - 1);
+                updateSearchSelection();
+              }
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              if (searchResultIndices.length) {
+                searchSelectedIdx = Math.max(searchSelectedIdx - 1, 0);
+                updateSearchSelection();
+              }
+            } else if (e.key === "Enter") {
+              e.preventDefault();
+              if (searchSelectedIdx >= 0 && searchResultIndices[searchSelectedIdx] !== undefined) {
+                selectSearchResult(searchResultIndices[searchSelectedIdx]);
+              }
+            } else if (e.key === "Escape") {
+              closeBlogSearch();
+            }
+          });
+        }
+      });
+
+      /* ── Sort functionality ── */
+      // Tag sort order (custom grouping)
+      const tagOrder = { "Diffusion": 0, "RL": 1, "ML": 2, "Math": 3, "Cybernetics": 4, "Notes": 5 };
+
+      function toggleBlogSort() {
+        const btn = document.getElementById("btnSort");
+        const indicator = document.getElementById("sortIndicator");
+        isSorted = !isSorted;
+        if (isSorted) {
+          btn.classList.add("active");
+          // Sort: first by tag, then by date (newest first)
+          displayBlogs = blogs.map((_, i) => i);
+          displayBlogs.sort((a, b) => {
+            const tagA = tagOrder[blogs[a].tag] ?? 99;
+            const tagB = tagOrder[blogs[b].tag] ?? 99;
+            if (tagA !== tagB) return tagA - tagB;
+            // Within same tag, sort by date descending
+            const dA = new Date(blogs[a].date || 0);
+            const dB = new Date(blogs[b].date || 0);
+            return dB - dA;
+          });
+          indicator.textContent = "Sorted by category, then date";
+          indicator.classList.add("visible");
+        } else {
+          btn.classList.remove("active");
+          displayBlogs = [];
+          indicator.classList.remove("visible");
+        }
+        renderBlogCards();
+      }
 
       const render = (i) => {
         const p = poems[i];
