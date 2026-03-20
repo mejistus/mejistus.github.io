@@ -1472,51 +1472,13 @@
           return;
         }
         grid.innerHTML = blogs
-          .map(
-            (b, i) => {
-              // Render title and excerpt with markdown support (inline only, no code blocks)
-              const renderInline = (text) => {
-                if (!text) return '';
-                let html = text;
-                // Protect and render math
-                const mathPh = [];
-                html = html.replace(/\$\$([\s\S]+?)\$\$/g, (m, tex) => {
-                  const idx = mathPh.length;
-                  mathPh.push({ tex, display: false });
-                  return `%%MATH_PH_${idx}%%`;
-                });
-                html = html.replace(/\$([^\n$]+?)\$/g, (m, tex) => {
-                  const idx = mathPh.length;
-                  mathPh.push({ tex, display: false });
-                  return `%%MATH_PH_${idx}%%`;
-                });
-                // Bold
-                html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-                // Italic
-                html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-                // Links
-                html = html.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2">$1</a>');
-                // Restore math
-                mathPh.forEach((item, idx) => {
-                  try {
-                    const rendered = katex.renderToString(item.tex, { displayMode: item.display, throwOnError: false });
-                    html = html.replace(`%%MATH_PH_${idx}%%`, rendered);
-                  } catch (e) {
-                    html = html.replace(`%%MATH_PH_${idx}%%`, item.tex);
-                  }
-                });
-                return html;
-              };
-              return `
+          .map((b, i) => `
       <div class="post-card" onclick="openBlogPanel(${i}); return false;">
         <p class="post-meta">${b.date || 'Untitled'}</p>
-        <h3 class="post-title">${renderInline(b.title)}</h3>
-        <p class="post-excerpt">${renderInline(b.excerpt)}</p>
+        <h3 class="post-title">${b.title}</h3>
         <span class="post-tag">${b.tag || 'Blog'}</span>
       </div>
-    `;
-            },
-          )
+    `)
           .join("");
       };
 
@@ -1595,8 +1557,15 @@
         }, 400);
       }
 
-      function openBlogPanel(i) {
+      async function openBlogPanel(i) {
         currentBlog = i;
+        const b = blogs[i];
+        
+        // Load content if not cached
+        if (!b.content) {
+          b.content = await loadBlogContent(b.file);
+        }
+        
         renderBlog(i);
 
         // Reset any inline height/transition styles before opening
@@ -1651,43 +1620,49 @@
       let blogListData = [];
 
       // Fetch blog list and content
+      // Load blog content on demand
+      const blogContentCache = new Map();
+      
+      async function loadBlogContent(file) {
+        if (blogContentCache.has(file)) {
+          return blogContentCache.get(file);
+        }
+        try {
+          const resp = await fetch(`blogs/${file}`);
+          if (!resp.ok) throw new Error("Failed to load");
+          let content = await resp.text();
+          // Convert relative image paths
+          const dir = file.substring(0, file.lastIndexOf('/'));
+          if (dir) {
+            content = content.replace(/!\[([^\]]*)\]\(\.\.\/\.\.\/assets\//g, '![$1](blogs/assets/');
+            content = content.replace(/!\[([^\]]*)\]\(\.\.\/assets\//g, '![$1](blogs/assets/');
+            content = content.replace(/!\[([^\]]*)\]\(\.\/assets\//g, '![$1](blogs/assets/');
+          }
+          blogContentCache.set(file, content);
+          return content;
+        } catch (err) {
+          console.error("Failed to load blog:", file, err);
+          return "";
+        }
+      }
+
       async function loadBlogs() {
         try {
-          // Fetch list from JSON file
           const listResp = await fetch("./blogs/list.json");
           if (!listResp.ok) throw new Error("Failed to load list.json");
           const list = await listResp.json();
           blogListData = list;
-
-          blogs = [];
-          for (const item of list) {
-            const filePath = `blogs/${item.file}`;
-            const contentResp = await fetch(filePath);
-            if (!contentResp.ok) {
-              continue;
-            }
-            const content = await contentResp.text();
-            // Convert relative image paths to absolute
-            const dir = item.file.substring(0, item.file.lastIndexOf('/'));
-            let processedContent = content;
-            if (dir) {
-              // Convert ../../assets/ to blogs/assets/
-              processedContent = processedContent.replace(/!\[([^\]]*)\]\(\.\.\/\.\.\/assets\//g, '![$1](blogs/assets/');
-              // Convert ../assets/ to blogs/assets/
-              processedContent = processedContent.replace(/!\[([^\]]*)\]\(\.\.\/assets\//g, '![$1](blogs/assets/');
-              // Convert ./assets/ to blogs/assets/
-              processedContent = processedContent.replace(/!\[([^\]]*)\]\(\.\/assets\//g, '![$1](blogs/assets/');
-            }
-            
-            blogs.push({
-              file: item.file,
-              title: item.title || extractTitle(content),
-              date: item.date || '',
-              tag: item.tag || 'Blog',
-              content: processedContent,
-              excerpt: excerpt(content)  // Always generate fresh excerpt from content
-            });
-          }
+          
+          // Only store metadata, load content on demand
+          blogs = list.map(item => ({
+            file: item.file,
+            title: item.title,
+            date: item.date,
+            tag: item.tag,
+            content: null,  // Lazy load
+            excerpt: ""     // Not used anymore
+          }));
+          
           renderBlogCards();
         } catch (err) {
           console.error("Blog load error:", err);
