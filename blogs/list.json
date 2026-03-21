@@ -1,10 +1,10 @@
 [
   {
     "file": "Diffusion/擴散模型邊緣分布.md",
-    "title": "擴散模型邊緣分布",
+    "title": "Marginal Distribution of Diffusion Models",
     "date": "2026-03-15",
     "tag": "Diffusion",
-    "excerpt": "当前时刻的 score function 可以通过条件分布来计算：$\\nabla \\log p_t(x_t) = \\mathbb{E}_{x_0 \\sim p(x_0|x_t)}[\\nabla \\log p(x_t|x_0)]$"
+    "excerpt": "The score function at the current timestep can be computed via the conditional distribution: $\\nabla \\log p_t(x_t) = \\mathbb{E}_{x_0 \\sim p(x_0|x_t)}[\\nabla \\log p(x_t|x_0)]$"
   },
   {
     "file": "RL/GRPO-DAPO-λGRPO.md",
@@ -25,35 +25,35 @@
     "title": "Calculate Log Probability of Diffusion",
     "date": "2026-02-20",
     "tag": "Diffusion",
-    "excerpt": "在流匹配中，使用策略模型下的条件对数概率通过高斯概率公式计算："
+    "excerpt": "In flow matching, the conditional log-probability under the policy model is computed via the Gaussian probability formula."
   },
   {
     "file": "Diffusion/Diffusion-LogPi.md",
     "title": "Calculate $log \\pi_\\theta$ in code",
     "date": "2026-02-14",
     "tag": "Diffusion",
-    "excerpt": "在扩散模型（Diffusion  Model）的上下文中， 指的是生成整张图片过程的对数概率。它不是一次性计算出来的，而是反向扩散（去噪）过程中每一步的对数概率的累加和。"
+    "excerpt": "In the context of diffusion models, this refers to the log-probability of the entire image generation process. It is not computed in one shot, but accumulated as the sum of log-probabilities at each reverse diffusion (denoising) step."
   },
   {
     "file": "RL/KL-Divergence-Biased.md",
-    "title": "Difference with KL in Loss and reward",
+    "title": "Difference with KL in Loss and Reward",
     "date": "2026-02-05",
     "tag": "RL",
-    "excerpt": "为什么在GRPO中进行微调时，在损失（Loss）里添加散度项（Reverse KL Divergence)本质上和在奖励（Reward）中添加散度项是不同的，并且会造成Bias？"
+    "excerpt": "Why is adding a Reverse KL Divergence term to the loss fundamentally different from adding it to the reward during GRPO fine-tuning, and why does it introduce bias?"
   },
   {
     "file": "ML/Variational-method.md",
     "title": "Variational Method",
     "date": "2026-01-25",
     "tag": "ML",
-    "excerpt": "变分法 （或称变分法 ）是数学分析的一个领域，利用变分，变分是函数)中的微小变化 以及泛函 )，用于求函数的极大值和最小值：从一组函数)映射到实数的映射 )。[a\\] 泛函通常表示为包含函数及其导数的..."
+    "excerpt": "The calculus of variations is a field of mathematical analysis that uses small variations in functions and functionals to find extrema: mappings from a set of functions to the reals. Functionals are typically expressed as integrals involving functions and their derivatives..."
   },
   {
     "file": "Math/KKT-Conditions.md",
-    "title": "經典帶約束優化問題",
+    "title": "Classical Constrained Optimization",
     "date": "2026-01-18",
     "tag": "Math",
-    "excerpt": "在數學中，卡魯什-庫恩-塔克條件（英語：Karush-Kuhn-Tucker Conditions，常見別名：Kuhn-Tucker，KKT條件，Karush-Kuhn-Tucker最優化條件，Kar..."
+    "excerpt": "In mathematics, the Karush-Kuhn-Tucker (KKT) conditions are first-order necessary conditions for a solution in nonlinear programming to be optimal, provided that some regularity conditions are satisfied."
   },
   {
     "file": "ML/GUMBEL-SOFTMAX.md",
@@ -71,80 +71,80 @@
   },
   {
     "file": "ML/Monte Callo.md",
-    "title": "Monte Callo Method",
+    "title": "Monte Carlo Method",
     "date": "2025-12-15",
     "tag": "ML",
-    "excerpt": "Monte Callo Method is a method for analyzing the uncertainty of a model."
+    "excerpt": "Monte Carlo Method is a method for analyzing the uncertainty of a model."
   },
   {
     "file": "RL/强化学习入门.md",
-    "title": "Reinforcement Learning",
+    "title": "Introduction to Reinforcement Learning",
     "date": "2025-11-30",
     "tag": "RL",
-    "excerpt": "本文主要讲解强化学习的基础知识，包括强化学习的概念，RL的基本算法，以及RL的应用。"
+    "excerpt": "This post covers the fundamentals of reinforcement learning, including core concepts, basic RL algorithms, and practical applications."
   },
   {
     "file": "ML/MiniMax.md",
     "title": "MiniMax Loss",
     "date": "2025-11-10",
     "tag": "ML",
-    "excerpt": "\u201cMiniMax 损失函数\u201d通常指的是 极小极大优化目标，最常见出现在 GAN（生成对抗网络） 里。"
+    "excerpt": "The MiniMax loss function refers to the minimax optimization objective, most commonly seen in GANs (Generative Adversarial Networks)."
   },
   {
     "file": "ML/集中不等式.md",
-    "title": "Concentration inequality",
+    "title": "Concentration Inequality",
     "date": "2025-10-20",
     "tag": "ML",
-    "excerpt": "这是一个集中不等式，更准确地说，是 McDiarmid 不等式（有界差分不等式） 的形式。"
+    "excerpt": "This is a concentration inequality — more precisely, a form of McDiarmid's inequality (the bounded differences inequality)."
   },
   {
     "file": "Diffusion/ODE-has-no-GRPO.md",
     "title": "ODE has no GRPO",
     "date": "2025-09-28",
     "tag": "Diffusion",
-    "excerpt": "为什么 deterministic flow 会导致计算  变得\u201ccomputationally expensive\u201d，以及\u201cdivergence estimation\u201d到底指什么?"
+    "excerpt": "Why does a deterministic flow make the computation of log-probability computationally expensive, and what exactly is divergence estimation?"
   },
   {
     "file": "RL/奖励函数的梯度.md",
-    "title": "奖励函数的梯度",
+    "title": "Gradient of the Reward Function",
     "date": "2025-08-15",
     "tag": "RL",
-    "excerpt": "为什么得到奖励函数的梯度这么重要呢？"
+    "excerpt": "Why is obtaining the gradient of the reward function so important?"
   },
   {
     "file": "RL/Reward-hacking.md",
     "title": "Reward Hacking",
     "date": "2025-07-05",
     "tag": "RL",
-    "excerpt": "在使用在线 RL（例如 GRPO / PPO）时，经常会出现："
+    "excerpt": "When using online RL (e.g. GRPO / PPO), a common phenomenon often arises:"
   },
   {
     "file": "Math/Fubini定理.md",
-    "title": "富比尼定理",
+    "title": "Fubini's Theorem",
     "date": "2025-06-12",
     "tag": "Math",
-    "excerpt": "富比尼定理（英語：Fubini's theorem）是數學分析中有關重積分的一個定理，由數學家圭多·富比尼在1907年提出。富比尼定理給出了使用逐次積分的方法計算雙重積分的條件。在這些條件下，不僅能夠..."
+    "excerpt": "Fubini's theorem is a result in mathematical analysis concerning the evaluation of double integrals, proposed by Guido Fubini in 1907. It gives conditions under which iterated integrals can be used to compute double integrals."
   },
   {
     "file": "Diffusion/Flow-Model-rev.md",
-    "title": "the RCGM framework",
+    "title": "The RCGM Framework",
     "date": "2025-04-22",
     "tag": "Diffusion",
-    "excerpt": "所谓蒸馏即对已有的扩散模型， 减少其采样步数从而提高生成性能。"
+    "excerpt": "Distillation reduces the number of sampling steps of an existing diffusion model to improve generation efficiency."
   },
   {
     "file": "Diffusion/LCM.md",
-    "title": "Latent Consistency Models（LCM）技术说明",
+    "title": "Latent Consistency Models (LCM)",
     "date": "2025-03-08",
     "tag": "Diffusion",
-    "excerpt": "扩散模型（Diffusion Models）在图像生成任务中表现出优异性能，但其推理过程通常依赖多步逐次去噪，计算开销较大。为降低推理成本，Latent Consistency Models（LCMs..."
+    "excerpt": "Diffusion models achieve excellent performance in image generation but rely on multi-step iterative denoising, incurring high computational cost. To reduce inference cost, Latent Consistency Models (LCMs)..."
   },
   {
     "file": "Cybernetics/Optimal-Control.md",
-    "title": "最优控制（Optimal Control）",
+    "title": "Optimal Control",
     "date": "2025-02-01",
     "tag": "Cybernetics",
-    "excerpt": "最优控制理论是控制理论的一个分支，研究在一段时间内寻找动力系统的控制 )，从而优化目标函数 。[1\\] 它在科学、工程和运筹学中有广泛的应用。"
+    "excerpt": "Optimal control theory is a branch of control theory that studies finding the control of a dynamical system over a period of time to optimize an objective function. It has broad applications in science, engineering, and operations research."
   },
   {
     "file": "Blogs/i3wm-setup.md",
