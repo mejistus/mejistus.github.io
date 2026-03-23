@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Xu Chen — Personal Blog</title>
     <!-- Marked.js for Markdown parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -524,6 +524,8 @@
       .blog-panel.fullscreen {
         border-radius: 0;
         height: 100vh;
+        height: 100dvh;
+        padding-top: env(safe-area-inset-top);
       }
       .blog-panel .panel-header {
         flex-shrink: 0;
@@ -788,6 +790,8 @@
       .poem-panel.fullscreen {
         border-radius: 0;
         height: 100vh;
+        height: 100dvh;
+        padding-top: env(safe-area-inset-top);
       }
 
       /* drag handle */
