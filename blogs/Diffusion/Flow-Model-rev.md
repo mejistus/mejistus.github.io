@@ -1,5 +1,6 @@
 ---
 tag: Diffusion
+date: 2025/11/12
 title: the RCGM framework
 ---
 

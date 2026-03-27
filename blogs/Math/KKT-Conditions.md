@@ -1,6 +1,7 @@
 ---
 tag: Math
-title: 經典帶約束優化問題
+date: 2025/12/28
+title: KKT-Conditions
 ---
 
 # 經典帶約束優化問題

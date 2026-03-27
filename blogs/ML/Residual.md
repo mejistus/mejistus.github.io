@@ -1,5 +1,6 @@
 ---
 tag: ML
+date: 2026/3/17
 title: Residual to HC, mHC, and Attention-Residual
 ---
 # Introduction

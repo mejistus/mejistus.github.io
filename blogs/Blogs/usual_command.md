@@ -1,6 +1,6 @@
 ---
 title: Usual Command 
-date: 2026/3/27 · Notes
+date: 2026/3/27 
 tag: Notes
 excerpt: Docker、Git and Latex
 ---
