@@ -1,5 +1,6 @@
 ---
 tag: RL
+date: 2026/2/9
 title: Reward Hacking
 ---
 

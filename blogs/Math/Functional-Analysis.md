@@ -1,3 +1,10 @@
+---
+tag: Math
+title: Functional Analysis
+date: 2026/3/25
+---
+
+
 # Functional Analysis
 
 This note is my study for Function Analysis.

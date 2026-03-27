@@ -1,5 +1,6 @@
 ---
 tag: Diffusion
+date: 2025/12/22
 title: Latent Consistency Models（LCM）技术说明
 ---
 

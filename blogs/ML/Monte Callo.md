@@ -1,5 +1,6 @@
 ---
 tag: ML
+date: 2026/1/2
 title: Monte Callo Method
 ---
 

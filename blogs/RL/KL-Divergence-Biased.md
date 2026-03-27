@@ -1,5 +1,6 @@
 ---
 tag: RL
+date: 2026/2/9
 title: Difference with KL in Loss and reward
 ---
 
