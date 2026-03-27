@@ -1,5 +1,6 @@
 ---
 tag: Diffusion
+date: 2025/12/7
 title: Calculate Log Probability of Diffusion
 ---
 

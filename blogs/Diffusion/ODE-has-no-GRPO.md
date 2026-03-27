@@ -1,5 +1,6 @@
 ---
 tag: Diffusion
+date: 2025/12/22
 title: ODE has no GRPO
 ---
 

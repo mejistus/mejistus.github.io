@@ -1,7 +1,7 @@
 ---
 tag: RL
 title: GRPO, DAPO and λGRPO
-
+date: 2026/1/3
 ---
 
 This blog is a summary of GRPO, DAPO and λGRPO.

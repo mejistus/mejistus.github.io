@@ -1,5 +1,6 @@
 ---
 tag: ML
+date: 2025/11/3
 title: MiniMax Loss
 ---
 

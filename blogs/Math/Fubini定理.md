@@ -1,5 +1,6 @@
 ---
 tag: Math
+date: 2026/2/26
 title: 富比尼定理
 ---
 

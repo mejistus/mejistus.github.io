@@ -1,5 +1,6 @@
 ---
 tag: Notes
+date: 2026/1/26
 title: My i3wm setup: calm aesthetics for a busy mind
 ---
 

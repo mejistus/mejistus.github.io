@@ -1,5 +1,6 @@
 ---
 tag: RL
+date: 2026/2/13
 title: KL Divergence in Reinforcement Learning
 ---
 

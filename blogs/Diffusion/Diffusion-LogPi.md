@@ -1,5 +1,6 @@
 ---
 tag: Diffusion
+date: 2025/11/17
 title: Calculate $log \pi_\theta$ in code
 ---
 
