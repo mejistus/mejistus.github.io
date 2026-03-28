@@ -1,5 +1,12 @@
 [
   {
+    "file": "Diffusion/Reconsidering-Noise-DDPM.md",
+    "title": "重新审视扩散模型中的噪声：理论与实验",
+    "date": "2026/3/28",
+    "tag": "Diffusion",
+    "excerpt": "> 论文：Reconsidering Noise for Denoising Diffusion Probabilistic Models（NeurIPS 2025 Workshop: SPIGM）"
+  },
+  {
     "file": "RL/强化学习入门.md",
     "title": "Reinforcement Learning",
     "date": "2026/3/8",
