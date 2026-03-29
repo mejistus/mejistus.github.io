@@ -1,5 +1,12 @@
 [
   {
+    "file": "RL/rl_paradigms.md",
+    "title": "主流强化学习方法范式综述：策略梯度、值函数、Actor-Critic 及现代变体",
+    "date": "2026-03-29",
+    "tag": "RL",
+    "excerpt": "系统梳理强化学习核心范式，涵盖值函数法（MC、TD、Q-Learning、DQN）、策略梯度法（REINFORCE、PPO、TRPO）、Actor-Critic 族（A2C、SAC）及面向 LLM 的 GRPO，每种方法附完整伪代码与核心公式。"
+  },
+  {
     "file": "Diffusion/Rethinking the Design Space of RL for Diffusion Models.md",
     "title": "Rethinking the Design Space of RL for Diffusion Models — On the Importance of Likelihood Estimation Beyond Loss Design",
     "date": "2026-03-28",
