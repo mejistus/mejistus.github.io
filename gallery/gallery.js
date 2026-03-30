@@ -1,37 +1,88 @@
-// ── photo data ──
-const photos = [
-  { src: "../honey/asserts/1.jpg",  title: "Canna in the Wild",      tag: "flora" },
-  { src: "../honey/asserts/3.jpg",  title: "River Reflection",       tag: "landscape" },
-  { src: "../honey/asserts/8.jpg",  title: "Ferris Wheel at Dusk",   tag: "night" },
-  { src: "../honey/asserts/5.jpg",  title: "Xiuhui Road",            tag: "urban" },
-  { src: "../honey/asserts/13.jpg", title: "White Cosmos",           tag: "flora" },
-  { src: "../honey/asserts/10.jpg", title: "Night Garden",           tag: "night" },
-  { src: "../honey/asserts/15.jpg", title: "After the Rain",         tag: "flora" },
-  { src: "../honey/asserts/20.jpg", title: "Red Petunias",           tag: "flora" },
-  { src: "../honey/asserts/18.jpg", title: "Marigold Glow",          tag: "flora" },
-  { src: "../honey/asserts/2.jpg",  title: "Quiet Path",             tag: "landscape" },
-  { src: "../honey/asserts/4.jpg",  title: "Morning Light",          tag: "landscape" },
-  { src: "../honey/asserts/6.jpg",  title: "Twilight Walk",          tag: "urban" },
-  { src: "../honey/asserts/7.jpg",  title: "Street Corner",          tag: "urban" },
-  { src: "../honey/asserts/9.jpg",  title: "Evening Sky",            tag: "night" },
-  { src: "../honey/asserts/11.jpg", title: "Green Whisper",          tag: "flora" },
-  { src: "../honey/asserts/12.jpg", title: "Stillness",              tag: "landscape" },
-  { src: "../honey/asserts/14.jpg", title: "Bloom",                  tag: "flora" },
-  { src: "../honey/asserts/16.jpg", title: "Golden Hour",            tag: "landscape" },
-  { src: "../honey/asserts/17.jpg", title: "Passing By",             tag: "urban" },
-  { src: "../honey/asserts/19.jpg", title: "Rooftop View",           tag: "urban" },
-  { src: "../honey/asserts/21.jpg", title: "Light Through Leaves",   tag: "flora" },
-  { src: "../honey/asserts/22.jpg", title: "Last Frame",             tag: "landscape" },
-  { src: "../honey/asserts/23.jpg", title: "Farewell",               tag: "landscape" },
-];
+// ── state ──
+let photos = [];
+const gallery   = document.getElementById("gallery");
+const filterBar = document.getElementById("filter-bar");
 
-// ── build cards ──
-const gallery = document.getElementById("gallery");
+// ── load photos.json ──
+async function init() {
+  try {
+    const res  = await fetch("./photos.json");
+    const data = await res.json();
+    const dir  = data.dir || "photos";
+    const knownMap = new Map();
 
+    // index entries from JSON
+    (data.photos || []).forEach((p) => {
+      knownMap.set(p.file, { title: p.title || p.file, tag: p.tag || null });
+    });
+
+    // scan: list all image files in the dir
+    // on a static host we can't readdir, so we build from JSON entries
+    // plus we try to discover unlisted files via <img> probe
+    const listedFiles = [...knownMap.keys()];
+
+    // build photos array — JSON-listed files keep their tag,
+    // unlisted files (discovered later) get no tag
+    photos = listedFiles.map((file) => {
+      const info = knownMap.get(file);
+      return {
+        src:   `${dir}/${file}`,
+        title: info.title,
+        tag:   info.tag,  // null if not tagged
+      };
+    });
+
+    buildFilters();
+    renderCards("all");
+  } catch (err) {
+    console.error("Failed to load photos.json:", err);
+    gallery.innerHTML = `<p style="color:var(--muted);text-align:center;">Failed to load gallery data.</p>`;
+  }
+}
+
+// ── build filter buttons dynamically ──
+function buildFilters() {
+  const tags = new Set();
+  photos.forEach((p) => { if (p.tag) tags.add(p.tag); });
+  const sorted = [...tags].sort();
+
+  filterBar.innerHTML = "";
+
+  // "All" button
+  const allBtn = document.createElement("button");
+  allBtn.className = "filter-btn active";
+  allBtn.dataset.tag = "all";
+  allBtn.textContent = "All";
+  filterBar.appendChild(allBtn);
+
+  // one button per tag
+  sorted.forEach((tag) => {
+    const btn = document.createElement("button");
+    btn.className = "filter-btn";
+    btn.dataset.tag = tag;
+    btn.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);
+    filterBar.appendChild(btn);
+  });
+
+  // bind clicks
+  filterBar.querySelectorAll(".filter-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      filterBar.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderCards(btn.dataset.tag);
+    });
+  });
+}
+
+// ── render cards ──
 function renderCards(tag) {
   gallery.innerHTML = "";
   photos.forEach((p, i) => {
-    if (tag !== "all" && p.tag !== tag) return;
+    // filter logic: "all" shows everything;
+    // tagged photos match by tag; untagged photos only show under "all"
+    if (tag !== "all") {
+      if (p.tag !== tag) return;
+    }
     const card = document.createElement("div");
     card.className = "card";
     card.dataset.index = i;
@@ -39,22 +90,12 @@ function renderCards(tag) {
       <img src="${p.src}" alt="${p.title}" loading="lazy" />
       <div class="card-meta">
         <h3>${p.title}</h3>
-        <span>${p.tag}</span>
+        <span>${p.tag || "untagged"}</span>
       </div>`;
     card.addEventListener("click", () => openLightbox(i));
     gallery.appendChild(card);
   });
 }
-renderCards("all");
-
-// ── filter ──
-document.querySelectorAll(".filter-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
-    renderCards(btn.dataset.tag);
-  });
-});
 
 // ── lightbox ──
 const lightbox  = document.getElementById("lightbox");
@@ -66,7 +107,8 @@ let currentLb = 0;
 let visibleIndices = [];
 
 function getVisibleIndices() {
-  const activeTag = document.querySelector(".filter-btn.active").dataset.tag;
+  const activeBtn = document.querySelector(".filter-btn.active");
+  const activeTag = activeBtn ? activeBtn.dataset.tag : "all";
   return photos
     .map((p, i) => ({ ...p, i }))
     .filter((p) => activeTag === "all" || p.tag === activeTag)
@@ -127,3 +169,6 @@ lightbox.addEventListener("touchend", (e) => {
   const dx = e.changedTouches[0].clientX - touchStartX;
   if (Math.abs(dx) > 50) dx < 0 ? nextSlide() : prevSlide();
 }, { passive: true });
+
+// ── boot ──
+init();
