@@ -13,7 +13,7 @@ async function init() {
 
     // index entries from JSON
     (data.photos || []).forEach((p) => {
-      knownMap.set(p.file, { title: p.title || p.file, tag: p.tag || null });
+      knownMap.set(p.file, { title: p.title || null, tag: p.tag || null });
     });
 
     // scan: list all image files in the dir
@@ -86,12 +86,14 @@ function renderCards(tag) {
     const card = document.createElement("div");
     card.className = "card";
     card.dataset.index = i;
+    const hasMeta = p.title || p.tag;
     card.innerHTML = `
-      <img src="${p.src}" alt="${p.title}" loading="lazy" />
+      <img src="${p.src}" alt="${p.title || ""}" loading="lazy" />${
+      hasMeta ? `
       <div class="card-meta">
-        <h3>${p.title}</h3>
-        <span>${p.tag || "untagged"}</span>
-      </div>`;
+        ${p.title ? `<h3>${p.title}</h3>` : ""}
+        ${p.tag ? `<span>${p.tag}</span>` : ""}
+      </div>` : ""}`;
     card.addEventListener("click", () => openLightbox(i));
     gallery.appendChild(card);
   });
@@ -134,8 +136,8 @@ function closeLightbox() {
 function showSlide() {
   const p = photos[visibleIndices[currentLb]];
   lbImg.src = p.src;
-  lbImg.alt = p.title;
-  lbCaption.textContent = p.title;
+  lbImg.alt = p.title || "";
+  lbCaption.textContent = p.title || "";
   lbCounter.textContent = `${currentLb + 1} / ${visibleIndices.length}`;
 }
 
@@ -152,6 +154,9 @@ document.querySelector(".lb-close").addEventListener("click", closeLightbox);
 document.querySelector(".lb-prev").addEventListener("click", prevSlide);
 document.querySelector(".lb-next").addEventListener("click", nextSlide);
 overlay.addEventListener("click", closeLightbox);
+lightbox.addEventListener("click", (e) => {
+  if (e.target === lightbox) closeLightbox();
+});
 
 document.addEventListener("keydown", (e) => {
   if (!lightbox.classList.contains("open")) return;
