@@ -2,7 +2,7 @@ function wrapper(data_text, img_src, content_title, content_desc) {
   return `
       <div class="item" data-text="${data_text}">
       <div class="content">
-        <img src="${img_src}" alt="" class="img">
+        <img src="${img_src}" alt="" class="img" loading="lazy">
         <h2 class="content-title">${content_title}</h2>
         <p class="content-desc">
           ${content_desc}
