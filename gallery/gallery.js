@@ -8,7 +8,7 @@ const photos = [
   { src: "../honey/asserts/10.jpg", title: "Night Garden",           tag: "night" },
   { src: "../honey/asserts/15.jpg", title: "After the Rain",         tag: "flora" },
   { src: "../honey/asserts/20.jpg", title: "Red Petunias",           tag: "flora" },
-  { src: "../honey/asserts/18.jpg", title: "Marigold Glow",         tag: "flora" },
+  { src: "../honey/asserts/18.jpg", title: "Marigold Glow",          tag: "flora" },
   { src: "../honey/asserts/2.jpg",  title: "Quiet Path",             tag: "landscape" },
   { src: "../honey/asserts/4.jpg",  title: "Morning Light",          tag: "landscape" },
   { src: "../honey/asserts/6.jpg",  title: "Twilight Walk",          tag: "urban" },
@@ -48,10 +48,9 @@ function renderCards(tag) {
 renderCards("all");
 
 // ── filter ──
-const filterBtns = document.querySelectorAll(".filter-btn");
-filterBtns.forEach((btn) => {
+document.querySelectorAll(".filter-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
-    filterBtns.forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
     renderCards(btn.dataset.tag);
   });
@@ -59,6 +58,7 @@ filterBtns.forEach((btn) => {
 
 // ── lightbox ──
 const lightbox  = document.getElementById("lightbox");
+const overlay   = document.getElementById("lb-overlay");
 const lbImg     = document.getElementById("lb-img");
 const lbCaption = document.getElementById("lb-caption");
 const lbCounter = document.getElementById("lb-counter");
@@ -79,11 +79,13 @@ function openLightbox(index) {
   if (currentLb === -1) currentLb = 0;
   showSlide();
   lightbox.classList.add("open");
+  overlay.classList.add("open");
   document.body.style.overflow = "hidden";
 }
 
 function closeLightbox() {
   lightbox.classList.remove("open");
+  overlay.classList.remove("open");
   document.body.style.overflow = "";
 }
 
@@ -107,17 +109,13 @@ function prevSlide() {
 document.querySelector(".lb-close").addEventListener("click", closeLightbox);
 document.querySelector(".lb-prev").addEventListener("click", prevSlide);
 document.querySelector(".lb-next").addEventListener("click", nextSlide);
+overlay.addEventListener("click", closeLightbox);
 
-lightbox.addEventListener("click", (e) => {
-  if (e.target === lightbox) closeLightbox();
-});
-
-// keyboard
 document.addEventListener("keydown", (e) => {
   if (!lightbox.classList.contains("open")) return;
-  if (e.key === "Escape")      closeLightbox();
-  if (e.key === "ArrowRight")  nextSlide();
-  if (e.key === "ArrowLeft")   prevSlide();
+  if (e.key === "Escape")     closeLightbox();
+  if (e.key === "ArrowRight") nextSlide();
+  if (e.key === "ArrowLeft")  prevSlide();
 });
 
 // touch swipe
@@ -127,7 +125,5 @@ lightbox.addEventListener("touchstart", (e) => {
 }, { passive: true });
 lightbox.addEventListener("touchend", (e) => {
   const dx = e.changedTouches[0].clientX - touchStartX;
-  if (Math.abs(dx) > 50) {
-    dx < 0 ? nextSlide() : prevSlide();
-  }
+  if (Math.abs(dx) > 50) dx < 0 ? nextSlide() : prevSlide();
 }, { passive: true });
