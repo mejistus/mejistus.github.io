@@ -1,0 +1,28 @@
+{
+  "dir": "photos",
+  "photos": [
+    { "file": "1.jpg",    "title": "Canna in the Wild",    "tag": "flora" },
+    { "file": "2.jpg",    "title": "Quiet Path",           "tag": "landscape" },
+    { "file": "3.jpg",    "title": "River Reflection",     "tag": "landscape" },
+    { "file": "4.jpg",    "title": "Morning Light",        "tag": "landscape" },
+    { "file": "5.jpg",    "title": "Xiuhui Road",          "tag": "urban" },
+    { "file": "6.jpg",    "title": "Twilight Walk",        "tag": "urban" },
+    { "file": "7.jpg",    "title": "Street Corner",        "tag": "urban" },
+    { "file": "8.jpg",    "title": "Ferris Wheel at Dusk", "tag": "night" },
+    { "file": "9.jpg",    "title": "Evening Sky",          "tag": "night" },
+    { "file": "10.jpg",   "title": "Night Garden",         "tag": "night" },
+    { "file": "11.jpg",   "title": "Green Whisper",        "tag": "flora" },
+    { "file": "12.jpg",   "title": "Stillness",            "tag": "landscape" },
+    { "file": "13.jpg",   "title": "White Cosmos",         "tag": "flora" },
+    { "file": "14.jpg",   "title": "Bloom",                "tag": "flora" },
+    { "file": "15.jpg",   "title": "After the Rain",       "tag": "flora" },
+    { "file": "16.jpg",   "title": "Golden Hour",          "tag": "landscape" },
+    { "file": "17.jpg",   "title": "Passing By",           "tag": "urban" },
+    { "file": "18.jpg",   "title": "Marigold Glow",        "tag": "flora" },
+    { "file": "19.jpg",   "title": "Rooftop View",         "tag": "urban" },
+    { "file": "20.jpg",   "title": "Red Petunias",         "tag": "flora" },
+    { "file": "21.jpg",   "title": "Light Through Leaves", "tag": "flora" },
+    { "file": "22.jpg",   "title": "Last Frame",           "tag": "landscape" },
+    { "file": "23.jpg",   "title": "Farewell",             "tag": "landscape" }
+  ]
+}
