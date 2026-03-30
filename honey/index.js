@@ -20,13 +20,11 @@ function setActiveItem(index) {
   );
   selectors.item[index].classList.add(selectors.activeClass);
 
-  const targetImage = selectors.item[index]
-    .querySelector(selectors.img)
-    .getAttribute("src");
-  selectors.id.style.backgroundImage = `url(${targetImage})`;
-  window.scrollTo({
-    top: selectors.item[index].offsetTop,
-    behavior: "smooth",
+  requestAnimationFrame(() => {
+    selectors.item[index].scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
   });
 }
 
