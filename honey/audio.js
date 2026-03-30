@@ -422,16 +422,4 @@ function playSong() {
   }
 }
 
-const style = document.createElement("style");
-style.textContent = `
-  .controls {
-    margin: 20px 0;
-    display: flex;
-    gap: 10px;
-  }
-  #current-song {
-    margin: 10px 0;
-    font-weight: bold;
-  }
-`;
-document.head.appendChild(style);
+// styles handled by index.css
