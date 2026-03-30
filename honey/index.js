@@ -6,45 +6,34 @@ let selectors = {
   img: ".img",
 };
 
-let currentIndex = 0;
-let isScrolling = false;
-let accumulatedDelta = 10;
-const scrollThreshold = 30;
-// 项目总数
-let timeLength = selectors.item.length;
-
+// 激活指定项（不强制滚动）
 function setActiveItem(index) {
-  if (selectors.item[index].classList.contains(selectors.activeClass)) return;
   selectors.item.forEach((item) =>
     item.classList.remove(selectors.activeClass),
   );
   selectors.item[index].classList.add(selectors.activeClass);
-
-  requestAnimationFrame(() => {
-    selectors.item[index].scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-    });
-  });
 }
 
+// 初始激活第一项
 setActiveItem(0);
 
-window.addEventListener("wheel", (event) => {
-  if (isScrolling) return;
-  accumulatedDelta += event.deltaY;
-  if (Math.abs(accumulatedDelta) > scrollThreshold) {
-    if (accumulatedDelta > 0 && currentIndex < timeLength - 1) {
-      currentIndex++;
-    } else if (accumulatedDelta < 0 && currentIndex > 0) {
-      currentIndex--;
-    }
+// 用 IntersectionObserver 监听哪个 item 进入视口中心区域
+const observer = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const index = Array.from(selectors.item).indexOf(entry.target);
+        if (index !== -1) {
+          setActiveItem(index);
+        }
+      }
+    });
+  },
+  {
+    // 当 item 进入视口中间 40% 区域时触发
+    rootMargin: "-30% 0px -30% 0px",
+    threshold: 0.1,
+  },
+);
 
-    setActiveItem(currentIndex);
-
-    accumulatedDelta = 0;
-    isScrolling = true;
-
-    setTimeout(() => (isScrolling = false), 300);
-  }
-});
+selectors.item.forEach((item) => observer.observe(item));
