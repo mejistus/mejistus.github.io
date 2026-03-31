@@ -2789,8 +2789,8 @@
           document.getElementById('editorDate').value = '';
         }
 
-        // Fill markdown content (raw)
-        document.getElementById('editorTextarea').value = b.content || '';
+        // Fill markdown content (strip front matter — metadata is edited via fields above)
+        document.getElementById('editorTextarea').value = stripFrontMatter(b.content || '');
 
         // Show editor, hide read view
         document.getElementById('blogReadBody').classList.add('hidden');
@@ -2835,15 +2835,14 @@
         }
       });
 
-      // ── Front matter helper ──
-      function ensureFrontMatter(content, title, date, tag) {
-        const fmBlock = `---\ntitle: ${title}\ndate: ${date}\ntag: ${tag}\n---\n`;
-        // Replace existing front matter
-        if (/^---\s*\n[\s\S]*?\n---\s*\n/.test(content)) {
-          return content.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, fmBlock);
-        }
-        // Prepend if none exists
-        return fmBlock + '\n' + content;
+      // ── Front matter helpers ──
+      function stripFrontMatter(content) {
+        return content.replace(/^---\s*\n[\s\S]*?\n---\s*\n\s*/, '');
+      }
+
+      function buildFileContent(body, title, date, tag) {
+        const fm = `---\ntitle: ${title}\ndate: ${date}\ntag: ${tag}\n---\n\n`;
+        return fm + body;
       }
 
       // ── Save to GitHub ──
@@ -2907,18 +2906,18 @@
           const newTag = document.getElementById('editorTag').value;
           const newDate = document.getElementById('editorDate').value;
 
-          // 1. Ensure front matter in markdown (so add_blog.py --rebuild picks up metadata)
-          const contentWithFM = ensureFrontMatter(newContent, newTitle, newDate, newTag);
+          // 1. Build full file: front matter (from metadata fields) + body (from textarea)
+          const fullContent = buildFileContent(newContent, newTitle, newDate, newTag);
 
           // 2. Commit only the markdown file; GitHub Action will rebuild list.json
           const mdPath = `notes/${b.file}`;
-          await commitFile(mdPath, contentWithFM, `Update blog: ${newTitle}`);
+          await commitFile(mdPath, fullContent, `Update blog: ${newTitle}`);
 
           // 3. Update local state for immediate display
           b.title = newTitle;
           b.tag = newTag;
           b.date = newDate;
-          b.content = contentWithFM;
+          b.content = fullContent;
 
           // Invalidate caches
           parsedHtmlCache.delete(currentBlog);
