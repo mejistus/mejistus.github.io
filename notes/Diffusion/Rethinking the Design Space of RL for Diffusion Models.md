@@ -2,7 +2,7 @@
 title: Rethinking the Design Space of RL for Diffusion Models — On the Importance of Likelihood Estimation Beyond Loss Design
 date: 2026-03-28
 tag: Diffusion
-excerpt: 系统分析 RL fine-tuning diffusion model 的三大设计维度，发现 ELBO-based likelihood estimation 是主导效率与性能的核心因素，而非 policy-gradient loss 的具体形式；最终方法在 90 GPU hours 内将 SD3.5-M 的 GenEval 从 0.24 提升至 0.95。
+excerpt: 本文系统分析 RL fine-tuning diffusion model 的三大设计维度，发现 ELBO-based likelihood estimation 是主导效率与性能的核心因素，而非 policy-gradient loss 的具体形式；最终方法在 90 GPU hours 内将 SD3.5-M 的 GenEval 从 0.24 提升至 0.95。
 ---
 
 # 背景与动机
