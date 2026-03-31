@@ -575,13 +575,14 @@
         border-top: 1px solid var(--border);
         box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.1);
         transform: translateY(100%) translateZ(0);
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
         display: flex;
         flex-direction: column;
         backface-visibility: hidden;
+        contain: layout style;
       }
       .blog-panel.open {
-        transform: translateY(0);
+        transform: translateY(0) translateZ(0);
       }
       .blog-panel.fullscreen {
         border-radius: 0;
@@ -821,12 +822,11 @@
       .panel-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(45, 45, 45, 0.4);
-        backdrop-filter: blur(4px);
+        background: rgba(45, 45, 45, 0.45);
         z-index: 200;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.3s ease;
+        transition: opacity 0.25s ease;
       }
       .panel-overlay.open {
         opacity: 1;
@@ -846,13 +846,14 @@
         border-top: 1px solid var(--border);
         box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.1);
         transform: translateY(100%) translateZ(0);
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
         display: flex;
         flex-direction: column;
         backface-visibility: hidden;
+        contain: layout style;
       }
       .poem-panel.open {
-        transform: translateY(0);
+        transform: translateY(0) translateZ(0);
       }
       .poem-panel.fullscreen {
         border-radius: 0;
@@ -2155,65 +2156,68 @@
       }
 
       function openPanel(i) {
+        clearTimeout(closeCleanupId);
         current = i;
-        render(i);
 
-        // Reset any inline height/transition styles before opening
         const panel = document.getElementById("poemPanel");
         panel.style.height = '';
         panel.style.transition = '';
+        panel.classList.remove('fullscreen');
 
-        document.getElementById("overlay").classList.add("open");
-        document.getElementById("poemPanel").classList.add("open");
-        lockScroll();
+        // Render content, then start animation on next frame
+        render(i);
+        requestAnimationFrame(() => {
+          document.getElementById("overlay").classList.add("open");
+          panel.classList.add("open");
+          lockScroll();
+        });
       }
+
+      let closeCleanupId = 0;
 
       function closeAllPanels() {
         const poemPanel = document.getElementById("poemPanel");
         const blogPanel = document.getElementById("blogPanel");
 
-        // Just close the panels
         poemPanel.classList.remove("open");
         blogPanel.classList.remove("open");
         document.getElementById("overlay").classList.remove("open");
         unlockScroll();
-        
-        // Clean up inline styles and fullscreen state after animation
-        setTimeout(() => {
+
+        // Cancel any pending cleanup from a previous close
+        clearTimeout(closeCleanupId);
+        closeCleanupId = setTimeout(() => {
           poemPanel.style.height = '';
           poemPanel.style.transition = '';
           blogPanel.style.height = '';
           blogPanel.style.transition = '';
-          if (poemPanel.classList.contains('fullscreen')) {
-            poemPanel.classList.remove('fullscreen');
-            isFullscreen = false;
-          }
-          if (blogPanel.classList.contains('fullscreen')) {
-            blogPanel.classList.remove('fullscreen');
-            isFullscreen = false;
-          }
-        }, 400);
+          poemPanel.classList.remove('fullscreen');
+          blogPanel.classList.remove('fullscreen');
+          isFullscreen = false;
+        }, 350);
       }
 
       async function openBlogPanel(i) {
+        clearTimeout(closeCleanupId);
         currentBlog = i;
         const b = blogs[i];
-        
+
         // Load content if not cached
         if (!b.content) {
           b.content = await loadBlogContent(b.file);
         }
-        
-        renderBlog(i);
 
-        // Reset any inline height/transition styles before opening
         const panel = document.getElementById("blogPanel");
         panel.style.height = '';
         panel.style.transition = '';
+        panel.classList.remove('fullscreen');
 
-        document.getElementById("overlay").classList.add("open");
-        document.getElementById("blogPanel").classList.add("open");
-        lockScroll();
+        renderBlog(i);
+        requestAnimationFrame(() => {
+          document.getElementById("overlay").classList.add("open");
+          panel.classList.add("open");
+          lockScroll();
+        });
       }
 
       function navigate(dir) {
