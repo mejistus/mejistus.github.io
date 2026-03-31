@@ -1860,7 +1860,7 @@
           .map(i => {
             const b = blogs[i];
             return `
-      <div class="post-card" data-blog-index="${i}" onclick="openBlogPanel(${i}); return false;">
+      <div class="post-card" data-blog-index="${i}" onclick="openBlogPanel(${i}); return false;" onmouseenter="prefetchBlog(${i})">
         <p class="post-meta">${formatDate(b.date)}</p>
         <h3 class="post-title">${renderInline(b.title)}</h3>
         <p class="post-excerpt">${renderInline(b.excerpt)}</p>
@@ -2108,12 +2108,21 @@
         document.querySelector(".panel-body").scrollTop = 0;
       };
 
+      // ── Parsed HTML cache ──
+      const parsedHtmlCache = new Map();
+      function getParsedHtml(i) {
+        if (parsedHtmlCache.has(i)) return parsedHtmlCache.get(i);
+        const html = parseMarkdown(blogs[i].content, true);
+        parsedHtmlCache.set(i, html);
+        return html;
+      }
+
       const renderBlog = (i) => {
         const b = blogs[i];
         document.getElementById("blogPanelLabel").textContent =
           `Blog · ${i + 1} of ${blogs.length}`;
         document.getElementById("blogPanelTitle").innerHTML = renderInline(b.title);
-        document.getElementById("blogPanelContent").innerHTML = parseMarkdown(b.content, true);
+        document.getElementById("blogPanelContent").innerHTML = getParsedHtml(i);
         document.getElementById("blogCounter").textContent =
           `${i + 1} / ${blogs.length}`;
         document.getElementById("blogBtnPrev").disabled = i === 0;
@@ -2164,6 +2173,12 @@
         current = i;
         render(i);
         panelOpen(document.getElementById("poemPanel"));
+      }
+
+      async function prefetchBlog(i) {
+        const b = blogs[i];
+        if (!b.content) b.content = await loadBlogContent(b.file);
+        if (b.content && !parsedHtmlCache.has(i)) getParsedHtml(i);
       }
 
       async function openBlogPanel(i) {
