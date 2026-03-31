@@ -1,10 +1,9 @@
 ---
-title: Expectation Maximization Algorithm
+title: Expectation Maximization Algorithm is an iterative algorithm, which is used to make MLE on probability parameter model with hidden variables.
+date: 2026-03-29
 tag: ML
-date: 2026/03/30
-excerpt: Expectation Maximization Algorithm is an iterative algorithm, which is used to make MLE on probability parameter model with hidden variables. 
 ---
-# Expectation Maximization Algorithm
+## Expectation Maximization Algorithm
 
-## Main idea
+### Main idea
 
