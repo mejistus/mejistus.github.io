@@ -562,34 +562,6 @@
         letter-spacing: 0.04em;
       }
 
-      /* ── BLOG PANEL ── */
-      .blog-panel {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 80vh;
-        background: var(--cream);
-        z-index: 201;
-        border-radius: 1.5rem 1.5rem 0 0;
-        border-top: 1px solid var(--border);
-        box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.1);
-        transform: translateY(100%) translateZ(0);
-        transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-        display: flex;
-        flex-direction: column;
-        backface-visibility: hidden;
-        contain: layout style;
-      }
-      .blog-panel.open {
-        transform: translateY(0) translateZ(0);
-      }
-      .blog-panel.fullscreen {
-        border-radius: 0;
-        height: 100vh;
-        height: 100dvh;
-        padding-top: env(safe-area-inset-top);
-      }
       .blog-panel .panel-header {
         flex-shrink: 0;
         display: flex;
@@ -827,38 +799,42 @@
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.4s ease;
+        will-change: opacity;
       }
       .panel-overlay.open {
         opacity: 1;
         pointer-events: all;
       }
 
-      /* ── BOTTOM SHEET ── */
-      .poem-panel {
+      /* ── BOTTOM SHEET (shared) ── */
+      .poem-panel, .blog-panel {
         position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 80vh;
+        top: 0; left: 0; right: 0;
+        height: 100vh;
+        height: 100dvh;
         background: var(--cream);
         z-index: 201;
         border-radius: 1.5rem 1.5rem 0 0;
         border-top: 1px solid var(--border);
         box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.1);
+        /* Closed: pushed fully below viewport */
         transform: translateY(100%) translateZ(0);
-        transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+        /* Single GPU-only property, iOS-style spring */
+        transition: transform 0.55s cubic-bezier(0.32, 0.72, 0, 1),
+                    border-radius 0.35s ease;
         display: flex;
         flex-direction: column;
         backface-visibility: hidden;
-        contain: layout style;
+        will-change: transform;
       }
-      .poem-panel.open {
+      /* Half-screen: top 20% visible gap */
+      .poem-panel.open, .blog-panel.open {
+        transform: translateY(20vh) translateZ(0);
+      }
+      /* Fullscreen: fill viewport */
+      .poem-panel.fullscreen, .blog-panel.fullscreen {
         transform: translateY(0) translateZ(0);
-      }
-      .poem-panel.fullscreen {
         border-radius: 0;
-        height: 100vh;
-        height: 100dvh;
         padding-top: env(safe-area-inset-top);
       }
 
@@ -870,10 +846,7 @@
         padding: 0.8rem 0;
         cursor: pointer;
         user-select: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: opacity 0.3s ease;
       }
       .panel-handle::after {
         content: "";
@@ -2155,18 +2128,12 @@
         renderBlog(currentBlog);
       }
 
-      function openPanel(i) {
+      // ── Panel animation system ──
+      let closeCleanupId = 0;
+
+      function panelOpen(panel) {
         clearTimeout(closeCleanupId);
-        current = i;
-
-        const panel = document.getElementById("poemPanel");
-        panel.style.height = '';
-        panel.style.transition = '';
-        panel.classList.remove('fullscreen');
-        panel.classList.remove('open');
-
-        render(i);
-        // Double rAF: first frame commits layout, second starts transition
+        panel.classList.remove('open', 'fullscreen');
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             document.getElementById("overlay").classList.add("open");
@@ -2175,8 +2142,6 @@
           });
         });
       }
-
-      let closeCleanupId = 0;
 
       function closeAllPanels() {
         const poemPanel = document.getElementById("poemPanel");
@@ -2187,43 +2152,28 @@
         document.getElementById("overlay").classList.remove("open");
         unlockScroll();
 
-        // Cancel any pending cleanup from a previous close
         clearTimeout(closeCleanupId);
         closeCleanupId = setTimeout(() => {
-          poemPanel.style.height = '';
-          poemPanel.style.transition = '';
-          blogPanel.style.height = '';
-          blogPanel.style.transition = '';
           poemPanel.classList.remove('fullscreen');
           blogPanel.classList.remove('fullscreen');
           isFullscreen = false;
-        }, 500);
+        }, 600);
+      }
+
+      function openPanel(i) {
+        current = i;
+        render(i);
+        panelOpen(document.getElementById("poemPanel"));
       }
 
       async function openBlogPanel(i) {
-        clearTimeout(closeCleanupId);
         currentBlog = i;
         const b = blogs[i];
-
-        // Load content if not cached
         if (!b.content) {
           b.content = await loadBlogContent(b.file);
         }
-
-        const panel = document.getElementById("blogPanel");
-        panel.style.height = '';
-        panel.style.transition = '';
-        panel.classList.remove('fullscreen');
-
-        panel.classList.remove('open');
         renderBlog(i);
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            document.getElementById("overlay").classList.add("open");
-            panel.classList.add("open");
-            lockScroll();
-          });
-        });
+        panelOpen(document.getElementById("blogPanel"));
       }
 
       function navigate(dir) {
