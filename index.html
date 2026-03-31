@@ -575,7 +575,7 @@
         border-top: 1px solid var(--border);
         box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.1);
         transform: translateY(100%) translateZ(0);
-        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+        transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
         display: flex;
         flex-direction: column;
         backface-visibility: hidden;
@@ -826,7 +826,7 @@
         z-index: 200;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.25s ease;
+        transition: opacity 0.35s ease;
       }
       .panel-overlay.open {
         opacity: 1;
@@ -846,7 +846,7 @@
         border-top: 1px solid var(--border);
         box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.1);
         transform: translateY(100%) translateZ(0);
-        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+        transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
         display: flex;
         flex-direction: column;
         backface-visibility: hidden;
@@ -2194,7 +2194,7 @@
           poemPanel.classList.remove('fullscreen');
           blogPanel.classList.remove('fullscreen');
           isFullscreen = false;
-        }, 350);
+        }, 450);
       }
 
       async function openBlogPanel(i) {
