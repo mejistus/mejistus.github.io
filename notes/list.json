@@ -182,21 +182,21 @@
     "excerpt": "在扩散模型（Diffusion  Model）的上下文中， 指的是生成整张图片过程的对数概率。它不是一次性计算出来的，而是反向扩散（去噪）过程中每一步的对数概率的累加和。"
   },
   {
-    "file": "Blogs/Optimal-Control.md",
+    "file": "Notes/Optimal-Control.md",
     "title": "最优控制（Optimal Control）",
     "date": "2025/12/31",
     "tag": "Notes",
     "excerpt": "最优控制理论是控制理论的一个分支，研究在一段时间内寻找动力系统的控制 )，从而优化目标函数 。[1\\] 它在科学、工程和运筹学中有广泛的应用。"
   },
   {
-    "file": "Blogs/usual_command.md",
+    "file": "Notes/usual_command.md",
     "title": "Usual Command",
     "date": "2026/3/27",
     "tag": "Notes",
     "excerpt": "Docker、Git and Latex"
   },
   {
-    "file": "Blogs/i3wm-setup.md",
+    "file": "Notes/i3wm-setup.md",
     "title": "My i3wm setup: calm aesthetics for a busy mind",
     "date": "2026/1/26",
     "tag": "Notes",
