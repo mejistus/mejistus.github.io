@@ -63,10 +63,10 @@
     "excerpt": "Docker、Git and Latex"
   },
   {
-    "file": "Notes/Optimal-Control.md",
+    "file": "Math/Optimal-Control.md",
     "title": "最优控制（Optimal Control）",
-    "date": "2205/12/31",
-    "tag": "Cybernetics",
+    "date": "2025/12/31",
+    "tag": "Math",
     "excerpt": "最优控制理论是控制理论的一个分支，研究在一段时间内寻找动力系统的控制 )，从而优化目标函数 。[1\\] 它在科学、工程和运筹学中有广泛的应用。"
   },
   {

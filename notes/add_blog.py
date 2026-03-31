@@ -13,8 +13,6 @@ DIR_TO_TAG = {
     'Diffusion': 'Diffusion',
     'ML': 'ML',
     'Math': 'Math',
-    'Cybernetics': 'Cybernetics',
-    'Information Theory': 'InfoTheory',
     'Blogs': 'Notes',
 }
 
