@@ -50,6 +50,9 @@
         line-height: 1.7;
         overflow-x: hidden;
       }
+      html.scroll-locked {
+        overflow: hidden;
+      }
 
       /* ── NAV ── */
       nav {
@@ -374,22 +377,25 @@
         position: relative;
       }
       .blog-search-bar {
-        display: none;
+        display: flex;
         align-items: center;
         background: var(--cream);
         border: 1px solid var(--border);
         border-radius: 0.75rem;
-        padding: 0.6rem 1rem;
-        margin-top: 1rem;
+        padding: 0 1rem;
+        margin: 1rem 0 0;
         box-shadow: 0 4px 24px rgba(0,0,0,0.08);
         gap: 0.6rem;
         opacity: 0;
+        max-height: 0;
+        overflow: hidden;
         transform: translateY(-8px);
-        transition: opacity 0.25s ease, transform 0.25s ease;
+        transition: opacity 0.25s ease, transform 0.25s ease, max-height 0.25s ease, padding 0.25s ease, margin 0.25s ease;
       }
       .blog-search-bar.visible {
-        display: flex;
         opacity: 1;
+        max-height: 3rem;
+        padding: 0.6rem 1rem;
         transform: translateY(0);
       }
       .blog-search-bar svg {
@@ -491,18 +497,7 @@
         font-size: 0.85rem;
       }
 
-      /* ── Sort indicator ── */
-      .sort-indicator {
-        font-size: 0.72rem;
-        color: var(--rust);
-        margin-top: 0.5rem;
-        margin-bottom: 0.5rem;
-        opacity: 0;
-        transition: opacity 0.25s ease;
-      }
-      .sort-indicator.visible {
-        opacity: 1;
-      }
+
 
       /* ── BLOG FILTER BAR ── */
       .blog-filter-bar {
@@ -578,11 +573,11 @@
         border-radius: 1.5rem 1.5rem 0 0;
         border-top: 1px solid var(--border);
         box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.1);
-        transform: translateY(100%);
+        transform: translateY(100%) translateZ(0);
         transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         flex-direction: column;
-        will-change: transform, height;
+        backface-visibility: hidden;
       }
       .blog-panel.open {
         transform: translateY(0);
@@ -849,11 +844,11 @@
         border-radius: 1.5rem 1.5rem 0 0;
         border-top: 1px solid var(--border);
         box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.1);
-        transform: translateY(100%);
+        transform: translateY(100%) translateZ(0);
         transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         display: flex;
         flex-direction: column;
-        will-change: transform, height;
+        backface-visibility: hidden;
       }
       .poem-panel.open {
         transform: translateY(0);
@@ -1380,7 +1375,6 @@
           </div>
           <div class="search-results" id="searchResults"></div>
         </div>
-        <p class="sort-indicator" id="sortIndicator"></p>
         <div class="blog-filter-bar" id="blogFilterBar"></div>
         <div class="posts-grid" id="postsGrid"></div>
         <div class="pager" id="blogPager"></div>
@@ -1602,6 +1596,12 @@
 
       // Panel click functionality (no drag)
       let isFullscreen = false;
+      function lockScroll() {
+        document.documentElement.classList.add("scroll-locked");
+      }
+      function unlockScroll() {
+        document.documentElement.classList.remove("scroll-locked");
+      }
 
       const initHandleClick = (panel, handle) => {
         handle.addEventListener('click', () => {
@@ -1760,7 +1760,7 @@
 
       // ── Poem pagination ──
       let poemPage = 0;
-      const POEMS_PER_PAGE = 8;
+      const POEMS_PER_PAGE = 9;
 
       const renderCards = () => {
         const total = poems.length;
@@ -1854,7 +1854,6 @@
         blogPage = 0;
         displayBlogs = [];
         isSorted = false;
-        document.getElementById("sortIndicator").classList.remove("visible");
         document.getElementById("btnSort").classList.remove("active");
         buildBlogFilters();
         renderBlogCards();
@@ -1914,9 +1913,6 @@
         const btn = document.getElementById("btnSearch");
         searchOpen = !searchOpen;
         if (searchOpen) {
-          bar.style.display = "flex";
-          // Force reflow then animate
-          void bar.offsetWidth;
           bar.classList.add("visible");
           btn.classList.add("active");
           document.getElementById("blogSearchInput").focus();
@@ -1936,7 +1932,6 @@
         searchSelectedIdx = -1;
         searchResultIndices = [];
         setTimeout(() => {
-          bar.style.display = "none";
           results.style.display = "none";
           document.getElementById("blogSearchInput").value = "";
         }, 250);
@@ -2088,7 +2083,6 @@
 
       function toggleBlogSort() {
         const btn = document.getElementById("btnSort");
-        const indicator = document.getElementById("sortIndicator");
         isSorted = !isSorted;
         if (isSorted) {
           btn.classList.add("active");
@@ -2103,12 +2097,9 @@
             const dB = new Date(blogs[b].date || 0);
             return dB - dA;
           });
-          indicator.textContent = "Sorted by category, then date";
-          indicator.classList.add("visible");
         } else {
           btn.classList.remove("active");
           displayBlogs = [];
-          indicator.classList.remove("visible");
         }
         blogPage = 0;
         renderBlogCards();
@@ -2160,7 +2151,7 @@
 
         document.getElementById("overlay").classList.add("open");
         document.getElementById("poemPanel").classList.add("open");
-        document.body.style.overflow = "hidden";
+        lockScroll();
       }
 
       function closeAllPanels() {
@@ -2171,7 +2162,7 @@
         poemPanel.classList.remove("open");
         blogPanel.classList.remove("open");
         document.getElementById("overlay").classList.remove("open");
-        document.body.style.overflow = "";
+        unlockScroll();
         
         // Clean up inline styles and fullscreen state after animation
         setTimeout(() => {
@@ -2208,7 +2199,7 @@
 
         document.getElementById("overlay").classList.add("open");
         document.getElementById("blogPanel").classList.add("open");
-        document.body.style.overflow = "hidden";
+        lockScroll();
       }
 
       function navigate(dir) {
