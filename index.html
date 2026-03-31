@@ -626,8 +626,11 @@
         overflow-y: auto;
         overflow-x: hidden;
         padding: 2rem 2.5rem 3rem;
-        display: block !important;
+        display: block;
         -webkit-overflow-scrolling: touch;
+      }
+      .blog-panel .panel-body.hidden {
+        display: none !important;
       }
 
       /* Blog content styles */
@@ -2520,6 +2523,9 @@
       }
 
       document.addEventListener("keydown", (e) => {
+        // Don't intercept keys when editor is active
+        if (editorActive) return;
+
         const poemPanelOpen = document.getElementById("poemPanel").classList.contains("open");
         const blogPanelOpen = document.getElementById("blogPanel").classList.contains("open");
 
@@ -2787,7 +2793,7 @@
         document.getElementById('editorTextarea').value = b.content || '';
 
         // Show editor, hide read view
-        document.getElementById('blogReadBody').style.display = 'none';
+        document.getElementById('blogReadBody').classList.add('hidden');
         document.getElementById('blogNavBar').style.display = 'none';
         document.getElementById('editorContainer').classList.add('active');
         document.getElementById('blogEditBtn').classList.add('active');
@@ -2800,7 +2806,7 @@
 
       function closeEditor() {
         editorActive = false;
-        document.getElementById('blogReadBody').style.display = '';
+        document.getElementById('blogReadBody').classList.remove('hidden');
         document.getElementById('blogNavBar').style.display = '';
         document.getElementById('editorContainer').classList.remove('active');
         document.getElementById('blogEditBtn').classList.remove('active');
