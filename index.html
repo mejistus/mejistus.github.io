@@ -2009,21 +2009,33 @@
       }
 
       function selectSearchResult(blogIndex) {
-        // Fade out search UI
         closeBlogSearch();
-        // Scroll to the post card
+
+        // Switch to All so the card is visible
+        blogFilter = "all";
+        displayBlogs = [];
+        isSorted = false;
+        document.getElementById("btnSort").classList.remove("active");
+        buildBlogFilters();
+
+        // Find which page the card is on
+        const order = getFilteredBlogs();
+        const pos = order.indexOf(blogIndex);
+        if (pos !== -1) {
+          blogPage = Math.floor(pos / BLOGS_PER_PAGE);
+        }
+        renderBlogCards();
+
+        // Scroll to the card after DOM update
         setTimeout(() => {
           const card = document.querySelector(`.post-card[data-blog-index="${blogIndex}"]`);
           if (card) {
             card.scrollIntoView({ behavior: "smooth", block: "center" });
-            // Brief highlight
             card.style.boxShadow = "0 0 0 3px var(--rust)";
             card.style.transition = "box-shadow 0.3s ease";
-            setTimeout(() => {
-              card.style.boxShadow = "";
-            }, 1500);
+            setTimeout(() => { card.style.boxShadow = ""; }, 1500);
           }
-        }, 300);
+        }, 100);
       }
 
       // Click outside to close search
