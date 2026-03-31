@@ -1,6 +1,6 @@
 ---
-tag: Cybernetics
-date: 2205/12/31
+tag: Math
+date: 2025/12/31
 title: 最优控制（Optimal Control）
 ---
 
