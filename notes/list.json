@@ -4,7 +4,7 @@
     "title": "Hinge loss: An example",
     "date": "2026-03-30",
     "tag": "ML",
-    "excerpt": "这是一个典型的带 margin 的排序损失，用来约束样本映射后的特征更接近正确类别文本特征，并与错误类别文本特征至少拉开一个间隔。"
+    "excerpt": "......"
   },
   {
     "file": "ML/EM Algorithm.md",
