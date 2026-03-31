@@ -8,8 +8,8 @@
   },
   {
     "file": "RL/奖励函数的梯度.md",
-    "title": "奖励函数的梯度",
-    "date": "2026/2/18",
+    "title": "The Gradiant of Reward Function",
+    "date": "2026-02-17",
     "tag": "RL",
     "excerpt": "为什么得到奖励函数的梯度这么重要呢？"
   },
