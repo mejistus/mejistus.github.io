@@ -1371,7 +1371,7 @@
         <div class="blog-search-container" id="searchContainer">
           <div class="blog-search-bar" id="blogSearchBar">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" id="blogSearchInput" placeholder="Search blog posts..." autocomplete="off" />
+            <input type="text" id="blogSearchInput" placeholder="Search titles & content..." autocomplete="off" />
             <button class="search-clear" id="searchClear" onclick="clearBlogSearch()">&times;</button>
           </div>
           <div class="search-results" id="searchResults"></div>
@@ -1955,15 +1955,16 @@
         const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
         const scored = [];
         blogs.forEach((b, i) => {
-          const haystack = `${b.title} ${b.tag} ${b.excerpt} ${b.date}`.toLowerCase();
+          const contentText = (b.content || "").toLowerCase();
+          const haystack = `${b.title} ${b.tag} ${b.excerpt} ${b.date} ${contentText}`.toLowerCase();
           const allMatch = tokens.every(t => haystack.includes(t));
           if (allMatch) {
-            // Score: earlier/more matches = better
             let score = 0;
             tokens.forEach(t => {
-              if (b.title.toLowerCase().includes(t)) score += 3;
-              if (b.tag.toLowerCase().includes(t)) score += 2;
-              if (b.excerpt.toLowerCase().includes(t)) score += 1;
+              if (b.title.toLowerCase().includes(t)) score += 4;
+              if (b.tag.toLowerCase().includes(t)) score += 3;
+              if (b.excerpt.toLowerCase().includes(t)) score += 2;
+              if (contentText.includes(t)) score += 1;
             });
             scored.push({ index: i, score });
           }
@@ -2302,10 +2303,21 @@
 
           buildBlogFilters();
           renderBlogCards();
+
+          // Preload all content in background for search
+          preloadAllContent();
         } catch (err) {
           console.error("Blog load error:", err);
           blogs = [];
           renderBlogCards();
+        }
+      }
+
+      async function preloadAllContent() {
+        for (const b of blogs) {
+          if (!b.content) {
+            b.content = await loadBlogContent(b.file);
+          }
         }
       }
 
