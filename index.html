@@ -2814,7 +2814,7 @@
 
       function updatePreview() {
         const md = document.getElementById('editorTextarea').value;
-        document.getElementById('editorPreview').innerHTML = parseMarkdown(md, true);
+        document.getElementById('editorPreview').innerHTML = parseMarkdown(md, false);
       }
 
       // Live preview with debounce
