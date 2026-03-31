@@ -1689,7 +1689,7 @@
           .map(
             (p, i) => `
       <div class="poem-card" onclick="openPanel(${i})">
-        <div class="poem-card-title">${p.zh_title ? p.zh_title + ' · ' : ''}${p.card_title}</div>
+        <div class="poem-card-title">${p.card_title}</div>
         <div class="poem-card-excerpt">${p.card_excerpt}</div>
         <div class="poem-card-hint">↑ Read full poem</div>
       </div>
