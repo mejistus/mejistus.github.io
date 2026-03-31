@@ -504,6 +504,68 @@
         opacity: 1;
       }
 
+      /* ── BLOG FILTER BAR ── */
+      .blog-filter-bar {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+      }
+      .blog-filter-btn {
+        padding: 0.3rem 0.85rem;
+        border-radius: 2rem;
+        font-size: 0.78rem;
+        font-family: "Inter", sans-serif;
+        letter-spacing: 0.04em;
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        cursor: pointer;
+        transition: all .2s;
+      }
+      .blog-filter-btn:hover {
+        border-color: var(--rust);
+        color: var(--rust);
+      }
+      .blog-filter-btn.active {
+        background: var(--sand);
+        border-color: var(--rust);
+        color: var(--rust);
+      }
+
+      /* ── PAGER ── */
+      .pager {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+        margin-top: 2rem;
+      }
+      .pager-btn {
+        padding: 0.45rem 1rem;
+        border-radius: 2rem;
+        border: 1.5px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+        font-size: 0.82rem;
+        cursor: pointer;
+        transition: all .2s;
+        font-family: "Inter", sans-serif;
+      }
+      .pager-btn:hover:not(:disabled) {
+        border-color: var(--rust);
+        color: var(--rust);
+      }
+      .pager-btn:disabled {
+        opacity: 0.3;
+        cursor: default;
+      }
+      .pager-info {
+        font-size: 0.75rem;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+      }
+
       /* ── BLOG PANEL ── */
       .blog-panel {
         position: fixed;
@@ -1319,9 +1381,9 @@
           <div class="search-results" id="searchResults"></div>
         </div>
         <p class="sort-indicator" id="sortIndicator"></p>
-        <div class="posts-grid" id="postsGrid">
-          <!-- Dynamically loaded -->
-        </div>
+        <div class="blog-filter-bar" id="blogFilterBar"></div>
+        <div class="posts-grid" id="postsGrid"></div>
+        <div class="pager" id="blogPager"></div>
       </div>
     </section>
 
@@ -1330,6 +1392,7 @@
       <p class="section-label">Selected Verses</p>
       <h2 class="section-title">Poems I've written</h2>
       <div class="poetry-grid"></div>
+      <div class="pager" id="poemPager"></div>
     </section>
 
     <!-- PROJECTS -->
@@ -1695,18 +1758,37 @@
         return match ? match[1] : 'Untitled';
       };
 
+      // ── Poem pagination ──
+      let poemPage = 0;
+      const POEMS_PER_PAGE = 8;
+
       const renderCards = () => {
-        document.querySelector(".poetry-grid").innerHTML = poems
-          .map(
-            (p, i) => `
+        const total = poems.length;
+        const totalPages = Math.ceil(total / POEMS_PER_PAGE);
+        if (poemPage >= totalPages) poemPage = totalPages - 1;
+        if (poemPage < 0) poemPage = 0;
+        const start = poemPage * POEMS_PER_PAGE;
+        const pagePoems = poems.slice(start, start + POEMS_PER_PAGE);
+
+        document.querySelector(".poetry-grid").innerHTML = pagePoems
+          .map((p, j) => {
+            const i = start + j;
+            return `
       <div class="poem-card" onclick="openPanel(${i})">
         <div class="poem-card-title">${p.card_title}</div>
         <div class="poem-card-excerpt">${p.card_excerpt}</div>
         <div class="poem-card-hint">↑ Read full poem</div>
-      </div>
-    `,
-          )
+      </div>`;
+          })
           .join("");
+
+        // pager
+        const pager = document.getElementById("poemPager");
+        if (totalPages <= 1) { pager.innerHTML = ""; return; }
+        pager.innerHTML = `
+          <button class="pager-btn" onclick="poemPage--;renderCards()" ${poemPage === 0 ? "disabled" : ""}>← Prev</button>
+          <span class="pager-info">${poemPage + 1} / ${totalPages}</span>
+          <button class="pager-btn" onclick="poemPage++;renderCards()" ${poemPage === totalPages - 1 ? "disabled" : ""}>Next →</button>`;
       };
 
       // Render inline markdown (bold, italic, links, math) for titles/excerpts
@@ -1744,6 +1826,9 @@
       // Display order: blogs array indices may differ from displayBlogs
       let displayBlogs = []; // indices into blogs[]
       let isSorted = false;
+      let blogFilter = "all";
+      let blogPage = 0;
+      const BLOGS_PER_PAGE = 8;
 
       const formatDate = (dateStr) => {
         if (!dateStr) return '';
@@ -1752,15 +1837,52 @@
         return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
       };
 
+      function buildBlogFilters() {
+        const tags = new Set();
+        blogs.forEach((b) => { if (b.tag) tags.add(b.tag); });
+        const sorted = [...tags].sort();
+        const bar = document.getElementById("blogFilterBar");
+        const cats = ["All", ...sorted];
+        bar.innerHTML = cats.map((t) => {
+          const val = t === "All" ? "all" : t;
+          return `<button class="blog-filter-btn${val === blogFilter ? " active" : ""}" data-tag="${val}" onclick="setBlogFilter('${val}')">${t}</button>`;
+        }).join("");
+      }
+
+      function setBlogFilter(tag) {
+        blogFilter = tag;
+        blogPage = 0;
+        displayBlogs = [];
+        isSorted = false;
+        document.getElementById("sortIndicator").classList.remove("visible");
+        document.getElementById("btnSort").classList.remove("active");
+        buildBlogFilters();
+        renderBlogCards();
+      }
+
+      function getFilteredBlogs() {
+        let order = displayBlogs.length ? displayBlogs : blogs.map((_, i) => i);
+        if (blogFilter !== "all") {
+          order = order.filter((i) => blogs[i].tag === blogFilter);
+        }
+        return order;
+      }
+
       const renderBlogCards = () => {
         const grid = document.getElementById("postsGrid");
         if (!blogs.length) {
           grid.innerHTML = '<p style="color: var(--muted); text-align: center;">No blog posts yet.</p>';
+          document.getElementById("blogPager").innerHTML = "";
           return;
         }
-        // If no custom display order, show original order
-        const order = displayBlogs.length ? displayBlogs : blogs.map((_, i) => i);
-        grid.innerHTML = order
+        const order = getFilteredBlogs();
+        const totalPages = Math.ceil(order.length / BLOGS_PER_PAGE);
+        if (blogPage >= totalPages) blogPage = totalPages - 1;
+        if (blogPage < 0) blogPage = 0;
+        const start = blogPage * BLOGS_PER_PAGE;
+        const page = order.slice(start, start + BLOGS_PER_PAGE);
+
+        grid.innerHTML = page
           .map(i => {
             const b = blogs[i];
             return `
@@ -1768,11 +1890,18 @@
         <p class="post-meta">${formatDate(b.date)}</p>
         <h3 class="post-title">${renderInline(b.title)}</h3>
         <p class="post-excerpt">${renderInline(b.excerpt)}</p>
-        <span class="post-tag">${b.tag || 'Blog'}</span>
-      </div>
-    `;
+        <span class="post-tag">${b.tag || 'Notes'}</span>
+      </div>`;
           })
           .join("");
+
+        // pager
+        const pager = document.getElementById("blogPager");
+        if (totalPages <= 1) { pager.innerHTML = ""; return; }
+        pager.innerHTML = `
+          <button class="pager-btn" onclick="blogPage--;renderBlogCards()" ${blogPage === 0 ? "disabled" : ""}>← Prev</button>
+          <span class="pager-info">${blogPage + 1} / ${totalPages}</span>
+          <button class="pager-btn" onclick="blogPage++;renderBlogCards()" ${blogPage === totalPages - 1 ? "disabled" : ""}>Next →</button>`;
       };
 
       /* ── Search functionality ── */
@@ -1955,7 +2084,7 @@
 
       /* ── Sort functionality ── */
       // Tag sort order (custom grouping)
-      const tagOrder = { "Diffusion": 0, "RL": 1, "ML": 2, "Math": 3, "Cybernetics": 4, "Notes": 5 };
+      const tagOrder = { "Diffusion": 0, "RL": 1, "ML": 2, "Math": 3, "Notes": 4 };
 
       function toggleBlogSort() {
         const btn = document.getElementById("btnSort");
@@ -1981,6 +2110,7 @@
           displayBlogs = [];
           indicator.classList.remove("visible");
         }
+        blogPage = 0;
         renderBlogCards();
       }
 
@@ -2116,7 +2246,7 @@
           renderCards();
         });
 
-      // Fetch blog list from blogs/list.json
+      // Fetch blog list from notes/list.json
       let blogListData = [];
       
       // Cache for blog content (lazy load)
@@ -2128,15 +2258,15 @@
           return blogContentCache.get(file);
         }
         try {
-          const resp = await fetch(`blogs/${file}`);
+          const resp = await fetch(`notes/${file}`);
           if (!resp.ok) throw new Error("Failed to load");
           let content = await resp.text();
           // Convert relative image paths
           const dir = file.substring(0, file.lastIndexOf('/'));
           if (dir) {
-            content = content.replace(/!\[([^\]]*)\]\(\.\.\/\.\.\/assets\//g, '![$1](blogs/assets/');
-            content = content.replace(/!\[([^\]]*)\]\(\.\.\/assets\//g, '![$1](blogs/assets/');
-            content = content.replace(/!\[([^\]]*)\]\(\.\/assets\//g, '![$1](blogs/assets/');
+            content = content.replace(/!\[([^\]]*)\]\(\.\.\/\.\.\/assets\//g, '![$1](notes/assets/');
+            content = content.replace(/!\[([^\]]*)\]\(\.\.\/assets\//g, '![$1](notes/assets/');
+            content = content.replace(/!\[([^\]]*)\]\(\.\/assets\//g, '![$1](notes/assets/');
           }
           blogContentCache.set(file, content);
           return content;
@@ -2150,7 +2280,7 @@
       async function loadBlogs() {
         try {
           // Fetch list from JSON file
-          const listResp = await fetch("./blogs/list.json");
+          const listResp = await fetch("./notes/list.json");
           if (!listResp.ok) throw new Error("Failed to load list.json");
           const list = await listResp.json();
           blogListData = list;
@@ -2165,7 +2295,8 @@
             content: null,  // Lazy load
             excerpt: item.excerpt || ""  // From list.json
           }));
-          
+
+          buildBlogFilters();
           renderBlogCards();
         } catch (err) {
           console.error("Blog load error:", err);
