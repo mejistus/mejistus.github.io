@@ -1325,33 +1325,6 @@
         text-transform: uppercase;
         color: var(--rust);
       }
-      .editor-meta-inline {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-      }
-      .editor-meta-inline input,
-      .editor-meta-inline select {
-        padding: 0.25rem 0.5rem;
-        border: 1.5px solid var(--border);
-        border-radius: 0.4rem;
-        font-family: "Inter", sans-serif;
-        font-size: 0.75rem;
-        background: var(--cream);
-        color: var(--ink);
-        outline: none;
-        transition: border-color 0.2s;
-      }
-      .editor-meta-inline input:focus,
-      .editor-meta-inline select:focus {
-        border-color: var(--rust);
-      }
-      .editor-meta-inline input[type="text"] {
-        width: 180px;
-      }
-      .editor-meta-inline input[type="date"] {
-        width: 130px;
-      }
       .editor-textarea {
         flex: 1;
         width: 100%;
@@ -1435,9 +1408,6 @@
         .editor-preview {
           border-left: none;
           border-top: 1px solid var(--border);
-        }
-        .editor-meta-inline {
-          flex-wrap: wrap;
         }
       }
 
@@ -1537,20 +1507,9 @@
         <div class="editor-split">
           <div class="editor-pane">
             <div class="editor-pane-header">
-              <span class="editor-pane-label">Markdown</span>
-              <div class="editor-meta-inline">
-                <input type="text" id="editorTitle" placeholder="Title" />
-                <select id="editorTag">
-                  <option value="Diffusion">Diffusion</option>
-                  <option value="RL">RL</option>
-                  <option value="ML">ML</option>
-                  <option value="Math">Math</option>
-                  <option value="Notes">Notes</option>
-                </select>
-                <input type="date" id="editorDate" />
-              </div>
+              <span class="editor-pane-label">Markdown · edit front matter directly</span>
             </div>
-            <textarea class="editor-textarea" id="editorTextarea" placeholder="Write your markdown here..."></textarea>
+            <textarea class="editor-textarea" id="editorTextarea" placeholder="---&#10;title: ...&#10;date: ...&#10;tag: ...&#10;---&#10;&#10;Your content here..."></textarea>
           </div>
           <div class="editor-pane">
             <div class="editor-pane-header">
@@ -2776,21 +2735,8 @@
           isFullscreen = true;
         }
 
-        // Fill metadata
-        document.getElementById('editorTitle').value = b.title || '';
-        document.getElementById('editorTag').value = b.tag || 'Notes';
-
-        // Parse date
-        const dateStr = b.date || '';
-        const d = new Date(dateStr);
-        if (!isNaN(d)) {
-          document.getElementById('editorDate').value = d.toISOString().split('T')[0];
-        } else {
-          document.getElementById('editorDate').value = '';
-        }
-
-        // Fill markdown content (strip front matter — metadata is edited via fields above)
-        document.getElementById('editorTextarea').value = stripFrontMatter(b.content || '');
+        // Fill textarea with full content (including front matter)
+        document.getElementById('editorTextarea').value = b.content || '';
 
         // Show editor, hide read view
         document.getElementById('blogReadBody').classList.add('hidden');
@@ -2835,14 +2781,10 @@
         }
       });
 
-      // ── Front matter helpers ──
-      function stripFrontMatter(content) {
-        return content.replace(/^---\s*\n[\s\S]*?\n---\s*\n\s*/, '');
-      }
-
-      function buildFileContent(body, title, date, tag) {
-        const fm = `---\ntitle: ${title}\ndate: ${date}\ntag: ${tag}\n---\n\n`;
-        return fm + body;
+      // ── Front matter helper ──
+      function parseFrontMatterField(content, field) {
+        const match = content.match(new RegExp(`^---\\s*\\n[\\s\\S]*?\\n${field}:\\s*(.+?)\\s*\\n[\\s\\S]*?\\n---`, 'm'));
+        return match ? match[1] : null;
       }
 
       // ── Save to GitHub ──
@@ -2901,22 +2843,17 @@
 
         try {
           const b = blogs[currentBlog];
-          const newContent = document.getElementById('editorTextarea').value;
-          const newTitle = document.getElementById('editorTitle').value.trim();
-          const newTag = document.getElementById('editorTag').value;
-          const newDate = document.getElementById('editorDate').value;
+          const fullContent = document.getElementById('editorTextarea').value;
 
-          // 1. Build full file: front matter (from metadata fields) + body (from textarea)
-          const fullContent = buildFileContent(newContent, newTitle, newDate, newTag);
-
-          // 2. Commit only the markdown file; GitHub Action will rebuild list.json
+          // 1. Commit textarea content as-is; GitHub Action will rebuild list.json
           const mdPath = `notes/${b.file}`;
-          await commitFile(mdPath, fullContent, `Update blog: ${newTitle}`);
+          const commitTitle = parseFrontMatterField(fullContent, 'title') || b.title;
+          await commitFile(mdPath, fullContent, `Update blog: ${commitTitle}`);
 
-          // 3. Update local state for immediate display
-          b.title = newTitle;
-          b.tag = newTag;
-          b.date = newDate;
+          // 2. Update local state from front matter for immediate display
+          b.title = parseFrontMatterField(fullContent, 'title') || b.title;
+          b.tag = parseFrontMatterField(fullContent, 'tag') || b.tag;
+          b.date = parseFrontMatterField(fullContent, 'date') || b.date;
           b.content = fullContent;
 
           // Invalidate caches
