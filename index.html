@@ -872,6 +872,16 @@
         overflow-x: auto;
         max-width: 100%;
       }
+      .panel-title-en {
+        font-size: 0.82rem;
+        color: var(--muted);
+        font-style: italic;
+        margin-top: 0.2rem;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        overflow-x: auto;
+        max-width: 100%;
+      }
       .panel-close {
         flex-shrink: 0;
         margin-left: 1rem;
@@ -1164,6 +1174,7 @@
         <div class="panel-header-left">
           <p class="panel-label" id="panelLabel">Poetry</p>
           <h2 class="panel-title" id="panelTitle"></h2>
+          <p class="panel-title-en" id="panelTitleEn"></p>
         </div>
         <button class="panel-close" onclick="exitFullscreenOrClose('poemPanel')" title="Exit fullscreen or close">✕</button>
       </div>
@@ -1977,7 +1988,8 @@
         const p = poems[i];
         document.getElementById("panelLabel").textContent =
           `Poetry · ${i + 1} of ${poems.length}`;
-        document.getElementById("panelTitle").textContent = p.zh_title ? p.zh_title + ' · ' + p.title : p.title;
+        document.getElementById("panelTitle").textContent = p.zh_title || p.title;
+        document.getElementById("panelTitleEn").textContent = p.zh_title ? p.title : "";
         document.getElementById("panelZh").innerHTML = nl(p.zh);
         document.getElementById("panelEn").innerHTML = nl(p.en);
         document.getElementById("panelCounter").textContent =
