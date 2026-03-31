@@ -2829,6 +2829,17 @@
         }
       });
 
+      // ── Front matter helper ──
+      function ensureFrontMatter(content, title, date, tag) {
+        const fmBlock = `---\ntitle: ${title}\ndate: ${date}\ntag: ${tag}\n---\n`;
+        // Replace existing front matter
+        if (/^---\s*\n[\s\S]*?\n---\s*\n/.test(content)) {
+          return content.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, fmBlock);
+        }
+        // Prepend if none exists
+        return fmBlock + '\n' + content;
+      }
+
       // ── Save to GitHub ──
       // Encode path for GitHub API (encode each segment, preserve slashes)
       function ghEncodePath(path) {
@@ -2890,38 +2901,18 @@
           const newTag = document.getElementById('editorTag').value;
           const newDate = document.getElementById('editorDate').value;
 
-          // 1. Commit the markdown file
+          // 1. Ensure front matter in markdown (so add_blog.py --rebuild picks up metadata)
+          const contentWithFM = ensureFrontMatter(newContent, newTitle, newDate, newTag);
+
+          // 2. Commit only the markdown file; GitHub Action will rebuild list.json
           const mdPath = `notes/${b.file}`;
-          await commitFile(mdPath, newContent, `Update blog: ${newTitle}`);
+          await commitFile(mdPath, contentWithFM, `Update blog: ${newTitle}`);
 
-          // 2. Update list.json
-          // Re-fetch current list.json to avoid conflicts
-          const listResp = await fetch(
-            `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/notes/list.json?ref=${REPO_BRANCH}`,
-            { headers: { 'Authorization': `token ${ghToken}` } }
-          );
-          const listData = await listResp.json();
-          const listContent = JSON.parse(decodeURIComponent(escape(atob(listData.content.replace(/\n/g, '')))));
-
-          // Find and update the entry
-          const entry = listContent.find(e => e.file === b.file);
-          if (entry) {
-            entry.title = newTitle;
-            entry.tag = newTag;
-            entry.date = newDate;
-            // Re-extract excerpt from new content
-            entry.excerpt = excerpt(newContent);
-          }
-
-          await commitFile('notes/list.json', JSON.stringify(listContent, null, 2) + '\n',
-            `Update list.json: ${newTitle}`);
-
-          // 3. Update local state
+          // 3. Update local state for immediate display
           b.title = newTitle;
           b.tag = newTag;
           b.date = newDate;
-          b.content = newContent;
-          b.excerpt = entry ? entry.excerpt : b.excerpt;
+          b.content = contentWithFM;
 
           // Invalidate caches
           parsedHtmlCache.delete(currentBlog);
