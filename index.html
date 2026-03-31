@@ -575,7 +575,7 @@
         border-top: 1px solid var(--border);
         box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.1);
         transform: translateY(100%) translateZ(0);
-        transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+        transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
         display: flex;
         flex-direction: column;
         backface-visibility: hidden;
@@ -826,7 +826,7 @@
         z-index: 200;
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.35s ease;
+        transition: opacity 0.4s ease;
       }
       .panel-overlay.open {
         opacity: 1;
@@ -846,7 +846,7 @@
         border-top: 1px solid var(--border);
         box-shadow: 0 -8px 48px rgba(0, 0, 0, 0.1);
         transform: translateY(100%) translateZ(0);
-        transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+        transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
         display: flex;
         flex-direction: column;
         backface-visibility: hidden;
@@ -2163,13 +2163,16 @@
         panel.style.height = '';
         panel.style.transition = '';
         panel.classList.remove('fullscreen');
+        panel.classList.remove('open');
 
-        // Render content, then start animation on next frame
         render(i);
+        // Double rAF: first frame commits layout, second starts transition
         requestAnimationFrame(() => {
-          document.getElementById("overlay").classList.add("open");
-          panel.classList.add("open");
-          lockScroll();
+          requestAnimationFrame(() => {
+            document.getElementById("overlay").classList.add("open");
+            panel.classList.add("open");
+            lockScroll();
+          });
         });
       }
 
@@ -2194,7 +2197,7 @@
           poemPanel.classList.remove('fullscreen');
           blogPanel.classList.remove('fullscreen');
           isFullscreen = false;
-        }, 450);
+        }, 500);
       }
 
       async function openBlogPanel(i) {
@@ -2212,11 +2215,14 @@
         panel.style.transition = '';
         panel.classList.remove('fullscreen');
 
+        panel.classList.remove('open');
         renderBlog(i);
         requestAnimationFrame(() => {
-          document.getElementById("overlay").classList.add("open");
-          panel.classList.add("open");
-          lockScroll();
+          requestAnimationFrame(() => {
+            document.getElementById("overlay").classList.add("open");
+            panel.classList.add("open");
+            lockScroll();
+          });
         });
       }
 
