@@ -8,10 +8,10 @@
   },
   {
     "file": "ML/EM Algorithm.md",
-    "title": "Expectation Maximization Algorithm",
-    "date": "2026/03/30",
+    "title": "Expectation Maximization Algorithm is an iterative algorithm, which is used to make MLE on probability parameter model with hidden variables.",
+    "date": "2026-03-29",
     "tag": "ML",
-    "excerpt": "Expectation Maximization Algorithm is an iterative algorithm, which is used to make MLE on probability parameter model with hidden variables."
+    "excerpt": "Expectation Maximization Algorithm\n\nMain idea"
   },
   {
     "file": "RL/RL Paradigms.md",
