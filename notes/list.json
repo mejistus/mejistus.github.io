@@ -63,18 +63,18 @@
     "excerpt": "Docker、Git and Latex"
   },
   {
-    "file": "Math/Optimal-Control.md",
-    "title": "最优控制（Optimal Control）",
-    "date": "2025/12/31",
-    "tag": "Math",
-    "excerpt": "最优控制理论是控制理论的一个分支，研究在一段时间内寻找动力系统的控制 )，从而优化目标函数 。[1\\] 它在科学、工程和运筹学中有广泛的应用。"
-  },
-  {
     "file": "Math/Fubini.md",
     "title": "富比尼定理",
     "date": "2026/2/26",
     "tag": "Math",
     "excerpt": "富比尼定理（英語：Fubini's theorem）是數學分析中有關重積分的一個定理，由數學家圭多·富比尼在1907年提出。富比尼定理給出了使用逐次積分的方法計算雙重積分的條件。在這些條件下，不僅能夠..."
+  },
+  {
+    "file": "Math/Optimal-Control.md",
+    "title": "最优控制（Optimal Control）",
+    "date": "2025/12/31",
+    "tag": "Math",
+    "excerpt": "最优控制理论是控制理论的一个分支，研究在一段时间内寻找动力系统的控制 )，从而优化目标函数 。[1\\] 它在科学、工程和运筹学中有广泛的应用。"
   },
   {
     "file": "Math/KKT-Conditions.md",
