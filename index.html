@@ -1689,7 +1689,7 @@
           .map(
             (p, i) => `
       <div class="poem-card" onclick="openPanel(${i})">
-        <div class="poem-card-title">${p.card_title}</div>
+        <div class="poem-card-title">${p.zh_title ? p.zh_title + ' · ' : ''}${p.card_title}</div>
         <div class="poem-card-excerpt">${p.card_excerpt}</div>
         <div class="poem-card-hint">↑ Read full poem</div>
       </div>
@@ -1977,7 +1977,7 @@
         const p = poems[i];
         document.getElementById("panelLabel").textContent =
           `Poetry · ${i + 1} of ${poems.length}`;
-        document.getElementById("panelTitle").textContent = p.title;
+        document.getElementById("panelTitle").textContent = p.zh_title ? p.zh_title + ' · ' + p.title : p.title;
         document.getElementById("panelZh").innerHTML = nl(p.zh);
         document.getElementById("panelEn").innerHTML = nl(p.en);
         document.getElementById("panelCounter").textContent =
@@ -2097,13 +2097,10 @@
       });
 
       // Fetch poems
-      fetch("poems/poems.jsonl")
-        .then((r) => r.text())
-        .then((text) => {
-          poems = text
-            .trim()
-            .split("\n")
-            .map((line) => JSON.parse(line));
+      fetch("poems/poems.json")
+        .then((r) => r.json())
+        .then((data) => {
+          poems = data;
           renderCards();
         });
 
