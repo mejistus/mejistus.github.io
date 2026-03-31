@@ -73,6 +73,11 @@
         font-size: 1.2rem;
         color: var(--ink);
         text-decoration: none;
+        cursor: pointer;
+        transition: color 0.3s ease;
+      }
+      .nav-logo.authed {
+        color: var(--sage);
       }
       .nav-links {
         display: flex;
@@ -1248,26 +1253,7 @@
         display: block;
       }
 
-      /* ── EDITOR NAV BUTTON ── */
-      .nav-auth-btn {
-        background: none;
-        border: 1.5px solid var(--border);
-        border-radius: 2rem;
-        padding: 0.35rem 1rem;
-        font-size: 0.8rem;
-        color: var(--muted);
-        cursor: pointer;
-        font-family: "Inter", sans-serif;
-        transition: all 0.2s;
-      }
-      .nav-auth-btn:hover {
-        border-color: var(--rust);
-        color: var(--rust);
-      }
-      .nav-auth-btn.authed {
-        border-color: var(--sage);
-        color: var(--sage);
-      }
+      /* (nav-logo auth styles are merged into main .nav-logo above) */
 
       /* ── BLOG EDITOR ── */
       .blog-panel .panel-header-actions {
@@ -1305,40 +1291,10 @@
         display: none;
         flex: 1;
         overflow: hidden;
+        flex-direction: column;
       }
       .editor-container.active {
         display: flex;
-        flex-direction: column;
-      }
-      .editor-meta {
-        padding: 1rem 2.5rem;
-        border-bottom: 1px solid var(--border);
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 0.8rem;
-      }
-      .editor-meta label {
-        font-size: 0.72rem;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--sage);
-        display: block;
-        margin-bottom: 0.3rem;
-      }
-      .editor-meta input, .editor-meta select {
-        width: 100%;
-        padding: 0.4rem 0.7rem;
-        border: 1.5px solid var(--border);
-        border-radius: 0.4rem;
-        font-family: "Inter", sans-serif;
-        font-size: 0.82rem;
-        background: var(--sand);
-        color: var(--ink);
-        outline: none;
-        transition: border-color 0.2s;
-      }
-      .editor-meta input:focus, .editor-meta select:focus {
-        border-color: var(--rust);
       }
       .editor-split {
         flex: 1;
@@ -1351,14 +1307,47 @@
         flex-direction: column;
         overflow: hidden;
       }
+      .editor-pane-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 1.2rem;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+        background: var(--sand);
+      }
       .editor-pane-label {
         font-size: 0.7rem;
         letter-spacing: 0.12em;
         text-transform: uppercase;
         color: var(--rust);
-        padding: 0.6rem 1.2rem;
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
+      }
+      .editor-meta-inline {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      .editor-meta-inline input,
+      .editor-meta-inline select {
+        padding: 0.25rem 0.5rem;
+        border: 1.5px solid var(--border);
+        border-radius: 0.4rem;
+        font-family: "Inter", sans-serif;
+        font-size: 0.75rem;
+        background: var(--cream);
+        color: var(--ink);
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .editor-meta-inline input:focus,
+      .editor-meta-inline select:focus {
+        border-color: var(--rust);
+      }
+      .editor-meta-inline input[type="text"] {
+        width: 180px;
+      }
+      .editor-meta-inline input[type="date"] {
+        width: 130px;
       }
       .editor-textarea {
         flex: 1;
@@ -1388,17 +1377,17 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0.6rem 2.5rem;
+        padding: 0.5rem 1.5rem;
         border-top: 1px solid var(--border);
         background: var(--sand);
       }
       .editor-save-btn {
-        padding: 0.5rem 1.5rem;
+        padding: 0.45rem 1.4rem;
         border-radius: 2rem;
         border: none;
         background: var(--sage);
         color: #fff;
-        font-size: 0.82rem;
+        font-size: 0.8rem;
         font-family: "Inter", sans-serif;
         cursor: pointer;
         transition: all 0.2s;
@@ -1411,12 +1400,12 @@
         cursor: default;
       }
       .editor-cancel-btn {
-        padding: 0.5rem 1.5rem;
+        padding: 0.45rem 1.4rem;
         border-radius: 2rem;
         border: 1.5px solid var(--border);
         background: transparent;
         color: var(--muted);
-        font-size: 0.82rem;
+        font-size: 0.8rem;
         font-family: "Inter", sans-serif;
         cursor: pointer;
         transition: all 0.2s;
@@ -1444,8 +1433,8 @@
           border-left: none;
           border-top: 1px solid var(--border);
         }
-        .editor-meta {
-          grid-template-columns: 1fr;
+        .editor-meta-inline {
+          flex-wrap: wrap;
         }
       }
 
@@ -1542,33 +1531,28 @@
       </div>
       <!-- Editor mode -->
       <div class="editor-container" id="editorContainer">
-        <div class="editor-meta">
-          <div>
-            <label>Title</label>
-            <input type="text" id="editorTitle" placeholder="Post title" />
-          </div>
-          <div>
-            <label>Tag</label>
-            <select id="editorTag">
-              <option value="Diffusion">Diffusion</option>
-              <option value="RL">RL</option>
-              <option value="ML">ML</option>
-              <option value="Math">Math</option>
-              <option value="Notes">Notes</option>
-            </select>
-          </div>
-          <div>
-            <label>Date</label>
-            <input type="date" id="editorDate" />
-          </div>
-        </div>
         <div class="editor-split">
           <div class="editor-pane">
-            <div class="editor-pane-label">Markdown</div>
+            <div class="editor-pane-header">
+              <span class="editor-pane-label">Markdown</span>
+              <div class="editor-meta-inline">
+                <input type="text" id="editorTitle" placeholder="Title" />
+                <select id="editorTag">
+                  <option value="Diffusion">Diffusion</option>
+                  <option value="RL">RL</option>
+                  <option value="ML">ML</option>
+                  <option value="Math">Math</option>
+                  <option value="Notes">Notes</option>
+                </select>
+                <input type="date" id="editorDate" />
+              </div>
+            </div>
             <textarea class="editor-textarea" id="editorTextarea" placeholder="Write your markdown here..."></textarea>
           </div>
           <div class="editor-pane">
-            <div class="editor-pane-label">Preview</div>
+            <div class="editor-pane-header">
+              <span class="editor-pane-label">Preview</span>
+            </div>
             <div class="editor-preview blog-content" id="editorPreview"></div>
           </div>
         </div>
@@ -1594,7 +1578,7 @@
 
     <!-- NAV -->
     <nav>
-      <a href="#hero" class="nav-logo">Xu Chen</a>
+      <a href="#hero" class="nav-logo" id="navLogo" onclick="handleAuthClick(event)">Xu Chen</a>
       <ul class="nav-links">
         <li><a href="#about">About</a></li>
         <li><a href="#posts">Blog</a></li>
@@ -1603,7 +1587,6 @@
         <li><a href="#awards">Awards</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
-      <button class="nav-auth-btn" id="navAuthBtn" onclick="handleAuthClick()">Login</button>
     </nav>
 
     <!-- HERO -->
@@ -2670,7 +2653,8 @@
         document.getElementById('authOverlay').classList.remove('open');
       }
 
-      function handleAuthClick() {
+      function handleAuthClick(e) {
+        e.preventDefault();
         if (ghToken) {
           // Logout
           ghToken = null;
@@ -2747,15 +2731,13 @@
       });
 
       function updateAuthUI(isAuthed) {
-        const btn = document.getElementById('navAuthBtn');
+        const logo = document.getElementById('navLogo');
         const editBtn = document.getElementById('blogEditBtn');
         if (isAuthed) {
-          btn.textContent = `${ghUser} (Logout)`;
-          btn.classList.add('authed');
+          logo.classList.add('authed');
           editBtn.style.display = 'flex';
         } else {
-          btn.textContent = 'Login';
-          btn.classList.remove('authed');
+          logo.classList.remove('authed');
           editBtn.style.display = 'none';
         }
       }
