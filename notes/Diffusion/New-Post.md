@@ -1,8 +1,8 @@
 ---
-title: New Post
+title: New P
 date: 2026-04-01
 tag: Diffusion
-excerpt: 
+excerpt: Love uvu
 ---
 
 # New date
