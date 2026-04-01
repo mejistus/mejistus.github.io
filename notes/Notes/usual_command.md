@@ -2,7 +2,7 @@
 title: Usual Command 
 date: 2026/3/27 
 tag: Notes
-excerpt: Docker、Git and Latex
+excerpt: TELL what you would need: Docker、Git and Latex
 ---
 # Usual Command.
 本文记录了 docker、git、latex 的一些常见使用方法。
