@@ -398,3 +398,12 @@ The payoff is **Banach-Alaoglu Theorem**:
 > The closed unit ball in $X^*$ is always **compact** in the weak-* topology.
 
 In $L^1$ or $L^\infty$, strong compactness fails badly. But weak-* compactness is always guaranteed — so you can always extract a weak-* convergent subsequence from any bounded sequence of functionals. This is the workhorse behind existence proofs in PDEs, optimization, and probability theory.
+
+
+## 无穷维空间的线性算子和谱分解
+### 核心
+在 $\mathbb{R}^n$ 中，线性算子就是**矩阵**，谱分解就是特征值分解。
+进入无穷维空间后，"矩阵"变成了算子（如微分、积分、乘法算子），而"谱"的结构远比特征值丰富得多。
+>关键空间：Hilbert 空间 $H$（完备内积空间），例如 $L^2[0,1]$, $L2[0,1]$, $\ell^2(\mathbb{N})$, Sobolev 空间 $H^1(\Omega)$。
+
+###
