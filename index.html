@@ -2765,6 +2765,15 @@
       }
 
       function closeEditor() {
+        // If cancelling a new post that hasn't been saved, remove the placeholder
+        if (isNewPost && currentBlog === 0 && blogs[0] && blogs[0].file === null) {
+          blogs.shift();
+          displayBlogs = [];
+          buildBlogFilters();
+          renderBlogCards();
+          closeAllPanels();
+        }
+        isNewPost = false;
         editorActive = false;
         document.getElementById('blogReadBody').classList.remove('hidden');
         document.getElementById('blogNavBar').style.display = '';
@@ -2871,26 +2880,37 @@
         return resp.json();
       }
 
+      // Sanitize title to filename
+      function titleToFilename(title) {
+        return title.replace(/[\/\\:*?"<>|]/g, '').replace(/\s+/g, '-').slice(0, 80);
+      }
+
       async function saveToGitHub() {
         if (!ghToken || currentBlog === null) return;
 
         const saveBtn = document.getElementById('editorSaveBtn');
         const status = document.getElementById('editorStatus');
         saveBtn.disabled = true;
-        status.textContent = 'Saving markdown...';
+        status.textContent = 'Saving...';
         status.className = 'editor-status';
 
         try {
           const b = blogs[currentBlog];
           const fullContent = document.getElementById('editorTextarea').value;
-          const newTitle = parseFrontMatterField(fullContent, 'title') || b.title;
-          const newTag = parseFrontMatterField(fullContent, 'tag') || b.tag;
-          const newDate = parseFrontMatterField(fullContent, 'date') || b.date;
+          const newTitle = parseFrontMatterField(fullContent, 'title') || 'Untitled';
+          const newTag = parseFrontMatterField(fullContent, 'tag') || 'Notes';
+          const newDate = parseFrontMatterField(fullContent, 'date') || new Date().toISOString().split('T')[0];
           const newExcerpt = extractExcerpt(fullContent);
+
+          // For new posts, derive file path from front matter
+          if (isNewPost) {
+            b.file = `${newTag}/${titleToFilename(newTitle)}.md`;
+          }
 
           // 1. Commit the markdown file
           const mdPath = `notes/${b.file}`;
-          await commitFile(mdPath, fullContent, `Update blog: ${newTitle}`);
+          const commitMsg = isNewPost ? `New blog: ${newTitle}` : `Update blog: ${newTitle}`;
+          await commitFile(mdPath, fullContent, commitMsg);
 
           // 2. Update list.json via GitHub API
           status.textContent = 'Updating list.json...';
@@ -2902,16 +2922,22 @@
           const listData = await listResp.json();
           const listContent = JSON.parse(decodeURIComponent(escape(atob(listData.content.replace(/\n/g, '')))));
 
-          const entry = listContent.find(e => e.file === b.file);
-          if (entry) {
-            entry.title = newTitle;
-            entry.tag = newTag;
-            entry.date = newDate;
-            entry.excerpt = newExcerpt;
+          if (isNewPost) {
+            // Insert new entry at the top
+            listContent.unshift({ file: b.file, title: newTitle, date: newDate, tag: newTag, excerpt: newExcerpt });
+          } else {
+            // Update existing entry
+            const entry = listContent.find(e => e.file === b.file);
+            if (entry) {
+              entry.title = newTitle;
+              entry.tag = newTag;
+              entry.date = newDate;
+              entry.excerpt = newExcerpt;
+            }
           }
 
           const listBody = {
-            message: `Update list.json: ${newTitle}`,
+            message: isNewPost ? `Add to list.json: ${newTitle}` : `Update list.json: ${newTitle}`,
             content: btoa(unescape(encodeURIComponent(JSON.stringify(listContent, null, 2) + '\n'))),
             sha: listData.sha,
             branch: REPO_BRANCH
@@ -2929,12 +2955,13 @@
             throw new Error('list.json: ' + (err.message || 'commit failed'));
           }
 
-          // 3. Update local state immediately — no need to wait for deploy
+          // 3. Update local state immediately
           b.title = newTitle;
           b.tag = newTag;
           b.date = newDate;
           b.excerpt = newExcerpt;
           b.content = fullContent;
+          isNewPost = false;
 
           // Invalidate caches
           parsedHtmlCache.delete(currentBlog);
@@ -2959,67 +2986,51 @@
       }
 
       // ── Create new post ──
-      async function createNewPost() {
+      let isNewPost = false; // flag: current editor session is a new post
+
+      function createNewPost() {
         if (!ghToken) { openAuthModal(); return; }
 
-        const tag = prompt('Category (Diffusion / RL / ML / Math / Notes):', 'Notes');
-        if (!tag) return;
-        const filename = prompt('Filename (without .md):', 'New-Post');
-        if (!filename) return;
-
-        const file = `${tag}/${filename}.md`;
+        // Tag = current filter, or Notes if "all"
+        const tag = blogFilter !== 'all' ? blogFilter : 'Notes';
         const today = new Date().toISOString().split('T')[0];
-        const template = `---\ntitle: ${filename.replace(/-/g, ' ')}\ndate: ${today}\ntag: ${tag}\n---\n\n# ${filename.replace(/-/g, ' ')}\n\n`;
+        const template = `---\ntitle: New Post\ndate: ${today}\ntag: ${tag}\n---\n\n# New Post\n\n`;
 
-        // Check if file already exists
-        const exists = await getFileSha(`notes/${file}`);
-        if (exists) {
-          alert(`File notes/${file} already exists!`);
-          return;
-        }
+        // Create a placeholder blog entry in local state
+        const placeholder = { file: null, title: 'New Post', date: today, tag, excerpt: '', content: template };
+        blogs.unshift(placeholder);
+        displayBlogs = [];
+        buildBlogFilters();
+        renderBlogCards();
 
-        try {
-          // 1. Create the markdown file
-          await commitFile(`notes/${file}`, template, `New blog: ${filename}`);
+        // Open the panel + editor immediately
+        currentBlog = 0;
+        isNewPost = true;
+        const panel = document.getElementById('blogPanel');
+        document.getElementById('blogPanelLabel').textContent = 'Blog · New post';
+        document.getElementById('blogPanelTitle').textContent = 'New Post';
 
-          // 2. Add entry to list.json
-          const listResp = await fetch(
-            `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/notes/list.json?ref=${REPO_BRANCH}`,
-            { headers: { 'Authorization': `token ${ghToken}` } }
-          );
-          const listData = await listResp.json();
-          const listContent = JSON.parse(decodeURIComponent(escape(atob(listData.content.replace(/\n/g, '')))));
+        // Go fullscreen + editor
+        panel.classList.remove('open', 'fullscreen');
+        requestAnimationFrame(() => { requestAnimationFrame(() => {
+          document.getElementById('overlay').classList.add('open');
+          panel.classList.add('open');
+          lockScroll();
+          panel.classList.add('fullscreen');
+          isFullscreen = true;
 
-          const newEntry = { file, title: filename.replace(/-/g, ' '), date: today, tag, excerpt: '' };
-          listContent.unshift(newEntry);
-
-          const listBody = {
-            message: `Add to list.json: ${filename}`,
-            content: btoa(unescape(encodeURIComponent(JSON.stringify(listContent, null, 2) + '\n'))),
-            sha: listData.sha,
-            branch: REPO_BRANCH
-          };
-          await fetch(
-            `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/notes/list.json`,
-            { method: 'PUT', headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(listBody) }
-          );
-
-          // 3. Update local state immediately
-          const newBlog = { file, title: newEntry.title, date: today, tag, excerpt: '', content: template };
-          blogs.unshift(newBlog);
-          // Shift all display indices
-          displayBlogs = [];
-          blogPage = 0;
-          buildBlogFilters();
-          renderBlogCards();
-
-          // 4. Open editor for the new post
-          await openBlogPanel(0);
-          toggleEditor();
-
-        } catch (err) {
-          alert('Failed to create post: ' + err.message);
-        }
+          // Activate editor
+          editorActive = true;
+          document.getElementById('blogReadBody').classList.add('hidden');
+          document.getElementById('blogNavBar').style.display = 'none';
+          document.getElementById('editorContainer').classList.add('active');
+          document.getElementById('blogEditBtn').classList.add('active');
+          document.getElementById('editorTextarea').value = template;
+          document.getElementById('editorStatus').textContent = '';
+          document.getElementById('editorStatus').className = 'editor-status';
+          updatePreview();
+          document.getElementById('editorTextarea').focus();
+        }); });
       }
 
       // ── Delete post ──
