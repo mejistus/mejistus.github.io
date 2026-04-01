@@ -1,5 +1,12 @@
 [
   {
+    "file": "Diffusion/New-Post.md",
+    "title": "New Post",
+    "date": "2026-04-01",
+    "tag": "Diffusion",
+    "excerpt": ""
+  },
+  {
     "file": "RL/RL Paradigms.md",
     "title": "主流强化学习方法范式综述：策略梯度、值函数、Actor-Critic 及现代变体",
     "date": "2026-03-29",
