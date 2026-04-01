@@ -2781,10 +2781,35 @@
         }
       });
 
-      // ── Front matter helper ──
+      // ── Front matter helpers ──
       function parseFrontMatterField(content, field) {
-        const match = content.match(new RegExp(`^---\\s*\\n[\\s\\S]*?\\n${field}:\\s*(.+?)\\s*\\n[\\s\\S]*?\\n---`, 'm'));
-        return match ? match[1] : null;
+        const fmMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
+        if (!fmMatch) return null;
+        const line = fmMatch[1].split('\n').find(l => l.startsWith(field + ':'));
+        return line ? line.slice(field.length + 1).trim() : null;
+      }
+
+      // Port of Python extract_excerpt — matches add_blog.py logic
+      function extractExcerpt(content) {
+        // Check front matter excerpt first
+        const fmExcerpt = parseFrontMatterField(content, 'excerpt');
+        if (fmExcerpt) return fmExcerpt;
+        // Strip front matter
+        const body = content.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, '');
+        const lines = body.split('\n');
+        for (const line of lines) {
+          const stripped = line.trim();
+          if (!stripped || stripped.startsWith('#')) continue;
+          let text = stripped;
+          text = text.replace(/\*\*(.+?)\*\*/g, '$1');
+          text = text.replace(/\*(.+?)\*/g, '$1');
+          text = text.replace(/\[(.+?)\]\(.+?\)/g, '$1');
+          text = text.replace(/<[^>]+>/g, '');
+          text = text.replace(/\$\$?.*?\$\$?/g, '');
+          text = text.trim();
+          if (text) return text.length > 100 ? text.slice(0, 100) + '...' : text;
+        }
+        return '';
       }
 
       // ── Save to GitHub ──
@@ -2838,40 +2863,77 @@
         const saveBtn = document.getElementById('editorSaveBtn');
         const status = document.getElementById('editorStatus');
         saveBtn.disabled = true;
-        status.textContent = 'Saving...';
+        status.textContent = 'Saving markdown...';
         status.className = 'editor-status';
 
         try {
           const b = blogs[currentBlog];
           const fullContent = document.getElementById('editorTextarea').value;
+          const newTitle = parseFrontMatterField(fullContent, 'title') || b.title;
+          const newTag = parseFrontMatterField(fullContent, 'tag') || b.tag;
+          const newDate = parseFrontMatterField(fullContent, 'date') || b.date;
+          const newExcerpt = extractExcerpt(fullContent);
 
-          // 1. Commit textarea content as-is; GitHub Action will rebuild list.json
+          // 1. Commit the markdown file
           const mdPath = `notes/${b.file}`;
-          const commitTitle = parseFrontMatterField(fullContent, 'title') || b.title;
-          await commitFile(mdPath, fullContent, `Update blog: ${commitTitle}`);
+          await commitFile(mdPath, fullContent, `Update blog: ${newTitle}`);
 
-          // 2. Update local state from front matter for immediate display
-          b.title = parseFrontMatterField(fullContent, 'title') || b.title;
-          b.tag = parseFrontMatterField(fullContent, 'tag') || b.tag;
-          b.date = parseFrontMatterField(fullContent, 'date') || b.date;
+          // 2. Update list.json via GitHub API
+          status.textContent = 'Updating list.json...';
+          const listResp = await fetch(
+            `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/notes/list.json?ref=${REPO_BRANCH}`,
+            { headers: { 'Authorization': `token ${ghToken}` } }
+          );
+          if (!listResp.ok) throw new Error('Failed to fetch list.json');
+          const listData = await listResp.json();
+          const listContent = JSON.parse(decodeURIComponent(escape(atob(listData.content.replace(/\n/g, '')))));
+
+          const entry = listContent.find(e => e.file === b.file);
+          if (entry) {
+            entry.title = newTitle;
+            entry.tag = newTag;
+            entry.date = newDate;
+            entry.excerpt = newExcerpt;
+          }
+
+          const listBody = {
+            message: `Update list.json: ${newTitle}`,
+            content: btoa(unescape(encodeURIComponent(JSON.stringify(listContent, null, 2) + '\n'))),
+            sha: listData.sha,
+            branch: REPO_BRANCH
+          };
+          const listPutResp = await fetch(
+            `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/notes/list.json`,
+            {
+              method: 'PUT',
+              headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify(listBody)
+            }
+          );
+          if (!listPutResp.ok) {
+            const err = await listPutResp.json();
+            throw new Error('list.json: ' + (err.message || 'commit failed'));
+          }
+
+          // 3. Update local state immediately — no need to wait for deploy
+          b.title = newTitle;
+          b.tag = newTag;
+          b.date = newDate;
+          b.excerpt = newExcerpt;
           b.content = fullContent;
 
           // Invalidate caches
           parsedHtmlCache.delete(currentBlog);
           blogContentCache.delete(b.file);
 
-          // Re-render
+          // Re-render everything
           renderBlog(currentBlog);
           buildBlogFilters();
           renderBlogCards();
 
-          status.textContent = 'Saved successfully!';
+          status.textContent = 'Saved!';
           status.className = 'editor-status success';
-
-          // Close editor after short delay
-          setTimeout(() => {
-            closeEditor();
-          }, 1200);
+          setTimeout(() => closeEditor(), 800);
 
         } catch (err) {
           console.error('Save failed:', err);
