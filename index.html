@@ -2994,7 +2994,7 @@
         // Tag = current filter, or Notes if "all"
         const tag = blogFilter !== 'all' ? blogFilter : 'Notes';
         const today = new Date().toISOString().split('T')[0];
-        const template = `---\ntitle: New Post\ndate: ${today}\ntag: ${tag}\n---\n\n# New Post\n\n`;
+        const template = `---\ntitle: New Post\ndate: ${today}\ntag: ${tag}\nexcerpt: \n---\n\n# New Post\n\n`;
 
         // Create a placeholder blog entry in local state
         const placeholder = { file: null, title: 'New Post', date: today, tag, excerpt: '', content: template };
