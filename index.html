@@ -2779,6 +2779,10 @@
         document.getElementById('blogNavBar').style.display = '';
         document.getElementById('editorContainer').classList.remove('active');
         document.getElementById('blogEditBtn').classList.remove('active');
+        // Re-render read view with latest content
+        if (currentBlog !== null && currentBlog < blogs.length) {
+          renderBlog(currentBlog);
+        }
       }
 
       function updatePreview() {
@@ -2801,6 +2805,14 @@
           const end = ta.selectionEnd;
           ta.value = ta.value.substring(0, start) + '  ' + ta.value.substring(end);
           ta.selectionStart = ta.selectionEnd = start + 2;
+        }
+      });
+
+      // Cmd+S / Ctrl+S to save
+      document.addEventListener('keydown', (e) => {
+        if (editorActive && (e.metaKey || e.ctrlKey) && e.key === 's') {
+          e.preventDefault();
+          saveToGitHub();
         }
       });
 
@@ -2853,7 +2865,7 @@
         return null;
       }
 
-      async function commitFile(path, content, message) {
+      async function commitFile(path, content, message, _retry = 0) {
         const sha = await getFileSha(path);
         const body = {
           message,
@@ -2875,6 +2887,10 @@
         );
         if (!resp.ok) {
           const err = await resp.json();
+          // SHA mismatch — retry once with fresh SHA
+          if (_retry < 2 && (resp.status === 409 || resp.status === 422)) {
+            return commitFile(path, content, message, _retry + 1);
+          }
           throw new Error(err.message || 'Failed to commit');
         }
         return resp.json();
