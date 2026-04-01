@@ -1,5 +1,5 @@
 ---
-title: Nabla Oper
+title: Nabla Operator
 date: 2026-04-01
 tag: Notes
 excerpt: 哈密顿算子的一些直观理解
