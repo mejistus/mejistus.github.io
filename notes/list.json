@@ -11,7 +11,7 @@
     "title": "The Gradiant of Reward Function",
     "date": "2026-02-17",
     "tag": "RL",
-    "excerpt": "为什么得到奖励函数的梯度这么重要呢？"
+    "excerpt": "Why is it so important to get the gradient of the reward function?"
   },
   {
     "file": "RL/Reward-hacking.md",
@@ -49,18 +49,18 @@
     "excerpt": "This blog is a summary of GRPO, DAPO and λGRPO."
   },
   {
-    "file": "Notes/i3wm-setup.md",
-    "title": "My i3wm setup: calm aesthetics for a busy mind",
-    "date": "2026/1/26",
-    "tag": "Notes",
-    "excerpt": "How a tiling window manager helped me find focus — and a colour palette that stays out of the way."
-  },
-  {
     "file": "Notes/usual_command.md",
     "title": "Usual Command",
     "date": "2026/3/27",
     "tag": "Notes",
     "excerpt": "Docker、Git and Latex"
+  },
+  {
+    "file": "Notes/i3wm-setup.md",
+    "title": "My i3wm setup: calm aesthetics for a busy mind",
+    "date": "2026/1/26",
+    "tag": "Notes",
+    "excerpt": "How a tiling window manager helped me find focus — and a colour palette that stays out of the way."
   },
   {
     "file": "Math/Fubini.md",
