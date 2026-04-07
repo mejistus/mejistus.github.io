@@ -1,8 +1,8 @@
 ---
-title: Infinite Dimensions $^®$
+title: Infinite Dimensions™
 date: 2026-04-07
 tag: Math
-excerpt: 
+excerpt: 無限維度
 ---
 
 # New Post
