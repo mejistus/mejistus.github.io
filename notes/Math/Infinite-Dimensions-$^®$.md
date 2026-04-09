@@ -21,11 +21,19 @@ To understand **`functional`**, we reconsider it in the **space with some dimens
 For functional, we proposal a concept `Variations` (which could be regarded as function itself with tiny disturbations), we note it as `$\delta y(x)$`. To meet the constraints ahead, obviously `$\delta y(a)=\delta y(b) = 0$`.
 So the functional `J` at function instance point `$y$` following the direction `$\delta y$` (1-order variation) can be defined as: $$\delta J[y;\delta y]:=\frac{d}{d\epsilon}J[y+\epsilon\delta y]\big|_{\epsilon=0} \tag{2}$$
 
-To make problem simple, we take `\delta y` as `linear continued functional`, which indicate there is one only object `$\frac{\partial{J}}{\partial y(x)}$` (**Derivative of Functional**) to make the following equal:
+To make problem simple, we take `$\delta y$` as `linear continued functional`, which indicate there is one only object `$\frac{\partial{J}}{\partial y(x)}$` (**Derivative of Functional**) to make the following equal:
 $$
 \delta J[y;\delta y]=\int_a^b \frac{\partial{J}}{\partial y(x)} \delta y(x) dx \tag{3}
 $$
-> just take it as Taylor 
+> just take it as Taylor Expansion, in which $\Delta y = y'(x) \Delta x$.
 
-
+And in detail, formula $(3)$ can be written as:
+$$
+\begin{align}
+\delta J[y;\delta y] &= \int_a^b\frac{\partial L(x, y+\epsilon \delta y, (y+\epsilon \delta y)')}{\partial \epsilon} \delta \epsilon dx \\
+&=\int_a^b\frac{\partial L(x, y+\epsilon \delta y, y'+\epsilon \delta y')}{\partial \epsilon} \delta \epsilon dx\\
+&=\lim_{\epsilon \to 0}\int_a^b  \big(\frac{\partial L}{\partial y} \delta y + \frac{\partial L}{\partial y'} \delta y'\big)dx \\
+&=
+\end{align} 
+$$
 
