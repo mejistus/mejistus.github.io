@@ -30,10 +30,34 @@ $$
 And in detail, formula $(3)$ can be written as:
 $$
 \begin{align}
-\delta J[y;\delta y] &= \int_a^b\frac{\partial L(x, y+\epsilon \delta y, (y+\epsilon \delta y)')}{\partial \epsilon} \delta \epsilon dx \\
-&=\int_a^b\frac{\partial L(x, y+\epsilon \delta y, y'+\epsilon \delta y')}{\partial \epsilon} \delta \epsilon dx\\
-&=\lim_{\epsilon \to 0}\int_a^b  \big(\frac{\partial L}{\partial y} \delta y + \frac{\partial L}{\partial y'} \delta y'\big)dx \\
-&=
-\end{align} 
+\delta J[y;\delta y] &= \lim_{\epsilon \to 0}\int_a^b\frac{\partial L(x, y+\epsilon \delta y, (y+\epsilon \delta y)')}{\partial \epsilon} \delta \epsilon dx \\
+&=\lim_{\epsilon \to 0}\int_a^b\frac{\partial L(x, y+\epsilon \delta y, y'+\epsilon \delta y')}{\partial \epsilon} \delta \epsilon dx\\
+&=\int_a^b  \big(\frac{\partial L}{\partial y} \delta y + \frac{\partial L}{\partial y'} \delta y'\big)dx \\
+\end{align} \tag{4}
 $$
+
+For part 2 `$\int_a^b \frac{\partial L}{\partial y'}\delta y'dx $`, we can integrate it by parts:
+$$
+\begin{align}
+\int_a^b \frac{\partial L}{\partial y'}\delta y'dx &=\int_a^b \frac{\partial L}{\partial y'}d\delta y  \\
+&=\frac{\partial L}{\partial y'}\delta y \large|_a^b - \int_a^b \frac{d }{dx} \frac{\partial L}{\partial y'} \delta ydx \\
+&= -\int_a^b \frac{d }{dx} \frac{\partial L}{\partial y'} \delta y dx 
+\end{align} \tag{5}
+$$
+So merge it to formula (4) we have `derivative of functional`: 
+$$
+\begin{align}
+\delta J[y;\delta y] &= \int_a^b  \big(\frac{\partial L}{\partial y} \delta y + \frac{\partial L}{\partial y'} \delta y'\big)dx \\
+&= \int_a^b  \big(\frac{\partial L}{\partial y} \delta y - \frac{d }{dx} \frac{\partial L}{\partial y'} \delta y)dx \\
+&= \delta y \int_a^b  \big(\frac{\partial L}{\partial y} - \frac{d }{dx} \frac{\partial L}{\partial y'} \big )dx
+\end{align}
+$$
+Thus, 
+$$
+\frac{\partial J}{\partial y(x)} = \int_a^b\big ( \frac{\partial L}{\partial y} - \frac{d }{dx} \frac{\partial L}{\partial y'} \big ) dx
+$$
+To find the function $y$ leads to extremum, one necessary condition is `$\frac{\partial J}{\partial y(x)}=0\quad \forall x \in [a,b]$`.
+
+
+
 
