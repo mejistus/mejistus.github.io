@@ -13,7 +13,7 @@ $$
 \mathrm{Var}(X)=\underbrace{\boxed{ \mathbb E[\mathrm{Var}(X\mid G)]}}_{\text{類內方差}} + \underbrace{\boxed{\mathrm{Var}(\mathbb E[X\mid G])}}_{\text{類間方差}}
 
 $$
-这里：
+這裡：
 $$
 \mathbb E[\mathrm{Var}(X\mid G)] = 1 \\
 \mathrm{Var}(\mathbb E[X\mid G]) = \mathrm{Var}(-1,1)=1
