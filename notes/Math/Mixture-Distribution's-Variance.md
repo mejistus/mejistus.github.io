@@ -51,7 +51,7 @@ $$\mathrm{Var}(X\mid G=g,M=m)$$
 * 内层对 $p(x\mid g,m)$
 * 外层对 $p(m\mid g)$
 
-3. 直接写成积分你就能看清楚
+## 3. 直接写成积分你就能看清楚
 
 先看条件均值：
 $$
@@ -88,6 +88,6 @@ $$
 \mathbb{E}[X\mid G]
 =
 \mathbb{E}_{M\mid G}\big[\mathbb{E}[X\mid G,M]\big]$$`
-看见了吗？
+所以
 * 里面的 $\mathbb{E}[X\mid G,M]$ 才是对 $p(x\mid g,m)$ 积分
 * 外面的 $\mathbb{E}_{M\mid G}$ 是对 $p(m\mid g)$ 积分
