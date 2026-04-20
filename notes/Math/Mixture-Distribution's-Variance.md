@@ -5,7 +5,7 @@ tag: Math
 excerpt: This post introduces a concept about mixture distribution's variance.
 ---
 
-# 混合分佈的方差
+## 混合分佈的方差
 
 定義當前分佈Y是來自於兩個高斯分佈$G$的混合分佈，並假設二者各佔一半，其中: `$G_1: X\sim \mathcal N(-1,1),\quad G_2: X\sim \mathcal N(1,1)$`。
 那麼混合分佈$Y$的方差`$Var(Y)$`可以表達為：
@@ -19,8 +19,8 @@ $$
 \mathrm{Var}(\mathbb E[X\mid G]) = \mathrm{Var}(-1,1)=1
 $$
 
----
 ## 1. Formula
+
 $$
 \mathrm{Var}(X\mid G)
 =
@@ -38,29 +38,14 @@ $$ p(x\mid g)=\int p(x\mid g,m)\,p(m\mid g)\,dm$$
 `在给定 $G=g$ 时，$X$ 的分布是由各个子分布 $p(x\mid g,m)$ 按权重 $p(m\mid g)$ 混合出来的。`
 所以你要算 $\mathrm{Var}(X\mid G=g)$，当然不能只看 $p(x\mid g,m)$，还必须再对 $m$ 的分布加权。
 
----
-# 2. 为什么不是只对 $p(x\mid g,m)$ 取期望
+## 2. 为什么不是只对 $p(x\mid g,m)$ 取期望
 
-因为
-
-$$\mathrm{Var}(X\mid G=g)$$
-
-描述的是整个条件分布 $p(x\mid g)$ 的方差，
-而不是某个固定 $m$ 下的方差。
-固定 $m$ 时
-如果 $m$ 也固定了，那你算的是：
-
+因为$\mathrm{Var}(X\mid G=g)$描述的是整个条件分布 $p(x\mid g)$ 的方差，而不是某个固定 $m$ 下的方差。
+固定 $m$ 时，如果 $m$ 也固定了，那你算的是：
 $$\mathrm{Var}(X\mid G=g,M=m)$$
-这时才是只对$p(x\mid g,m)$
-取期望。
----
-但现在 $m$ 没固定
-
-你要的是：
-$$
-\mathrm{Var}(X\mid G=g)
-$$
-而给定 g 后，m 仍然是随机变量，所以总体上要对$p(m\mid g)$再做一次平均。
+这时才是只对$p(x\mid g,m)$取期望。
+但现在 $m$ 没固定，你要的是：$\mathrm{Var}(X\mid G=g)$
+`而给定 $g$ 后，$m$ 仍然是随机变量，所以总体上要对$p(m\mid g)$再做一次平均。`
 
 所以这里一定会出现：
 * 内层对 $p(x\mid g,m)$
@@ -99,10 +84,10 @@ $$
 =
 \int \mathbb{E}[X\mid G=g,M=m]\,p(m\mid g)\,dm$$
 这就是
-$$
+`$$
 \mathbb{E}[X\mid G]
 =
-\mathbb{E}_{M\mid G}\big[\mathbb{E}[X\mid G,M]\big]$$
+\mathbb{E}_{M\mid G}\big[\mathbb{E}[X\mid G,M]\big]$$`
 看见了吗？
 * 里面的 $\mathbb{E}[X\mid G,M]$ 才是对 $p(x\mid g,m)$ 积分
 * 外面的 $\mathbb{E}_{M\mid G}$ 是对 $p(m\mid g)$ 积分
