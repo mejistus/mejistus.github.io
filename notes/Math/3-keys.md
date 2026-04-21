@@ -1,8 +1,8 @@
 ---
-title: 3 keys
+title: 泛函与优化
 date: 2026-04-21
 tag: Math
-excerpt: 3 examples for functional.
+excerpt: 本文介绍了3个泛函优化的典型问题.
 ---
 ## 泛函优化
 $$
@@ -17,23 +17,21 @@ $$
 \tilde J[y,\lambda]
 =\int_a^b \big(F+\lambda G\big)\,dx-\lambda C .
 $$
-下面我给你 3 个覆盖不同类型的例题，并都写到“列出增广泛函—写出欧拉方程—解出 $y(x)$”这一步。
+下面是 3 个覆盖不同类型的例题，并都写到“列出增广泛函—写出欧拉方程—解出 $y(x)$”这一步。
 
 ## 例 1：最基础的积分约束问题
 
-求函数 $y(x)$，使$J[y]=\int_0^1 (y')^2\,dx$
-取极小，并满足约束
+求函数 `$y(x)$`，使 `$J[y]=\int_0^1 (y')^2\,dx$`取极小，并满足约束
 $$
 \int_0^1 y(x)\,dx=m,
 \qquad
 y(0)=y(1)=0.
 $$
 ### 第一步：构造增广泛函
-$$\tilde J[y,\lambda]
-=
-\int_0^1 \Big((y')^2+\lambda y\Big)\,dx-\lambda m.
 $$
-这里增广被积函数是$\mathcal L=(y')^2+\lambda y$.
+\tilde J[y,\lambda]=\int_0^1 \Big((y')^2+\lambda y\Big)\,dx-\lambda m.
+$$
+这里`增广被积函数`是$$\mathcal L=(y')^2+\lambda y.$$
 
 ### 第二步：写欧拉–拉格朗日方程
 $$
