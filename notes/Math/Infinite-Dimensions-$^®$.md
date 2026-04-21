@@ -17,21 +17,19 @@ whereas `$y$` belongs to some permitted function which has continued `1-order de
 The classical Calculus of Variations is to find the $y$ to let its functional to be minimum.
 
 ---
-To understand a \textbf{functional}, it is helpful to compare it with the finite-dimensional case.
-In finite dimensions, a function $f:\mathbf{R}^n \to \mathbf{R}$ changes at a point $x_0$ along a direction $v$ according to the \textbf{directional derivative}, i.e.,
-$\nabla f(x_0)\cdot v$.
+To understand a $\textbf{functional}$, it is helpful to compare it with the finite-dimensional case.
+In finite dimensions, a function $f:\mathbf{R}^n \to \mathbf{R}$ changes at a point $x_0$ along a direction $v$ according to the `$\textbf{directional derivative}$`, i.e.,
+`$\nabla f(x_0)\cdot v$`.
 
-For a functional, the analogous concept is the \textbf{variation}.
-We denote by $\delta y(x)$ an admissible perturbation of the function $y(x)$.
-To satisfy the endpoint constraints, we require
-$\delta y(a)=\delta y(b)=0$.
-Then the first-order variation of the functional $J$ at the function $y$ along the direction $\delta y$ is defined by
+For a functional, the analogous concept is the $\textbf{variation}$. We denote by `$\delta y(x)$` an admissible perturbation of the function `$y(x)$`. To satisfy the endpoint constraints, we require `$\delta y(a)=\delta y(b)=0$`.
+
+Then the first-order variation of the functional $J$ at the function $y$ along the direction `$\delta y$` is defined by
 $$
 \delta J[y;\delta y]:=\left.\frac{d}{d\epsilon}J[y+\epsilon\delta y]\right|_{\epsilon=0}. \tag{2}
 $$
 
-To simplify the discussion, we assume that the first variation is linear and continuous with respect to $\delta y$.
-Then there exists a quantity $\frac{\partial J}{\partial y(x)}$, called the \textbf{functional derivative} of $J$, such that
+To simplify the discussion, we assume that the first variation is linear and continuous with respect to `$\delta y$`.
+Then there exists a quantity `$\frac{\partial J}{\partial y(x)}$`, called the `$\textbf{functional derivative}$ of $J$`, such that
 $$
 \delta J[y;\delta y]=\int_a^b \frac{\partial J}{\partial y(x)}\,\delta y(x)\,dx. \tag{3}
 $$
