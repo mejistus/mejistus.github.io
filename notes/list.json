@@ -1,5 +1,12 @@
 [
   {
+    "file": "Math/最小作用量原理.md",
+    "title": "最小作用量原理",
+    "date": "2026-04-21",
+    "tag": "Math",
+    "excerpt": "本文介绍了最小作用量原理、拉格朗日力学与泛函之间的联系，并解释为什么力学问题会自然落到变分法的语言中。"
+  },
+  {
     "file": "Math/Mixture-Distribution's-Variance.md",
     "title": "Mixture Distribution's Variance",
     "date": "2026-04-10",
