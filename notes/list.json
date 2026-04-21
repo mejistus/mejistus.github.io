@@ -1,10 +1,10 @@
 [
   {
     "file": "Math/3-keys.md",
-    "title": "3 keys",
+    "title": "泛函与优化",
     "date": "2026-04-21",
     "tag": "Math",
-    "excerpt": "3 examples for functional."
+    "excerpt": "本文介绍了3个泛函优化的典型问题."
   },
   {
     "file": "Math/最小作用量原理.md",
