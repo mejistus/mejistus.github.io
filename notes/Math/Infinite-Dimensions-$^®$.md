@@ -2,7 +2,7 @@
 title: Infinite Dimensions™
 date: 2026-04-07
 tag: Math
-excerpt: 無限維度
+excerpt: Recalling version with bad notions from \href{https://www.cnblogs.com/qizhou/p/18564508}
 ---
 
 # Calculus of Variations
