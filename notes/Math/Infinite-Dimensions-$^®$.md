@@ -17,22 +17,45 @@ whereas `$y$` belongs to some permitted function which has continued `1-order de
 The classical Calculus of Variations is to find the $y$ to let its functional to be minimum.
 
 ---
-To understand **`functional`**, we reconsider it in the **space with some dimension**. Generally, in finite dimension, we have one function `$f$` who make mappings from `$\mathbf{R}^n \to \mathbf{R}$`, its divergence rate at `$x_0$` for direction `$v$` is determined by the **Directional Derivative** `$\Delta f(x_0) \cdot v$`.
-For functional, we proposal a concept `Variations` (which could be regarded as function itself with tiny disturbations), we note it as `$\delta y(x)$`. To meet the constraints ahead, obviously `$\delta y(a)=\delta y(b) = 0$`.
-So the functional `J` at function instance point `$y$` following the direction `$\delta y$` (1-order variation) can be defined as: $$\delta J[y;\delta y]:=\frac{d}{d\epsilon}J[y+\epsilon\delta y]\big|_{\epsilon=0} \tag{2}$$
+To understand a \textbf{functional}, it is helpful to compare it with the finite-dimensional case.
+In finite dimensions, a function $f:\mathbf{R}^n \to \mathbf{R}$ changes at a point $x_0$ along a direction $v$ according to the \textbf{directional derivative}, i.e.,
+$\nabla f(x_0)\cdot v$.
 
-To make problem simple, we take `$\delta y$` as `linear continued functional`, which indicate there is one only object `$\frac{\partial{J}}{\partial y(x)}$` (**Derivative of Functional**) to make the following equal:
+For a functional, the analogous concept is the \textbf{variation}.
+We denote by $\delta y(x)$ an admissible perturbation of the function $y(x)$.
+To satisfy the endpoint constraints, we require
+$\delta y(a)=\delta y(b)=0$.
+Then the first-order variation of the functional $J$ at the function $y$ along the direction $\delta y$ is defined by
 $$
-\delta J[y;\delta y]=\int_a^b \frac{\partial{J}}{\partial y(x)} \delta y(x) dx \tag{3}
+\delta J[y;\delta y]:=\left.\frac{d}{d\epsilon}J[y+\epsilon\delta y]\right|_{\epsilon=0}. \tag{2}
 $$
-> just take it as Taylor Expansion, in which $\Delta y = y'(x) \Delta x$.
 
-And in detail, formula $(3)$ can be written as:
+To simplify the discussion, we assume that the first variation is linear and continuous with respect to $\delta y$.
+Then there exists a quantity $\frac{\partial J}{\partial y(x)}$, called the \textbf{functional derivative} of $J$, such that
+$$
+\delta J[y;\delta y]=\int_a^b \frac{\partial J}{\partial y(x)}\,\delta y(x)\,dx. \tag{3}
+$$
+
+For the functional
+$$
+J[y]=\int_a^b L(x,y,y')\,dx,
+$$
+the first variation can be computed explicitly as
 $$
 \begin{align}
-\delta J[y;\delta y] &= \lim_{\epsilon \to 0}\int_a^b\frac{\partial L(x, y+\epsilon \delta y, (y+\epsilon \delta y)')}{\partial \epsilon} \delta \epsilon dx \\
-&=\lim_{\epsilon \to 0}\int_a^b\frac{\partial L(x, y+\epsilon \delta y, y'+\epsilon \delta y')}{\partial \epsilon} \delta \epsilon dx\\
-&=\int_a^b  \big(\frac{\partial L}{\partial y} \delta y + \frac{\partial L}{\partial y'} \delta y'\big)dx \\
+\delta J[y;\delta y]
+&=\left.\frac{d}{d\epsilon}J[y+\epsilon\delta y]\right|_{\epsilon=0} \\
+&=\left.\frac{d}{d\epsilon}\int_a^b
+L\big(x,\,y+\epsilon\delta y,\,(y+\epsilon\delta y)'\big)\,dx\right|_{\epsilon=0} \\
+&=\left.\int_a^b
+\frac{d}{d\epsilon}
+L\big(x,\,y+\epsilon\delta y,\,y'+\epsilon\delta y'\big)\,dx\right|_{\epsilon=0} \\
+&=\int_a^b
+\left(
+\frac{\partial L}{\partial y}\,\delta y
++
+\frac{\partial L}{\partial y'}\,\delta y'
+\right)dx.
 \end{align} \tag{4}
 $$
 
@@ -46,11 +69,17 @@ $$
 $$
 So merge it to formula (4) we have `derivative of functional`: 
 $$
-\begin{align}
-\delta J[y;\delta y] &= \int_a^b  \big(\frac{\partial L}{\partial y} \delta y + \frac{\partial L}{\partial y'} \delta y'\big)dx \\
-&= \int_a^b  \big(\frac{\partial L}{\partial y} \delta y - \frac{d }{dx} \frac{\partial L}{\partial y'} \delta y)dx \\
-&= \delta y \int_a^b  \big(\frac{\partial L}{\partial y} - \frac{d }{dx} \frac{\partial L}{\partial y'} \big )dx
-\end{align}
+\begin{aligned}
+\delta J[y;\delta y]
+&= \int_a^b \left(\frac{\partial L}{\partial y}\delta y+\frac{\partial L}{\partial y'}\delta y'\right)dx \\
+&= \int_a^b \frac{\partial L}{\partial y}\delta y\,dx
++ \int_a^b \frac{\partial L}{\partial y'}\frac{d}{dx}(\delta y)\,dx \\
+&= \int_a^b \frac{\partial L}{\partial y}\delta y\,dx
++ \left[\frac{\partial L}{\partial y'}\delta y\right]_a^b
+- \int_a^b \frac{d}{dx}\left(\frac{\partial L}{\partial y'}\right)\delta y\,dx \\
+&= \left[\frac{\partial L}{\partial y'}\delta y\right]_a^b
++ \int_a^b \left(\frac{\partial L}{\partial y}-\frac{d}{dx}\frac{\partial L}{\partial y'}\right)\delta y\,dx.
+\end{aligned}
 $$
 Thus, 
 $$
