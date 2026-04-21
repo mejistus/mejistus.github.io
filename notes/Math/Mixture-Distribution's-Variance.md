@@ -79,10 +79,10 @@ $$
 \int x\,p(x\mid g,m)\,dx = \mathbb{E}[X\mid G=g,M=m]
 $$
 所以
-$$
+`$$
 \mathbb{E}[X\mid G=g]
 =
-\int \mathbb{E}[X\mid G=g,M=m]\,p(m\mid g)\,dm$$
+\int \mathbb{E}[X\mid G=g,M=m]\,p(m\mid g)\,dm$$`
 这就是
 `$$
 \mathbb{E}[X\mid G]
