@@ -315,6 +315,6 @@ J[y]=\int_a^b F(x,y,y',\dots)\,dx,
 K[y]=\int_a^b G(x,y,y',\dots)\,dx=C, \\
 \tilde J[y,\lambda]
 =
-\int_a^b \big(F+\lambda G\big)\,dx-\lambda C,
+\int_a^b \big(F+\lambda G\big)\,dx-\lambda C.
 $$
 
