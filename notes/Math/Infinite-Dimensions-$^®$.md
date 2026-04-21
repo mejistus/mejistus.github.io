@@ -38,7 +38,7 @@ For the functional
 $$
 J[y]=\int_a^b L(x,y,y')\,dx,
 $$
-the first variation `$\delta J[y;\delta y]$ is the differential on the direction $\delta y$`, can be computed explicitly as
+the first variation `$\delta J[y;\delta y]$ is $\textbf{the differential on the direction}$ $\delta y$`, can be computed explicitly as
 $$
 \begin{align}
 \delta J[y;\delta y]
