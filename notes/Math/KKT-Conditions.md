@@ -38,7 +38,7 @@ $$
 $$
 
 
-那麼$x^*$這點是一[全局極小值](https://zh.wikipedia.org/wiki/极值)。
+那麼 `$x^*$` 這點是一[全局極小值](https://zh.wikipedia.org/wiki/极值)。
 
 ## 正則性條件或約束規範
 
