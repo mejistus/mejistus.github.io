@@ -1,5 +1,12 @@
 [
   {
+    "file": "Math/KKT-reviews.md",
+    "title": "KKT reviews",
+    "date": "2026-04-22",
+    "tag": "Math",
+    "excerpt": "时隔2周再探KTT条件。"
+  },
+  {
     "file": "Math/3-keys.md",
     "title": "泛函与优化",
     "date": "2026-04-21",
