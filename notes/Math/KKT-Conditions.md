@@ -15,29 +15,26 @@ $$
 {\displaystyle \min \limits _{x}\;\;f(x)} \\
 s.t.\quad {\displaystyle g_{i}(x)\leq 0,\quad h_{j}(x)=0}
 $$
-${\displaystyle f(x)}$是需要$\color{red} 最小化$的函數，${\displaystyle g_{i}(x)\ (i=1,\ldots ,m)}$是不等式約束，${\displaystyle h_{j}(x)\ (j=1,\ldots ,l)}$是等式約束，$m$和$l$分別為不等式約束和等式約束的數量。
+`${\displaystyle f(x)}$` 是需要`$\textbf{最小化}$`的函數， `${\displaystyle g_{i}(x)\ \quad(i=1,\ldots ,m)}$` 是不等式約束， `${\displaystyle h_{j}(x)\quad (j=1,\ldots ,l)}$` 是等式約束， `$m$` 和 `$l$` 分別為不等式約束和等式約束的數量。
 
 不等式約束問題的必要和充分條件初見於[威廉·卡魯什](https://zh.wikipedia.org/wiki/威廉·卡魯什)的碩士論文[[1\]](https://zh.wikipedia.org/wiki/卡鲁什-库恩-塔克条件#cite_note-1)，之後在一份由[哈羅德·W·庫恩](https://zh.wikipedia.org/wiki/哈羅德·W·庫恩)及[阿爾伯特·W·塔克](https://zh.wikipedia.org/wiki/阿尔伯特·W·塔克)撰寫的研討生論文[[2\]](https://zh.wikipedia.org/wiki/卡鲁什-库恩-塔克条件#cite_note-2)出現後受到重視。
 
----
-
 ## 必要性
 
-假設有目標函數，即是要被最小化的函數${\displaystyle f:\mathbb {R} ^{n}\rightarrow \mathbb {R} }$，約束函數${\displaystyle g_{i}:\,\!\mathbb {R} ^{n}\rightarrow \mathbb {R} }$及${\displaystyle h_{j}:\,\!\mathbb {R} ^{n}\rightarrow \mathbb {R} }$ 。再者，假設他們都是於$x^*$這點是連續可微的，如果$x^*$是一局部極小值，那麼將會存在一組所謂乘子的常數${\displaystyle \lambda \geq 0}$, ${\displaystyle \mu _{i}\geq 0\ (i=1,\ldots ,m)}$及${\displaystyle \nu _{j}\ (j=1,...,l)}$令到：
+假設有目標函數，即是要被最小化的函數`${\displaystyle f:\mathbb {R} ^{n}\rightarrow \mathbb {R} }$`，約束函數`${\displaystyle g_{i}:\,\!\mathbb {R} ^{n}\rightarrow \mathbb {R} }$`及`${\displaystyle h_{j}:\,\!\mathbb {R} ^{n}\rightarrow \mathbb {R} }$`。再者，假設他們都是於 `$x^*$` 這點是連續可微的，如果 `$x^*$` 是一局部極小值，那麼將會存在一組所謂乘子的常數 `${\displaystyle \lambda \geq 0}$, ${\displaystyle \mu _{i}\geq 0\ \quad (i=1,\ldots ,m)}$` 及 `${\displaystyle \nu _{j}\ \quad (j=1,...,l)}$` 令到：
 $$
 {\displaystyle \lambda +\sum _{i=1}^{m}\mu _{i}+\sum _{j=1}^{l}|\nu _{j}|>0,} \\
 {\displaystyle \lambda \nabla f(x^{*})+\sum _{i=1}^{m}\mu _{i}\nabla g_{i}(x^{*})+\sum _{j=1}^{l}\nu _{j}\nabla h_{j}(x^{*})=0,} \\
-{\displaystyle \mu _{i}g_{i}(x^{*})=0\;{\mbox{for all}}\;i=1,\ldots ,m}
+{\displaystyle \mu _{i}g_{i}(x^{*})=0\;{\quad{\forall}}\;i=1,\ldots ,m}
 $$
 
----
 
 ## 充分條件
 
-假設目標函數${\displaystyle f:\mathbb {R} ^{n}\rightarrow \mathbb {R} }$及約束函數${\displaystyle g_{i}:\mathbb {R} ^{n}\rightarrow \mathbb {R} }$皆為 [**凸**函數](https://zh.wikipedia.org/wiki/凸函数)，而${\displaystyle h_{j}:\mathbb {R} ^{n}\rightarrow \mathbb {R} }$是一[**仿射**函數](https://zh.wikipedia.org/wiki/仿射变换)，假設有一可行點${\displaystyle x^{*}}$，如果有常數${\displaystyle \mu _{i}\geq 0\ (i=1,\ldots ,m)}$及${\displaystyle \nu _{j}\ (j=1,\ldots ,l)}$令到：
+假設目標函數 `${\displaystyle f:\mathbb {R} ^{n}\rightarrow \mathbb {R} }$` 及約束函數 `${\displaystyle g_{i}:\mathbb {R} ^{n}\rightarrow \mathbb {R}}$` 皆為 [**凸**函數](https://zh.wikipedia.org/wiki/凸函数)，而 `${\displaystyle h_{j}:\mathbb {R} ^{n}\rightarrow \mathbb {R}}$` 是一[**仿射**函數](https://zh.wikipedia.org/wiki/仿射变换)，假設有一可行點 `${\displaystyle x^{*}}$`，如果有常數 `${\displaystyle \mu _{i}\geq 0\ (i=1,\ldots ,m)}$ `及 `${\displaystyle \nu _{j}\ (j=1,\ldots ,l)}$` 令到：
 $$
 {\displaystyle \nabla f(x^{*})+\sum _{i=1}^{m}\mu _{i}\nabla g_{i}(x^{*})+\sum _{j=1}^{l}\nu _{j}\nabla h_{j}(x^{*})=0}\\
-{\displaystyle \mu _{i}g_{i}(x^{*})=0\;{\mbox{for all}}\;i=1,\ldots ,m,}
+{\displaystyle \mu _{i}g_{i}(x^{*})=0\;{\quad{\forall}}\;i=1,\ldots ,m,}
 $$
 
 
@@ -71,19 +68,18 @@ graph TD
 於實際情況下，較弱的約束規範會被傾向使用，這是因為$\color{red}較弱的約束規範能提供較強的最優化條件$。
 
 
+![image-20260107150143874](notes/assets/image-20260107150143874.png)
 
-![image-20260107150143874](../../assets/image-20260107150143874.png)
+![image-20260107150812169](notes/assets/image-20260107150812169.png)
 
-![image-20260107150812169](../../assets/image-20260107150812169.png)
+![image-20260107151122909](notes/assets/image-20260107151122909.png)
 
-![image-20260107151122909](../../assets/image-20260107151122909.png)
+![image-20260107151259853](notes/assets/image-20260107151259853.png)
 
-![image-20260107151259853](../../assets/image-20260107151259853.png)
+![image-20260107151500816](notes/assets/image-20260107151500816.png)
 
-![image-20260107151500816](../../assets/image-20260107151500816.png)
+![image-20260107153400164](notes/assets/image-20260107153400164.png)
 
-![image-20260107153400164](../../assets/image-20260107153400164.png)
+![image-20260107154039642](notes/assets/image-20260107154039642.png)
 
-![image-20260107154039642](../../assets/image-20260107154039642.png)
-
-![image-20260107153945202](../../assets/image-20260107153945202.png)
+![image-20260107153945202](notes/assets/image-20260107153945202.png)
