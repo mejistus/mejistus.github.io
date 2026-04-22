@@ -2,9 +2,9 @@
 title: Infinite Dimension ™
 date: 2026-04-07
 tag: Math
-excerpt: [泛函微分，是为变分。](https://www.cnblogs.com/qizhou/p/18564508)
+excerpt: This blog introduces the calculus of variations.
 ---
-
+[泛函微分，是为变分。](https://www.cnblogs.com/qizhou/p/18564508)
 # Calculus of Variations
 Suggest `$J$` is the functional in `Function Space` $\mathcal{F}[a,b]$. 
 Then the functional `$J$` has formula following as:
