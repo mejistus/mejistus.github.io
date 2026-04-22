@@ -2,7 +2,7 @@
 title: Infinite Dimensions™
 date: 2026-04-07
 tag: Math
-excerpt: \href{https://www.cnblogs.com/qizhou/p/18564508}
+excerpt: [泛函微分，是为变分。]{https://www.cnblogs.com/qizhou/p/18564508}
 ---
 
 # Calculus of Variations
