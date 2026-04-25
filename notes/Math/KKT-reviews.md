@@ -6,7 +6,13 @@ excerpt: 时隔2周再探KTT条件。
 ---
 
 # 经典带约束优化问题回顾
-
+[信息来源·知乎](https://zhuanlan.zhihu.com/p/556931657)
+<div align="center">
+  <img src="notes/assets/v2-052b0104b46e31fa4d7a05e9c6f3d2b5_1440w.jpg" width="50%">
+</div>
+<div align="center">
+  <img src="notes/assets/v2-978615fba2aa975e0f4f7f28fdfbc103_1440w.jpg" width="50%">
+</div>
 ## Karush–Kuhn–Tucker Conditions（KKT 条件）
 
 KKT 条件是<a>非线性约束优化问题</a>中最重要的一组最优性条件。  
