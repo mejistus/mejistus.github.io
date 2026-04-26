@@ -1405,6 +1405,90 @@
         color: #c0392b;
       }
 
+      /* Right-click context menu */
+      .editor-ctx-menu {
+        position: fixed;
+        z-index: 10000;
+        min-width: 150px;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        box-shadow:
+          0 1px 2px rgba(80, 60, 40, 0.05),
+          0 10px 28px rgba(80, 60, 40, 0.10);
+        padding: 4px;
+        font-family: "Inter", sans-serif;
+        font-size: 0.8rem;
+        color: var(--ink);
+        display: none;
+        user-select: none;
+      }
+      .editor-ctx-menu.active {
+        display: block;
+        animation: editor-ctx-pop 0.1s ease-out;
+      }
+      @keyframes editor-ctx-pop {
+        from { opacity: 0; transform: translateY(-3px) scale(0.98); }
+        to   { opacity: 1; transform: none; }
+      }
+      .editor-ctx-item {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.4rem;
+        padding: 0.38rem 0.7rem;
+        border-radius: 5px;
+        cursor: pointer;
+        white-space: nowrap;
+        color: var(--ink);
+        transition: background 0.12s ease, color 0.12s ease;
+      }
+      .editor-ctx-item:hover {
+        background: rgba(196, 124, 90, 0.10);
+        color: var(--rust);
+      }
+      .editor-ctx-arrow {
+        font-size: 0.95rem;
+        color: var(--muted);
+        line-height: 1;
+        font-weight: 300;
+      }
+      .editor-ctx-item:hover .editor-ctx-arrow {
+        color: var(--rust);
+      }
+      .editor-ctx-sep {
+        height: 1px;
+        background: var(--border);
+        margin: 4px 6px;
+      }
+      .editor-ctx-submenu {
+        position: absolute;
+        top: -5px;
+        left: calc(100% + 4px);
+        min-width: 130px;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 9px;
+        box-shadow:
+          0 1px 2px rgba(80, 60, 40, 0.05),
+          0 10px 28px rgba(80, 60, 40, 0.10);
+        padding: 4px;
+        display: none;
+      }
+      .editor-ctx-submenu.flip-left {
+        left: auto;
+        right: calc(100% + 4px);
+      }
+      .editor-ctx-item-parent:hover > .editor-ctx-submenu {
+        display: block;
+        animation: editor-ctx-pop 0.1s ease-out;
+      }
+      .editor-textarea.drag-over {
+        outline: 2px dashed var(--sage);
+        outline-offset: -6px;
+      }
+
       @media (max-width: 768px) {
         .editor-split {
           grid-template-columns: 1fr;
@@ -1532,6 +1616,39 @@
           </div>
           <button class="editor-save-btn" id="editorSaveBtn" onclick="saveToGitHub()">Save &amp; Commit</button>
         </div>
+        <!-- Right-click context menu -->
+        <div class="editor-ctx-menu" id="editorCtxMenu">
+          <div class="editor-ctx-item editor-ctx-item-parent">
+            <span>格式</span>
+            <span class="editor-ctx-arrow">›</span>
+            <div class="editor-ctx-submenu">
+              <div class="editor-ctx-item" data-action="bold">粗体</div>
+              <div class="editor-ctx-item" data-action="italic">斜体</div>
+              <div class="editor-ctx-item" data-action="underline">下划线</div>
+              <div class="editor-ctx-item" data-action="highlight">高亮</div>
+              <div class="editor-ctx-item" data-action="strike">删除线</div>
+              <div class="editor-ctx-sep"></div>
+              <div class="editor-ctx-item" data-action="code-inline">行内代码</div>
+              <div class="editor-ctx-item" data-action="math-inline">行内公式</div>
+              <div class="editor-ctx-item" data-action="link">链接</div>
+            </div>
+          </div>
+          <div class="editor-ctx-item editor-ctx-item-parent">
+            <span>插入</span>
+            <span class="editor-ctx-arrow">›</span>
+            <div class="editor-ctx-submenu">
+              <div class="editor-ctx-item" data-action="image">图片…</div>
+              <div class="editor-ctx-item" data-action="code-block">代码块</div>
+              <div class="editor-ctx-item" data-action="math-block">公式块</div>
+              <div class="editor-ctx-item" data-action="table">表格</div>
+              <div class="editor-ctx-sep"></div>
+              <div class="editor-ctx-item" data-action="footnote">脚注</div>
+              <div class="editor-ctx-item" data-action="quote">引用</div>
+              <div class="editor-ctx-item" data-action="hr">分割线</div>
+            </div>
+          </div>
+        </div>
+        <input type="file" id="editorImageInput" accept="image/*" style="display:none;">
       </div>
       <!-- Nav -->
       <div class="panel-nav" id="blogNavBar">
@@ -2815,6 +2932,268 @@
           saveToGitHub();
         }
       });
+
+      // ── Markdown editor helpers: format insertion + context menu + image upload ──
+      // Use setRangeText so the textarea scroll position is preserved
+      // (assigning to .value resets scroll, causing visible jitter)
+      function editorRangeReplace(start, end, text, mode) {
+        const ta = document.getElementById('editorTextarea');
+        ta.focus();
+        if (typeof ta.setRangeText === 'function') {
+          ta.setRangeText(text, start, end, mode || 'end');
+        } else {
+          const scrollTop = ta.scrollTop;
+          ta.value = ta.value.slice(0, start) + text + ta.value.slice(end);
+          const pos = start + text.length;
+          ta.selectionStart = ta.selectionEnd = pos;
+          ta.scrollTop = scrollTop;
+        }
+        ta.dispatchEvent(new Event('input'));
+      }
+
+      function editorWrap(prefix, suffix, placeholder) {
+        const ta = document.getElementById('editorTextarea');
+        const start = ta.selectionStart, end = ta.selectionEnd;
+        const hasSel = end > start;
+        const sel = hasSel ? ta.value.slice(start, end) : (placeholder || '');
+        editorRangeReplace(start, end, prefix + sel + suffix, 'end');
+        // Reselect just the inner content so the user can keep typing over the placeholder
+        const inner = start + prefix.length;
+        ta.selectionStart = inner;
+        ta.selectionEnd = inner + sel.length;
+      }
+
+      function editorInsertAtCursor(text, cursorOffsetFromEnd) {
+        const ta = document.getElementById('editorTextarea');
+        const start = ta.selectionStart, end = ta.selectionEnd;
+        editorRangeReplace(start, end, text, 'end');
+        if (typeof cursorOffsetFromEnd === 'number') {
+          const pos = start + text.length - cursorOffsetFromEnd;
+          ta.selectionStart = ta.selectionEnd = pos;
+        }
+      }
+
+      function editorInsertBlock(block) {
+        const ta = document.getElementById('editorTextarea');
+        const start = ta.selectionStart, end = ta.selectionEnd;
+        const before = ta.value.slice(0, start);
+        const needsLeadingNL = before.length > 0 && !before.endsWith('\n') ? '\n' : '';
+        const after = ta.value.slice(end);
+        const needsTrailingNL = after.startsWith('\n') ? '' : '\n';
+        editorRangeReplace(start, end, needsLeadingNL + block + needsTrailingNL, 'end');
+      }
+
+      function editorAppendFootnote(label) {
+        const ta = document.getElementById('editorTextarea');
+        if (ta.value.includes(`[^${label}]:`)) return;
+        // Append a footnote definition at the end of the document without disturbing
+        // current selection or scroll position.
+        const trimmedLen = ta.value.replace(/\s*$/, '').length;
+        const trailing = ta.value.length;
+        const savedStart = ta.selectionStart;
+        const savedEnd = ta.selectionEnd;
+        editorRangeReplace(trimmedLen, trailing, `\n\n[^${label}]: `, 'preserve');
+        ta.selectionStart = savedStart;
+        ta.selectionEnd = savedEnd;
+      }
+
+      const EDITOR_FORMAT_ACTIONS = {
+        bold:        () => editorWrap('**', '**', 'bold'),
+        italic:      () => editorWrap('*', '*', 'italic'),
+        underline:   () => editorWrap('<u>', '</u>', 'underline'),
+        highlight:   () => editorWrap('==', '==', 'highlight'),
+        strike:      () => editorWrap('~~', '~~', 'strikethrough'),
+        'math-inline': () => editorWrap('$', '$', 'x'),
+        'math-block':  () => editorInsertBlock('$$\n\n$$'),
+        footnote: () => {
+          const label = String(Date.now()).slice(-4);
+          editorInsertAtCursor(`[^${label}]`);
+          editorAppendFootnote(label);
+          document.getElementById('editorTextarea').dispatchEvent(new Event('input'));
+        },
+        'code-inline': () => editorWrap('`', '`', 'code'),
+        'code-block':  () => editorInsertBlock('```\n\n```'),
+        link: () => editorInsertAtCursor('[text](url)', 4),
+        table: () => editorInsertBlock(
+          '| Header | Header |\n| --- | --- |\n| cell | cell |\n| cell | cell |'
+        ),
+        quote: () => editorWrap('> ', '', 'quote'),
+        hr: () => editorInsertBlock('---'),
+        image: () => triggerImageUpload(),
+      };
+
+      // ── Image upload to notes/assets/ via GitHub API ──
+      function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function sanitizeImageName(name) {
+        const base = name.split(/[\\/]/).pop();
+        return base.replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '');
+      }
+
+      function makeImageFilename(originalName) {
+        const safe = sanitizeImageName(originalName || 'image.png');
+        const dot = safe.lastIndexOf('.');
+        const stem = dot > 0 ? safe.slice(0, dot) : safe;
+        const ext = dot > 0 ? safe.slice(dot) : '.png';
+        const ts = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
+        return `${stem}-${ts}${ext}`.toLowerCase();
+      }
+
+      async function commitBinaryFile(path, base64Content, message) {
+        const sha = await getFileSha(path);
+        const body = { message, content: base64Content, branch: REPO_BRANCH };
+        if (sha) body.sha = sha;
+        const resp = await fetch(
+          `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${ghEncodePath(path)}`,
+          {
+            method: 'PUT',
+            headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          }
+        );
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.message || 'Upload failed');
+        }
+        return resp.json();
+      }
+
+      async function uploadAndInsertImage(file) {
+        if (!file || !file.type || !file.type.startsWith('image/')) return;
+        if (!ghToken) { openAuthModal(); return; }
+
+        const status = document.getElementById('editorStatus');
+        const filename = makeImageFilename(file.name);
+        const path = `notes/assets/${filename}`;
+
+        const placeholder = `![uploading ${filename}…]()`;
+        const ta = document.getElementById('editorTextarea');
+        const insertPos = ta.selectionStart;
+        editorInsertAtCursor(placeholder);
+
+        const replacePlaceholder = (replacement) => {
+          const idx = ta.value.indexOf(placeholder);
+          if (idx < 0) return;
+          editorRangeReplace(idx, idx + placeholder.length, replacement, 'preserve');
+        };
+
+        status.textContent = `Uploading ${filename}…`;
+        status.className = 'editor-status';
+        try {
+          const b64 = await fileToBase64(file);
+          await commitBinaryFile(path, b64, `Add image: ${filename}`);
+          const ref = `![${filename}](${path})`;
+          replacePlaceholder(ref);
+          const newPos = insertPos + ref.length;
+          ta.selectionStart = ta.selectionEnd = newPos;
+          status.textContent = 'Image uploaded';
+          status.className = 'editor-status success';
+          setTimeout(() => { if (status.textContent === 'Image uploaded') status.textContent = ''; }, 1500);
+        } catch (err) {
+          console.error('Image upload failed:', err);
+          replacePlaceholder('');
+          status.textContent = `Upload error: ${err.message}`;
+          status.className = 'editor-status error';
+        }
+      }
+
+      function triggerImageUpload() {
+        const input = document.getElementById('editorImageInput');
+        input.value = '';
+        input.click();
+      }
+      document.getElementById('editorImageInput').addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) uploadAndInsertImage(file);
+      });
+
+      // ── Context menu open/close ──
+      const editorCtxMenu = document.getElementById('editorCtxMenu');
+
+      function openEditorCtxMenu(x, y) {
+        editorCtxMenu.classList.add('active');
+        const rect = editorCtxMenu.getBoundingClientRect();
+        const maxX = window.innerWidth - rect.width - 8;
+        const maxY = window.innerHeight - rect.height - 8;
+        const left = Math.min(x, maxX);
+        editorCtxMenu.style.left = left + 'px';
+        editorCtxMenu.style.top = Math.min(y, maxY) + 'px';
+        const submenuEstWidth = 150;
+        const flip = left + rect.width + submenuEstWidth > window.innerWidth - 8;
+        editorCtxMenu.querySelectorAll('.editor-ctx-submenu').forEach(s => {
+          s.classList.toggle('flip-left', flip);
+        });
+      }
+      function closeEditorCtxMenu() {
+        editorCtxMenu.classList.remove('active');
+      }
+
+      document.getElementById('editorTextarea').addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        openEditorCtxMenu(e.clientX, e.clientY);
+      });
+      editorCtxMenu.addEventListener('click', (e) => {
+        const item = e.target.closest('.editor-ctx-item');
+        if (!item) return;
+        const action = item.dataset.action;
+        if (!action) return; // parent submenu trigger — keep menu open
+        closeEditorCtxMenu();
+        const fn = EDITOR_FORMAT_ACTIONS[action];
+        if (fn) fn();
+      });
+      document.addEventListener('mousedown', (e) => {
+        if (!editorCtxMenu.contains(e.target)) closeEditorCtxMenu();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeEditorCtxMenu();
+      });
+      window.addEventListener('blur', closeEditorCtxMenu);
+      window.addEventListener('scroll', closeEditorCtxMenu, true);
+
+      // ── Paste image from clipboard ──
+      document.getElementById('editorTextarea').addEventListener('paste', (e) => {
+        const items = (e.clipboardData && e.clipboardData.items) || [];
+        for (const it of items) {
+          if (it.kind === 'file' && it.type && it.type.startsWith('image/')) {
+            const file = it.getAsFile();
+            if (file) {
+              e.preventDefault();
+              uploadAndInsertImage(file);
+              return;
+            }
+          }
+        }
+      });
+
+      // ── Drag & drop image onto textarea ──
+      (function () {
+        const ta = document.getElementById('editorTextarea');
+        ta.addEventListener('dragover', (e) => {
+          if (e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files')) {
+            e.preventDefault();
+            ta.classList.add('drag-over');
+          }
+        });
+        ta.addEventListener('dragleave', () => ta.classList.remove('drag-over'));
+        ta.addEventListener('drop', (e) => {
+          ta.classList.remove('drag-over');
+          const files = e.dataTransfer && e.dataTransfer.files;
+          if (!files || !files.length) return;
+          const imgs = Array.from(files).filter(f => f.type && f.type.startsWith('image/'));
+          if (!imgs.length) return;
+          e.preventDefault();
+          (async () => {
+            for (const f of imgs) await uploadAndInsertImage(f);
+          })();
+        });
+      })();
 
       // ── Front matter helpers ──
       function parseFrontMatterField(content, field) {
