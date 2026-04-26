@@ -1,5 +1,12 @@
 [
   {
+    "file": "ML/不同基在损失作用下的优表现.md",
+    "title": "不同基在损失作用下的优表现",
+    "date": "2026-04-26",
+    "tag": "ML",
+    "excerpt": "本章介绍了正交基在梯度下降时的优势。"
+  },
+  {
     "file": "Math/KKT-reviews.md",
     "title": "KKT reviews",
     "date": "2026-04-22",
