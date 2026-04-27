@@ -3179,10 +3179,29 @@
         editorCtxMenu.classList.remove('active');
       }
 
-      document.getElementById('editorTextarea').addEventListener('contextmenu', (e) => {
-        e.preventDefault();
-        openEditorCtxMenu(e.clientX, e.clientY);
-      });
+      // Right-click on a textarea normally repositions the caret (or selects a
+      // word for spellcheck) before the contextmenu event fires, which clobbers
+      // the user's existing selection. Capture it in mousedown (capture phase,
+      // before the browser repositions) and restore it just before opening the
+      // menu, so format actions operate on the user's actual selection.
+      (function () {
+        const ta = document.getElementById('editorTextarea');
+        let savedRange = null;
+        ta.addEventListener('mousedown', (e) => {
+          if (e.button === 2) {
+            savedRange = { start: ta.selectionStart, end: ta.selectionEnd };
+          }
+        }, true);
+        ta.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          if (savedRange) {
+            ta.selectionStart = savedRange.start;
+            ta.selectionEnd = savedRange.end;
+            savedRange = null;
+          }
+          openEditorCtxMenu(e.clientX, e.clientY);
+        });
+      })();
       editorCtxMenu.addEventListener('click', (e) => {
         const item = e.target.closest('.editor-ctx-item');
         if (!item) return;
