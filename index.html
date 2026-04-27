@@ -2913,6 +2913,26 @@
         previewDebounce = setTimeout(updatePreview, 300);
       });
 
+      // Bidirectional proportional scroll sync. Uses a short time-based lock to
+      // swallow the partner's echo event — robust even when requestAnimationFrame
+      // is throttled (e.g., backgrounded tabs).
+      (function () {
+        const ta = document.getElementById('editorTextarea');
+        const pv = document.getElementById('editorPreview');
+        let lockedUntil = 0;
+        const sync = (from, to) => () => {
+          const now = performance.now();
+          if (now < lockedUntil) return;
+          const fMax = from.scrollHeight - from.clientHeight;
+          const tMax = to.scrollHeight - to.clientHeight;
+          if (fMax <= 0 || tMax <= 0) return;
+          lockedUntil = now + 80;
+          to.scrollTop = (from.scrollTop / fMax) * tMax;
+        };
+        ta.addEventListener('scroll', sync(ta, pv), { passive: true });
+        pv.addEventListener('scroll', sync(pv, ta), { passive: true });
+      })();
+
       // Tab key inserts spaces in textarea
       document.getElementById('editorTextarea').addEventListener('keydown', (e) => {
         if (e.key === 'Tab') {
@@ -2934,13 +2954,43 @@
       });
 
       // ── Markdown editor helpers: format insertion + context menu + image upload ──
-      // Use setRangeText so the textarea scroll position is preserved
-      // (assigning to .value resets scroll, causing visible jitter)
-      function editorRangeReplace(start, end, text, mode) {
+      // Default path uses document.execCommand('insertText'), which:
+      //   • is recorded in the textarea's native undo stack (Ctrl/Cmd-Z works)
+      //   • preserves scroll position (no .value reset jitter)
+      //   • fires its own input event
+      // Fallback to setRangeText preserves scroll but loses undo (older browsers).
+      // Pass { noUndo: true } for out-of-band edits (e.g. appending a footnote
+      // definition at EOF, swapping an image upload placeholder) where we don't
+      // want to focus/move the caret or scroll.
+      function editorRangeReplace(start, end, text, opts) {
+        opts = opts || {};
         const ta = document.getElementById('editorTextarea');
+
+        if (opts.noUndo) {
+          if (typeof ta.setRangeText === 'function') {
+            ta.setRangeText(text, start, end, 'preserve');
+          } else {
+            const scrollTop = ta.scrollTop;
+            const savedStart = ta.selectionStart;
+            const savedEnd = ta.selectionEnd;
+            ta.value = ta.value.slice(0, start) + text + ta.value.slice(end);
+            ta.selectionStart = savedStart;
+            ta.selectionEnd = savedEnd;
+            ta.scrollTop = scrollTop;
+          }
+          ta.dispatchEvent(new Event('input'));
+          return;
+        }
+
         ta.focus();
+        ta.selectionStart = start;
+        ta.selectionEnd = end;
+        let ok = false;
+        try { ok = !!(document.execCommand && document.execCommand('insertText', false, text)); } catch (_) {}
+        if (ok) return; // execCommand fired its own input event and recorded undo
+
         if (typeof ta.setRangeText === 'function') {
-          ta.setRangeText(text, start, end, mode || 'end');
+          ta.setRangeText(text, start, end, opts.mode || 'end');
         } else {
           const scrollTop = ta.scrollTop;
           ta.value = ta.value.slice(0, start) + text + ta.value.slice(end);
@@ -2986,15 +3036,8 @@
       function editorAppendFootnote(label) {
         const ta = document.getElementById('editorTextarea');
         if (ta.value.includes(`[^${label}]:`)) return;
-        // Append a footnote definition at the end of the document without disturbing
-        // current selection or scroll position.
         const trimmedLen = ta.value.replace(/\s*$/, '').length;
-        const trailing = ta.value.length;
-        const savedStart = ta.selectionStart;
-        const savedEnd = ta.selectionEnd;
-        editorRangeReplace(trimmedLen, trailing, `\n\n[^${label}]: `, 'preserve');
-        ta.selectionStart = savedStart;
-        ta.selectionEnd = savedEnd;
+        editorRangeReplace(trimmedLen, ta.value.length, `\n\n[^${label}]: `, { noUndo: true });
       }
 
       const EDITOR_FORMAT_ACTIONS = {
@@ -3007,9 +3050,10 @@
         'math-block':  () => editorInsertBlock('$$\n\n$$'),
         footnote: () => {
           const label = String(Date.now()).slice(-4);
-          editorInsertAtCursor(`[^${label}]`);
+          // Order matters: append the def FIRST (out-of-band setRangeText would
+          // otherwise clobber the undo stack and lose the marker insert).
           editorAppendFootnote(label);
-          document.getElementById('editorTextarea').dispatchEvent(new Event('input'));
+          editorInsertAtCursor(`[^${label}]`);
         },
         'code-inline': () => editorWrap('`', '`', 'code'),
         'code-block':  () => editorInsertBlock('```\n\n```'),
@@ -3081,7 +3125,7 @@
         const replacePlaceholder = (replacement) => {
           const idx = ta.value.indexOf(placeholder);
           if (idx < 0) return;
-          editorRangeReplace(idx, idx + placeholder.length, replacement, 'preserve');
+          editorRangeReplace(idx, idx + placeholder.length, replacement, { noUndo: true });
         };
 
         status.textContent = `Uploading ${filename}…`;
