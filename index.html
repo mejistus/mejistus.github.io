@@ -284,10 +284,20 @@
         text-decoration: none;
         color: inherit;
         display: block;
+        min-height: 12rem;
       }
       .post-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 12px 32px rgba(0, 0, 0, 0.07);
+      }
+      .post-card.placeholder {
+        visibility: hidden;
+        pointer-events: none;
+        cursor: default;
+      }
+      .post-card.placeholder:hover {
+        transform: none;
+        box-shadow: none;
       }
       .post-meta {
         font-size: 0.72rem;
@@ -752,6 +762,7 @@
       .poetry-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        grid-auto-rows: 11rem;
         gap: 1.5rem;
       }
       .poem-card {
@@ -764,11 +775,22 @@
           transform 0.2s,
           box-shadow 0.2s,
           border-color 0.2s;
+        min-height: 8rem;
       }
       .poem-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 10px 28px rgba(0, 0, 0, 0.07);
         border-color: var(--rust);
+      }
+      .poem-card.placeholder {
+        visibility: hidden;
+        pointer-events: none;
+        cursor: default;
+      }
+      .poem-card.placeholder:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: var(--border);
       }
       .poem-card-title {
         font-family: "Playfair Display", serif;
@@ -783,9 +805,10 @@
         font-size: 0.83rem;
         color: var(--muted);
         line-height: 1.7;
-        display: block;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
-        
+        line-clamp: 2;
         overflow: hidden;
       }
       .poem-card-hint {
@@ -2303,14 +2326,28 @@
         const pagePoems = indexed.slice(start, start + POEMS_PER_PAGE);
 
         const grid = document.querySelector(".poetry-grid");
-        grid.innerHTML = pagePoems.length
-          ? pagePoems.map(({ p, i }) => `
+        if (!pagePoems.length) {
+          grid.innerHTML = '<div class="search-no-results">No matching poems</div>';
+        } else {
+          const cardsHtml = pagePoems.map(({ p, i }) => `
       <div class="poem-card" onclick="openPanel(${i})">
         <div class="poem-card-title">${p.card_title}</div>
         <div class="poem-card-excerpt">${p.card_excerpt}</div>
         <div class="poem-card-hint">↑ Read full poem</div>
-      </div>`).join("")
-          : '<div class="search-no-results">No matching poems</div>';
+      </div>`).join("");
+          let placeholderHtml = "";
+          if (totalPages > 1 && pagePoems.length < POEMS_PER_PAGE) {
+            const need = POEMS_PER_PAGE - pagePoems.length;
+            placeholderHtml = Array(need).fill(
+              '<div class="poem-card placeholder" aria-hidden="true">' +
+                '<div class="poem-card-title">&nbsp;</div>' +
+                '<div class="poem-card-excerpt">&nbsp;</div>' +
+                '<div class="poem-card-hint">&nbsp;</div>' +
+              '</div>'
+            ).join("");
+          }
+          grid.innerHTML = cardsHtml + placeholderHtml;
+        }
 
         // pager
         const pager = document.getElementById("poemPager");
@@ -2411,18 +2448,32 @@
         const start = blogPage * BLOGS_PER_PAGE;
         const page = order.slice(start, start + BLOGS_PER_PAGE);
 
-        grid.innerHTML = page
-          .map(i => {
-            const b = blogs[i];
-            return `
+        const cardsHtml = page.map(i => {
+          const b = blogs[i];
+          return `
       <div class="post-card" data-blog-index="${i}" onclick="openBlogPanel(${i}); return false;" onmouseenter="prefetchBlog(${i})">
         <p class="post-meta">${formatDate(b.date)}</p>
         <h3 class="post-title">${renderInline(b.title)}</h3>
         <p class="post-excerpt">${renderInline(b.excerpt)}</p>
         <span class="post-tag">${b.tag || 'Notes'}</span>
       </div>`;
-          })
-          .join("");
+        }).join("");
+
+        // Pad the last (under-full) page with invisible placeholders so the
+        // grid always has the same row count.
+        let placeholderHtml = "";
+        if (totalPages > 1 && page.length > 0 && page.length < BLOGS_PER_PAGE) {
+          const need = BLOGS_PER_PAGE - page.length;
+          placeholderHtml = Array(need).fill(
+            '<div class="post-card placeholder" aria-hidden="true">' +
+              '<p class="post-meta">&nbsp;</p>' +
+              '<h3 class="post-title">&nbsp;</h3>' +
+              '<p class="post-excerpt">&nbsp;</p>' +
+              '<span class="post-tag">&nbsp;</span>' +
+            '</div>'
+          ).join("");
+        }
+        grid.innerHTML = cardsHtml + placeholderHtml;
 
         // pager
         const pager = document.getElementById("blogPager");
@@ -3899,6 +3950,10 @@
             ).join('')
           : '<div class="search-no-results">No matching projects</div>';
       }
+      // Awards isn't paginated; instead of padding rows we cache the natural
+      // unfiltered render height once and apply it as min-height so search /
+      // sort don't shrink the section.
+      let awardsBaselineHeight = null;
       function renderAwards() {
         const c = document.getElementById('awardsContainer');
         if (!c) return;
@@ -3907,7 +3962,6 @@
           !q || [it.year, it.name, it.level].filter(Boolean).join(' ').toLowerCase().includes(q);
 
         if (awardSorted) {
-          // Flat, year descending. We expose addressed items with their original (groupIdx, itemIdx).
           const flat = [];
           awardsData.groups.forEach((g, gi) => {
             g.items.forEach((it, ii) => { if (matches(it)) flat.push({ it, gi, ii, group: g.title }); });
@@ -3925,28 +3979,41 @@
                 '</div>'
               ).join('')
             : '<div class="search-no-results">No matching awards</div>';
-          return;
+        } else {
+          const html = awardsData.groups.map((g, gi) => {
+            const itemsHtml = g.items.map((it, ii) => {
+              if (!matches(it)) return '';
+              return (
+                '<div class="award-item item-host">' +
+                  actionBtns('awards', '{groupIdx:' + gi + ',itemIdx:' + ii + '}') +
+                  '<span class="award-year">' + escHtml(it.year) + '</span>' +
+                  '<span class="award-name">' + escHtml(it.name) + '</span>' +
+                  '<span class="award-level">' + escHtml(it.level) + '</span>' +
+                '</div>'
+              );
+            }).join('');
+            if (!itemsHtml) return '';
+            return '<div class="awards-group">' +
+                     '<div class="awards-group-title">' + escHtml(g.title) + '</div>' +
+                     itemsHtml +
+                   '</div>';
+          }).join('');
+          c.innerHTML = html || '<div class="search-no-results">No matching awards</div>';
         }
 
-        const html = awardsData.groups.map((g, gi) => {
-          const itemsHtml = g.items.map((it, ii) => {
-            if (!matches(it)) return '';
-            return (
-              '<div class="award-item item-host">' +
-                actionBtns('awards', '{groupIdx:' + gi + ',itemIdx:' + ii + '}') +
-                '<span class="award-year">' + escHtml(it.year) + '</span>' +
-                '<span class="award-name">' + escHtml(it.name) + '</span>' +
-                '<span class="award-level">' + escHtml(it.level) + '</span>' +
-              '</div>'
-            );
-          }).join('');
-          if (!itemsHtml) return '';
-          return '<div class="awards-group">' +
-                   '<div class="awards-group-title">' + escHtml(g.title) + '</div>' +
-                   itemsHtml +
-                 '</div>';
-        }).join('');
-        c.innerHTML = html || '<div class="search-no-results">No matching awards</div>';
+        // Capture the natural height on the very first unfiltered, unsorted
+        // render and lock it as min-height. Subsequent renders honor it.
+        if (awardsBaselineHeight == null && !awardQuery && !awardSorted) {
+          requestAnimationFrame(() => {
+            const h = c.scrollHeight;
+            if (h > 0) {
+              awardsBaselineHeight = h;
+              c.style.minHeight = h + 'px';
+            }
+          });
+        } else if (awardsBaselineHeight) {
+          c.style.minHeight = awardsBaselineHeight + 'px';
+        }
       }
 
       // Generic search/sort toolbar wiring (poems / projects / awards)
