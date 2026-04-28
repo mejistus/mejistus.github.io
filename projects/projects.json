@@ -1,5 +1,11 @@
 [
   {
+    "icon": "⌚",
+    "name": "timeshift-completion",
+    "desc": "Zsh completion plugin for Timeshift (v25.12.4+). Designed for Oh My Zsh.",
+    "link": "https://github.com/mejistus/timeshift-completion.git"
+  },
+  {
     "icon": "💻",
     "name": "makepkg-completion",
     "desc": "Zsh completion plugin for makepkg (pacman 7.x). Designed for Oh My Zsh.",
