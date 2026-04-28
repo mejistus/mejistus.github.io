@@ -24,9 +24,9 @@
     "link": "https://github.com/mejistus/python-args-completion.git"
   },
   {
-    "icon": "🪟",
-    "name": "Fantastic i3",
+    "icon": "🖥️",
+    "name": "fantastic-i3",
     "desc": "My personal i3wm configuration — clean, minimal, and aesthetically considered. Self-described as \"decent taste.\"",
-    "link": "https://github.com/mejistus/fantastic-i3"
+    "link": "https://github.com/mejistus/fantastic-i3.git"
   }
 ]
