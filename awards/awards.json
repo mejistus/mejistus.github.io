@@ -1,0 +1,38 @@
+{
+  "groups": [
+    {
+      "title": "Programming",
+      "items": [
+        { "year": "2022", "name": "5th ChuanZhi Cup National College Programming Contest, Group A Regional", "level": "2nd Prize" },
+        { "year": "2023", "name": "14th LanQiao Cup — Shanghai Preliminary, Group A", "level": "1st Prize" },
+        { "year": "2023", "name": "14th LanQiao Cup — National Finals, Group A", "level": "3rd Prize" }
+      ]
+    },
+    {
+      "title": "Mathematical Modeling",
+      "items": [
+        { "year": "2022", "name": "19th May Day Mathematical Modeling Contest", "level": "3rd Prize" },
+        { "year": "2022", "name": "12th MathorCup — Undergraduate Division", "level": "1st Prize" },
+        { "year": "2023", "name": "4th HuaShu Cup National Mathematical Modeling", "level": "2nd Prize" },
+        { "year": "2023", "name": "1st HuaShu Cup International Mathematical Modeling", "level": "Outstanding (O)" },
+        { "year": "2023", "name": "39th MCM/ICM (American Mathematical Modeling)", "level": "Honorable Mention" },
+        { "year": "2024", "name": "21st Huawei Cup Graduate Mathematical Modeling", "level": "2nd Prize" },
+        { "year": "2025", "name": "22nd Huawei Cup Graduate Mathematical Modeling", "level": "2nd Prize" }
+      ]
+    },
+    {
+      "title": "Scholarships",
+      "items": [
+        { "year": "2020", "name": "ECUST Undergraduate Encouragement Scholarship", "level": "—" },
+        { "year": "2024", "name": "ECUST Graduate Entrance Scholarship", "level": "2nd Prize" },
+        { "year": "2025", "name": "ECUST Graduate Academic Scholarship", "level": "1st Prize" }
+      ]
+    },
+    {
+      "title": "Other",
+      "items": [
+        { "year": "2019", "name": "29th National High School Biology Olympiad", "level": "3rd Prize" }
+      ]
+    }
+  ]
+}
