@@ -1,5 +1,11 @@
 [
   {
+    "icon": "🔭",
+    "name": "ollama-zsh-completion",
+    "desc": "A Zsh completion plugin for Ollama, providing rich tab-completion for all commands, flags, and model names.",
+    "link": "https://github.com/mejistus/ollama-zsh-completion.git"
+  },
+  {
     "icon": "⌚",
     "name": "timeshift-completion",
     "desc": "Zsh completion plugin for Timeshift (v25.12.4+). Designed for Oh My Zsh.",
