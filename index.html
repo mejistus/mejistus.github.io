@@ -1643,21 +1643,6 @@
       }
       .item-action-btn:hover { color: var(--rust); border-color: var(--rust); }
       .item-action-btn.del:hover { color: #c0392b; border-color: #c0392b; }
-      .section-new-btn {
-        margin-top: 1rem;
-        padding: 0.5rem 1.2rem;
-        border-radius: 2rem;
-        border: 1.5px dashed var(--border);
-        background: transparent;
-        color: var(--muted);
-        font-family: "Inter", sans-serif;
-        font-size: 0.8rem;
-        cursor: pointer;
-        transition: all 0.18s ease;
-        display: none;
-      }
-      .section-new-btn.authed { display: inline-flex; align-items: center; gap: 0.4rem; }
-      .section-new-btn:hover { border-color: var(--rust); color: var(--rust); }
 
       @media (max-width: 768px) {
         .editor-split {
@@ -1968,27 +1953,84 @@
     <!-- POETRY -->
     <section id="poetry">
       <p class="section-label">Selected Verses</p>
-      <h2 class="section-title">Poems I've written</h2>
+      <div class="section-title-row">
+        <h2 class="section-title">Poems I've written</h2>
+        <div class="blog-toolbar">
+          <button class="toolbar-btn" id="poemsSearch" title="Search poems" onclick="toggleSectionSearch('poems')">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+          <button class="toolbar-btn" id="poemsSort" title="Sort poems" onclick="toggleSectionSort('poems')">
+            <svg viewBox="0 0 24 24"><polyline points="11 8 8 4 5 8"/><line x1="8" y1="4" x2="8" y2="16"/><polyline points="13 16 16 20 19 16"/><line x1="16" y1="20" x2="16" y2="8"/></svg>
+          </button>
+          <button class="toolbar-btn toolbar-btn-new" id="btnNewPoem" title="New poem" onclick="newSectionItem('poems')" style="display:none;">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="blog-search-container">
+        <div class="blog-search-bar" id="poemsSearchBar">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="poemsSearchInput" placeholder="Search poems..." autocomplete="off" oninput="setSectionQuery('poems', this.value)" />
+          <button class="search-clear" onclick="clearSectionSearch('poems')">&times;</button>
+        </div>
+      </div>
       <div class="poetry-grid"></div>
       <div class="pager" id="poemPager"></div>
-      <button class="section-new-btn" id="btnNewPoem" onclick="newSectionItem('poems')">+ New poem</button>
     </section>
 
     <!-- PROJECTS -->
     <section id="projects">
       <p class="section-label">Selected Work</p>
-      <h2 class="section-title">Projects I'm proud of</h2>
+      <div class="section-title-row">
+        <h2 class="section-title">Projects I'm proud of</h2>
+        <div class="blog-toolbar">
+          <button class="toolbar-btn" id="projectsSearch" title="Search projects" onclick="toggleSectionSearch('projects')">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+          <button class="toolbar-btn" id="projectsSort" title="Sort projects" onclick="toggleSectionSort('projects')">
+            <svg viewBox="0 0 24 24"><polyline points="11 8 8 4 5 8"/><line x1="8" y1="4" x2="8" y2="16"/><polyline points="13 16 16 20 19 16"/><line x1="16" y1="20" x2="16" y2="8"/></svg>
+          </button>
+          <button class="toolbar-btn toolbar-btn-new" id="btnNewProject" title="New project" onclick="newSectionItem('projects')" style="display:none;">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="blog-search-container">
+        <div class="blog-search-bar" id="projectsSearchBar">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="projectsSearchInput" placeholder="Search projects..." autocomplete="off" oninput="setSectionQuery('projects', this.value)" />
+          <button class="search-clear" onclick="clearSectionSearch('projects')">&times;</button>
+        </div>
+      </div>
       <div class="projects-list" id="projectsList"></div>
-      <button class="section-new-btn" id="btnNewProject" onclick="newSectionItem('projects')">+ New project</button>
     </section>
 
     <!-- AWARDS -->
     <section id="awards" style="padding: 0">
       <div class="inner">
         <p class="section-label">Honors & Awards</p>
-        <h2 class="section-title">Competition results</h2>
+        <div class="section-title-row">
+          <h2 class="section-title">Competition results</h2>
+          <div class="blog-toolbar">
+            <button class="toolbar-btn" id="awardsSearch" title="Search awards" onclick="toggleSectionSearch('awards')">
+              <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </button>
+            <button class="toolbar-btn" id="awardsSort" title="Sort awards" onclick="toggleSectionSort('awards')">
+              <svg viewBox="0 0 24 24"><polyline points="11 8 8 4 5 8"/><line x1="8" y1="4" x2="8" y2="16"/><polyline points="13 16 16 20 19 16"/><line x1="16" y1="20" x2="16" y2="8"/></svg>
+            </button>
+            <button class="toolbar-btn toolbar-btn-new" id="btnNewAward" title="New award" onclick="newSectionItem('awards')" style="display:none;">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="blog-search-container">
+          <div class="blog-search-bar" id="awardsSearchBar">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="awardsSearchInput" placeholder="Search awards..." autocomplete="off" oninput="setSectionQuery('awards', this.value)" />
+            <button class="search-clear" onclick="clearSectionSearch('awards')">&times;</button>
+          </div>
+        </div>
         <div id="awardsContainer"></div>
-        <button class="section-new-btn" id="btnNewAward" onclick="newSectionItem('awards')">+ New entry</button>
       </div>
     </section>
 
@@ -2216,25 +2258,42 @@
       let poemPage = 0;
       const POEMS_PER_PAGE = 9;
 
+      let poemQuery = '';
+      let poemSorted = false;
+
       const renderCards = () => {
-        const total = poems.length;
-        const totalPages = Math.ceil(total / POEMS_PER_PAGE);
+        // Apply search filter + sort while preserving original indices for click-to-open
+        let indexed = poems.map((p, i) => ({ p, i }));
+        if (poemQuery) {
+          const q = poemQuery.toLowerCase();
+          indexed = indexed.filter(({ p }) =>
+            [p.zh_title, p.title, p.card_title, p.card_excerpt, p.zh, p.en]
+              .filter(Boolean).join(' ').toLowerCase().includes(q)
+          );
+        }
+        if (poemSorted) {
+          indexed.sort((a, b) =>
+            (a.p.card_title || a.p.zh_title || a.p.title || '')
+              .localeCompare(b.p.card_title || b.p.zh_title || b.p.title || '', 'zh-Hans-CN')
+          );
+        }
+
+        const total = indexed.length;
+        const totalPages = Math.max(1, Math.ceil(total / POEMS_PER_PAGE));
         if (poemPage >= totalPages) poemPage = totalPages - 1;
         if (poemPage < 0) poemPage = 0;
         const start = poemPage * POEMS_PER_PAGE;
-        const pagePoems = poems.slice(start, start + POEMS_PER_PAGE);
+        const pagePoems = indexed.slice(start, start + POEMS_PER_PAGE);
 
-        document.querySelector(".poetry-grid").innerHTML = pagePoems
-          .map((p, j) => {
-            const i = start + j;
-            return `
+        const grid = document.querySelector(".poetry-grid");
+        grid.innerHTML = pagePoems.length
+          ? pagePoems.map(({ p, i }) => `
       <div class="poem-card" onclick="openPanel(${i})">
         <div class="poem-card-title">${p.card_title}</div>
         <div class="poem-card-excerpt">${p.card_excerpt}</div>
         <div class="poem-card-hint">↑ Read full poem</div>
-      </div>`;
-          })
-          .join("");
+      </div>`).join("")
+          : '<div class="search-no-results">No matching poems</div>';
 
         // pager
         const pager = document.getElementById("poemPager");
@@ -2912,10 +2971,10 @@
         const poemDel = document.getElementById('poemDeleteBtn');
         if (poemEdit) poemEdit.style.display = show;
         if (poemDel) poemDel.style.display = show;
-        // Section "+ new" buttons + per-card hover affordances
+        // Section "+ new" buttons (toolbar-btn style) + per-card hover affordances
         ['btnNewPoem', 'btnNewProject', 'btnNewAward'].forEach(id => {
           const el = document.getElementById(id);
-          if (el) el.classList.toggle('authed', !!isAuthed);
+          if (el) el.style.display = isAuthed ? '' : 'none';
         });
         document.querySelectorAll('.item-actions').forEach(el => {
           el.classList.toggle('authed', !!isAuthed);
@@ -3791,37 +3850,120 @@
           '</div>'
         );
       }
+      let projectQuery = '';
+      let projectSorted = false;
+      let awardQuery = '';
+      let awardSorted = false;
+
       function renderProjects() {
         const list = document.getElementById('projectsList');
         if (!list) return;
-        list.innerHTML = projects.map((p, i) =>
-          '<a class="project-item item-host" href="' + escHtml(p.link) + '">' +
-            actionBtns('projects', i) +
-            '<div class="project-icon">' + escHtml(p.icon) + '</div>' +
-            '<div class="project-info">' +
-              '<p class="project-name">' + escHtml(p.name) + '</p>' +
-              '<p class="project-desc">' + (p.desc || '') + '</p>' +
-            '</div>' +
-            '<span class="project-arrow">→</span>' +
-          '</a>'
-        ).join('');
+        let indexed = projects.map((p, i) => ({ p, i }));
+        if (projectQuery) {
+          const q = projectQuery.toLowerCase();
+          indexed = indexed.filter(({ p }) =>
+            [p.name, p.desc, p.link].filter(Boolean).join(' ').toLowerCase().includes(q)
+          );
+        }
+        if (projectSorted) {
+          indexed.sort((a, b) => (a.p.name || '').localeCompare(b.p.name || ''));
+        }
+        list.innerHTML = indexed.length
+          ? indexed.map(({ p, i }) =>
+              '<a class="project-item item-host" href="' + escHtml(p.link) + '">' +
+                actionBtns('projects', i) +
+                '<div class="project-icon">' + escHtml(p.icon) + '</div>' +
+                '<div class="project-info">' +
+                  '<p class="project-name">' + escHtml(p.name) + '</p>' +
+                  '<p class="project-desc">' + (p.desc || '') + '</p>' +
+                '</div>' +
+                '<span class="project-arrow">→</span>' +
+              '</a>'
+            ).join('')
+          : '<div class="search-no-results">No matching projects</div>';
       }
       function renderAwards() {
         const c = document.getElementById('awardsContainer');
         if (!c) return;
-        c.innerHTML = awardsData.groups.map((g, gi) =>
-          '<div class="awards-group">' +
-            '<div class="awards-group-title">' + escHtml(g.title) + '</div>' +
-            g.items.map((it, ii) =>
+        const q = awardQuery.toLowerCase();
+        const matches = (it) =>
+          !q || [it.year, it.name, it.level].filter(Boolean).join(' ').toLowerCase().includes(q);
+
+        if (awardSorted) {
+          // Flat, year descending. We expose addressed items with their original (groupIdx, itemIdx).
+          const flat = [];
+          awardsData.groups.forEach((g, gi) => {
+            g.items.forEach((it, ii) => { if (matches(it)) flat.push({ it, gi, ii, group: g.title }); });
+          });
+          flat.sort((a, b) => String(b.it.year || '').localeCompare(String(a.it.year || '')));
+          c.innerHTML = flat.length
+            ? flat.map(({ it, gi, ii, group }) =>
+                '<div class="award-item item-host">' +
+                  actionBtns('awards', '{groupIdx:' + gi + ',itemIdx:' + ii + '}') +
+                  '<span class="award-year">' + escHtml(it.year) + '</span>' +
+                  '<span class="award-name">' + escHtml(it.name) +
+                    ' <span class="award-group-tag" style="font-size:0.7rem;color:var(--muted);margin-left:0.4rem;">· ' + escHtml(group) + '</span>' +
+                  '</span>' +
+                  '<span class="award-level">' + escHtml(it.level) + '</span>' +
+                '</div>'
+              ).join('')
+            : '<div class="search-no-results">No matching awards</div>';
+          return;
+        }
+
+        const html = awardsData.groups.map((g, gi) => {
+          const itemsHtml = g.items.map((it, ii) => {
+            if (!matches(it)) return '';
+            return (
               '<div class="award-item item-host">' +
                 actionBtns('awards', '{groupIdx:' + gi + ',itemIdx:' + ii + '}') +
                 '<span class="award-year">' + escHtml(it.year) + '</span>' +
                 '<span class="award-name">' + escHtml(it.name) + '</span>' +
                 '<span class="award-level">' + escHtml(it.level) + '</span>' +
               '</div>'
-            ).join('') +
-          '</div>'
-        ).join('');
+            );
+          }).join('');
+          if (!itemsHtml) return '';
+          return '<div class="awards-group">' +
+                   '<div class="awards-group-title">' + escHtml(g.title) + '</div>' +
+                   itemsHtml +
+                 '</div>';
+        }).join('');
+        c.innerHTML = html || '<div class="search-no-results">No matching awards</div>';
+      }
+
+      // Generic search/sort toolbar wiring (poems / projects / awards)
+      function toggleSectionSearch(kind) {
+        const bar = document.getElementById(kind + 'SearchBar');
+        const btn = document.getElementById(kind + 'Search');
+        const isOpen = bar.classList.toggle('visible');
+        btn.classList.toggle('active', isOpen);
+        if (isOpen) {
+          document.getElementById(kind + 'SearchInput').focus();
+        } else {
+          document.getElementById(kind + 'SearchInput').value = '';
+          setSectionQuery(kind, '');
+        }
+      }
+      function clearSectionSearch(kind) {
+        document.getElementById(kind + 'SearchInput').value = '';
+        setSectionQuery(kind, '');
+        document.getElementById(kind + 'SearchInput').focus();
+      }
+      function setSectionQuery(kind, q) {
+        if (kind === 'poems')    { poemQuery = q; poemPage = 0; renderCards(); }
+        else if (kind === 'projects') { projectQuery = q; renderProjects(); }
+        else if (kind === 'awards')   { awardQuery = q; renderAwards(); }
+      }
+      function toggleSectionSort(kind) {
+        const btn = document.getElementById(kind + 'Sort');
+        if (kind === 'poems') {
+          poemSorted = !poemSorted; btn.classList.toggle('active', poemSorted); poemPage = 0; renderCards();
+        } else if (kind === 'projects') {
+          projectSorted = !projectSorted; btn.classList.toggle('active', projectSorted); renderProjects();
+        } else if (kind === 'awards') {
+          awardSorted = !awardSorted; btn.classList.toggle('active', awardSorted); renderAwards();
+        }
       }
 
       // Initial loaders
