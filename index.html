@@ -1259,7 +1259,8 @@
       /* (nav-logo auth styles are merged into main .nav-logo above) */
 
       /* ── BLOG EDITOR ── */
-      .blog-panel .panel-header-actions {
+      .blog-panel .panel-header-actions,
+      .poem-panel .panel-header-actions {
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -1628,6 +1629,22 @@
       }
       .item-host { position: relative; }
       .item-host:hover .item-actions.authed { display: flex; }
+      /* Award rows lay out horizontally — flow chips inline (left of the level
+         pill via CSS order) and reserve space whenever authed so the layout
+         doesn't jump on hover. */
+      .award-item .item-actions {
+        position: static;
+        order: 5;
+        gap: 0.25rem;
+        margin-left: 0.4rem;
+        align-self: center;
+      }
+      .award-item .item-actions.authed {
+        display: flex;
+        visibility: hidden;
+      }
+      .award-item:hover .item-actions.authed { visibility: visible; }
+      .award-item .award-level { order: 6; }
       .item-action-btn {
         width: 26px;
         height: 26px;
