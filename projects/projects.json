@@ -1,0 +1,14 @@
+[
+  {
+    "icon": "⚙️",
+    "name": "Python Args Completion",
+    "desc": "Auto-parses Python script arguments via the <code>ast</code> standard library — a shell plugin for effortless argument auto-completion.",
+    "link": "https://github.com/mejistus/python-args-completion"
+  },
+  {
+    "icon": "🪟",
+    "name": "Fantastic i3",
+    "desc": "My personal i3wm configuration — clean, minimal, and aesthetically considered. Self-described as \"decent taste.\"",
+    "link": "https://github.com/mejistus/fantastic-i3"
+  }
+]

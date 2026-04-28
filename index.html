@@ -1489,6 +1489,176 @@
         outline-offset: -6px;
       }
 
+      /* ── Generic section editor modal (poems / projects / awards) ── */
+      .section-editor-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(20, 16, 12, 0.45);
+        z-index: 9000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        animation: section-editor-fade 0.15s ease-out;
+      }
+      .section-editor-overlay.active { display: flex; }
+      @keyframes section-editor-fade {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+      }
+      .section-editor-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 24px 60px rgba(40, 30, 20, 0.30);
+        width: min(720px, 100%);
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .section-editor-head {
+        padding: 1rem 1.4rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--sand);
+        flex-shrink: 0;
+      }
+      .section-editor-head .label {
+        font-size: 0.7rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--rust);
+      }
+      .section-editor-head .title {
+        font-size: 1rem;
+        color: var(--ink);
+        margin-top: 0.25rem;
+      }
+      .section-editor-body {
+        padding: 1.2rem 1.4rem;
+        overflow-y: auto;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+      }
+      .section-editor-field { display: flex; flex-direction: column; gap: 0.3rem; }
+      .section-editor-field label {
+        font-size: 0.72rem;
+        color: var(--muted);
+        letter-spacing: 0.04em;
+      }
+      .section-editor-field input,
+      .section-editor-field textarea,
+      .section-editor-field select {
+        font-family: "Inter", sans-serif;
+        font-size: 0.88rem;
+        color: var(--ink);
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.5rem 0.7rem;
+        outline: none;
+        transition: border-color 0.15s ease;
+      }
+      .section-editor-field textarea {
+        font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+        font-size: 0.82rem;
+        line-height: 1.65;
+        resize: vertical;
+        min-height: 5rem;
+      }
+      .section-editor-field input:focus,
+      .section-editor-field textarea:focus,
+      .section-editor-field select:focus {
+        border-color: var(--rust);
+      }
+      .section-editor-foot {
+        padding: 0.8rem 1.4rem;
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.8rem;
+        background: var(--sand);
+        flex-shrink: 0;
+      }
+      .section-editor-status {
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+      .section-editor-status.success { color: var(--sage); }
+      .section-editor-status.error { color: #c0392b; }
+      .section-editor-actions { display: flex; gap: 0.6rem; }
+      .section-editor-btn {
+        padding: 0.45rem 1.2rem;
+        border-radius: 2rem;
+        border: none;
+        font-size: 0.8rem;
+        font-family: "Inter", sans-serif;
+        cursor: pointer;
+        transition: all 0.18s ease;
+      }
+      .section-editor-btn.cancel {
+        border: 1.5px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+      }
+      .section-editor-btn.cancel:hover {
+        border-color: var(--rust);
+        color: var(--rust);
+      }
+      .section-editor-btn.save {
+        background: var(--sage);
+        color: #fff;
+      }
+      .section-editor-btn.save:hover { background: #6d8f6f; }
+      .section-editor-btn.save:disabled { opacity: 0.5; cursor: default; }
+
+      /* Per-card edit/delete affordances + section "+" button */
+      .item-actions {
+        position: absolute;
+        top: 0.6rem;
+        right: 0.6rem;
+        display: none;
+        gap: 0.3rem;
+        z-index: 5;
+      }
+      .item-host { position: relative; }
+      .item-host:hover .item-actions.authed { display: flex; }
+      .item-action-btn {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .item-action-btn:hover { color: var(--rust); border-color: var(--rust); }
+      .item-action-btn.del:hover { color: #c0392b; border-color: #c0392b; }
+      .section-new-btn {
+        margin-top: 1rem;
+        padding: 0.5rem 1.2rem;
+        border-radius: 2rem;
+        border: 1.5px dashed var(--border);
+        background: transparent;
+        color: var(--muted);
+        font-family: "Inter", sans-serif;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.18s ease;
+        display: none;
+      }
+      .section-new-btn.authed { display: inline-flex; align-items: center; gap: 0.4rem; }
+      .section-new-btn:hover { border-color: var(--rust); color: var(--rust); }
+
       @media (max-width: 768px) {
         .editor-split {
           grid-template-columns: 1fr;
@@ -1540,6 +1710,27 @@
     <div class="panel-overlay" id="overlay" onclick="closeAllPanels()"></div>
 
     <!-- BOTTOM SHEET -->
+    <!-- Generic section editor modal (poems / projects / awards) -->
+    <div class="section-editor-overlay" id="sectionEditor">
+      <div class="section-editor-card" role="dialog" aria-modal="true">
+        <div class="section-editor-head">
+          <div>
+            <div class="label" id="sectionEditorLabel">Editing</div>
+            <div class="title" id="sectionEditorTitle">—</div>
+          </div>
+          <button class="panel-close" onclick="closeSectionEditor()" title="Close">✕</button>
+        </div>
+        <div class="section-editor-body" id="sectionEditorBody"></div>
+        <div class="section-editor-foot">
+          <span class="section-editor-status" id="sectionEditorStatus"></span>
+          <div class="section-editor-actions">
+            <button class="section-editor-btn cancel" onclick="closeSectionEditor()">Cancel</button>
+            <button class="section-editor-btn save" id="sectionEditorSaveBtn" onclick="sectionEditorSave()">Save &amp; Commit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="poem-panel" id="poemPanel">
       <div class="panel-handle" id="poemHandle"></div>
       <div class="panel-header">
@@ -1548,7 +1739,15 @@
           <h2 class="panel-title" id="panelTitle"></h2>
           <p class="panel-title-en" id="panelTitleEn"></p>
         </div>
-        <button class="panel-close" onclick="exitFullscreenOrClose('poemPanel')" title="Exit fullscreen or close">✕</button>
+        <div class="panel-header-actions">
+          <button class="editor-btn" id="poemEditBtn" onclick="editCurrentPoem()" title="Edit this poem" style="display:none;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="editor-btn editor-btn-delete" id="poemDeleteBtn" onclick="deleteCurrentPoem()" title="Delete this poem" style="display:none;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+          <button class="panel-close" onclick="exitFullscreenOrClose('poemPanel')" title="Exit fullscreen or close">✕</button>
+        </div>
       </div>
       <div class="panel-body">
         <div>
@@ -1772,40 +1971,15 @@
       <h2 class="section-title">Poems I've written</h2>
       <div class="poetry-grid"></div>
       <div class="pager" id="poemPager"></div>
+      <button class="section-new-btn" id="btnNewPoem" onclick="newSectionItem('poems')">+ New poem</button>
     </section>
 
     <!-- PROJECTS -->
     <section id="projects">
       <p class="section-label">Selected Work</p>
       <h2 class="section-title">Projects I'm proud of</h2>
-      <div class="projects-list">
-        <a
-          class="project-item"
-          href="https://github.com/mejistus/python-args-completion"
-        >
-          <div class="project-icon">⚙️</div>
-          <div class="project-info">
-            <p class="project-name">Python Args Completion</p>
-            <p class="project-desc">
-              Auto-parses Python script arguments via the
-              <code>ast</code> standard library — a shell plugin for effortless
-              argument auto-completion.
-            </p>
-          </div>
-          <span class="project-arrow">→</span>
-        </a>
-        <a class="project-item" href="https://github.com/mejistus/fantastic-i3">
-          <div class="project-icon">🪟</div>
-          <div class="project-info">
-            <p class="project-name">Fantastic i3</p>
-            <p class="project-desc">
-              My personal i3wm configuration — clean, minimal, and aesthetically
-              considered. Self-described as "decent taste."
-            </p>
-          </div>
-          <span class="project-arrow">→</span>
-        </a>
-      </div>
+      <div class="projects-list" id="projectsList"></div>
+      <button class="section-new-btn" id="btnNewProject" onclick="newSectionItem('projects')">+ New project</button>
     </section>
 
     <!-- AWARDS -->
@@ -1813,113 +1987,8 @@
       <div class="inner">
         <p class="section-label">Honors & Awards</p>
         <h2 class="section-title">Competition results</h2>
-        <div class="awards-group">
-          <div class="awards-group-title">Programming</div>
-          <div class="award-item">
-            <span class="award-year">2022</span>
-            <span class="award-name"
-              >5th ChuanZhi Cup National College Programming Contest, Group A
-              Regional</span
-            >
-            <span class="award-level">2nd Prize</span>
-          </div>
-          <div class="award-item">
-            <span class="award-year">2023</span>
-            <span class="award-name"
-              >14th LanQiao Cup — Shanghai Preliminary, Group A</span
-            >
-            <span class="award-level">1st Prize</span>
-          </div>
-          <div class="award-item">
-            <span class="award-year">2023</span>
-            <span class="award-name"
-              >14th LanQiao Cup — National Finals, Group A</span
-            >
-            <span class="award-level">3rd Prize</span>
-          </div>
-        </div>
-        <div class="awards-group">
-          <div class="awards-group-title">Mathematical Modeling</div>
-          <div class="award-item">
-            <span class="award-year">2022</span>
-            <span class="award-name"
-              >19th May Day Mathematical Modeling Contest</span
-            >
-            <span class="award-level">3rd Prize</span>
-          </div>
-          <div class="award-item">
-            <span class="award-year">2022</span>
-            <span class="award-name"
-              >12th MathorCup — Undergraduate Division</span
-            >
-            <span class="award-level">1st Prize</span>
-          </div>
-          <div class="award-item">
-            <span class="award-year">2023</span>
-            <span class="award-name"
-              >4th HuaShu Cup National Mathematical Modeling</span
-            >
-            <span class="award-level">2nd Prize</span>
-          </div>
-          <div class="award-item">
-            <span class="award-year">2023</span>
-            <span class="award-name"
-              >1st HuaShu Cup International Mathematical Modeling</span
-            >
-            <span class="award-level">Outstanding (O)</span>
-          </div>
-          <div class="award-item">
-            <span class="award-year">2023</span>
-            <span class="award-name"
-              >39th MCM/ICM (American Mathematical Modeling)</span
-            >
-            <span class="award-level">Honorable Mention</span>
-          </div>
-          <div class="award-item">
-            <span class="award-year">2024</span>
-            <span class="award-name"
-              >21st Huawei Cup Graduate Mathematical Modeling</span
-            >
-            <span class="award-level">2nd Prize</span>
-          </div>
-          <div class="award-item">
-            <span class="award-year">2025</span>
-            <span class="award-name"
-              >22nd Huawei Cup Graduate Mathematical Modeling</span
-            >
-            <span class="award-level">2nd Prize</span>
-          </div>
-        </div>
-        <div class="awards-group">
-          <div class="awards-group-title">Scholarships</div>
-          <div class="award-item">
-            <span class="award-year">2020</span>
-            <span class="award-name"
-              >ECUST Undergraduate Encouragement Scholarship</span
-            >
-            <span class="award-level">—</span>
-          </div>
-          <div class="award-item">
-            <span class="award-year">2024</span>
-            <span class="award-name">ECUST Graduate Entrance Scholarship</span>
-            <span class="award-level">2nd Prize</span>
-          </div>
-          <div class="award-item">
-            <span class="award-year">2025</span>
-            <span class="award-name">ECUST Graduate Academic Scholarship</span>
-            <span class="award-level">1st Prize</span>
-          </div>
-        </div>
-        <div class="awards-group">
-          <div class="awards-group-title">Other</div>
-          <div class="award-item">
-            <span class="award-year">2019</span>
-            <span class="award-name"
-              >29th National High School Biology Olympiad</span
-            >
-            <span class="award-level">3rd Prize</span>
-          </div>
-        </div>
+        <div id="awardsContainer"></div>
+        <button class="section-new-btn" id="btnNewAward" onclick="newSectionItem('awards')">+ New entry</button>
       </div>
     </section>
 
@@ -2581,6 +2650,7 @@
 
       function openPanel(i) {
         current = i;
+        currentPoemIdx = i;
         render(i);
         panelOpen(document.getElementById("poemPanel"));
       }
@@ -2605,6 +2675,7 @@
         const next = current + dir;
         if (next < 0 || next >= poems.length) return;
         current = next;
+        currentPoemIdx = next;
         render(current);
       }
 
@@ -2836,6 +2907,19 @@
         editBtn.style.display = show;
         deleteBtn.style.display = show;
         newBtn.style.display = isAuthed ? '' : 'none';
+        // Poems panel buttons
+        const poemEdit = document.getElementById('poemEditBtn');
+        const poemDel = document.getElementById('poemDeleteBtn');
+        if (poemEdit) poemEdit.style.display = show;
+        if (poemDel) poemDel.style.display = show;
+        // Section "+ new" buttons + per-card hover affordances
+        ['btnNewPoem', 'btnNewProject', 'btnNewAward'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.classList.toggle('authed', !!isAuthed);
+        });
+        document.querySelectorAll('.item-actions').forEach(el => {
+          el.classList.toggle('authed', !!isAuthed);
+        });
       }
 
       // ── Editor ──
@@ -3442,6 +3526,323 @@
           saveBtn.disabled = false;
         }
       }
+
+      // ─────────────────────────────────────────────────────────────────
+      // Generic section editor (poems / projects / awards)
+      // ─────────────────────────────────────────────────────────────────
+      let projects = [];
+      let awardsData = { groups: [] };
+
+      const SECTIONS = {
+        poems: {
+          file: 'poems/poems.json',
+          label: 'Poem',
+          fields: [
+            { key: 'zh_title',    label: '中文题',     type: 'text' },
+            { key: 'title',       label: 'English title', type: 'text' },
+            { key: 'card_title',  label: 'Card title',  type: 'text' },
+            { key: 'card_excerpt',label: 'Card excerpt',type: 'textarea', rows: 2 },
+            { key: 'zh',          label: '原文',        type: 'textarea', rows: 8 },
+            { key: 'en',          label: 'English rendering', type: 'textarea', rows: 8 },
+          ],
+          getList: () => poems,
+          setList: (arr) => { poems = arr; renderCards(); },
+          serialize: (arr) => JSON.stringify(arr, null, 2) + '\n',
+          empty: () => ({ zh_title: '', title: '', card_title: '', card_excerpt: '', zh: '', en: '' }),
+        },
+        projects: {
+          file: 'projects/projects.json',
+          label: 'Project',
+          fields: [
+            { key: 'icon', label: 'Icon (emoji)', type: 'text' },
+            { key: 'name', label: 'Name',         type: 'text' },
+            { key: 'desc', label: 'Description (HTML allowed)', type: 'textarea', rows: 4 },
+            { key: 'link', label: 'Link',         type: 'text' },
+          ],
+          getList: () => projects,
+          setList: (arr) => { projects = arr; renderProjects(); },
+          serialize: (arr) => JSON.stringify(arr, null, 2) + '\n',
+          empty: () => ({ icon: '', name: '', desc: '', link: '' }),
+        },
+        awards: {
+          // Awards have a nested {groups:[{title,items:[...]}]} shape — the
+          // editor flattens an item to {group, year, name, level} and the
+          // save logic re-nests it.
+          file: 'awards/awards.json',
+          label: 'Award',
+          fields: [
+            { key: 'group', label: 'Group',  type: 'group-select' },
+            { key: 'year',  label: 'Year',   type: 'text' },
+            { key: 'name',  label: 'Name',   type: 'textarea', rows: 2 },
+            { key: 'level', label: 'Level',  type: 'text' },
+          ],
+          // For awards we don't expose a flat list directly — addressing is
+          // {groupIdx,itemIdx}. The helpers below handle this.
+          getList: null,
+          setList: null,
+          serialize: () => JSON.stringify(awardsData, null, 2) + '\n',
+          empty: () => ({ group: (awardsData.groups[0] && awardsData.groups[0].title) || 'Other', year: '', name: '', level: '' }),
+        },
+      };
+
+      // Modal state
+      let sectionEditorState = null; // { kind, address, isNew, data }
+
+      function openSectionEditor(kind, address, initial, isNew) {
+        const cfg = SECTIONS[kind];
+        sectionEditorState = { kind, address, isNew: !!isNew, data: { ...initial } };
+        document.getElementById('sectionEditorLabel').textContent =
+          (isNew ? 'New ' : 'Editing ') + cfg.label.toLowerCase();
+        document.getElementById('sectionEditorTitle').textContent =
+          initial.title || initial.name || initial.zh_title || (isNew ? 'New ' + cfg.label : cfg.label);
+        // Build form
+        const body = document.getElementById('sectionEditorBody');
+        body.innerHTML = '';
+        cfg.fields.forEach(f => {
+          const wrap = document.createElement('div');
+          wrap.className = 'section-editor-field';
+          const lbl = document.createElement('label');
+          lbl.textContent = f.label;
+          wrap.appendChild(lbl);
+          let input;
+          if (f.type === 'textarea') {
+            input = document.createElement('textarea');
+            input.rows = f.rows || 4;
+          } else if (f.type === 'group-select') {
+            input = document.createElement('select');
+            const titles = awardsData.groups.map(g => g.title);
+            titles.forEach(t => {
+              const opt = document.createElement('option');
+              opt.value = t; opt.textContent = t;
+              input.appendChild(opt);
+            });
+            const newOpt = document.createElement('option');
+            newOpt.value = '__new__'; newOpt.textContent = '+ New group…';
+            input.appendChild(newOpt);
+            input.addEventListener('change', () => {
+              if (input.value === '__new__') {
+                const name = (prompt('New group name:') || '').trim();
+                if (name) {
+                  // Provisionally add option
+                  const opt = document.createElement('option');
+                  opt.value = name; opt.textContent = name;
+                  input.insertBefore(opt, newOpt);
+                  input.value = name;
+                  sectionEditorState.data[f.key] = name;
+                  sectionEditorState.pendingNewGroup = name;
+                } else {
+                  input.value = sectionEditorState.data[f.key] || titles[0] || '';
+                }
+              } else {
+                sectionEditorState.data[f.key] = input.value;
+              }
+            });
+          } else {
+            input = document.createElement('input');
+            input.type = 'text';
+          }
+          input.value = initial[f.key] != null ? initial[f.key] : '';
+          input.addEventListener('input', () => {
+            sectionEditorState.data[f.key] = input.value;
+          });
+          wrap.appendChild(input);
+          body.appendChild(wrap);
+        });
+        document.getElementById('sectionEditorStatus').textContent = '';
+        document.getElementById('sectionEditorStatus').className = 'section-editor-status';
+        document.getElementById('sectionEditor').classList.add('active');
+      }
+      function closeSectionEditor() {
+        document.getElementById('sectionEditor').classList.remove('active');
+        sectionEditorState = null;
+      }
+
+      async function sectionEditorSave() {
+        if (!sectionEditorState) return;
+        if (!ghToken) { openAuthModal(); return; }
+        const { kind, address, isNew, data, pendingNewGroup } = sectionEditorState;
+        const cfg = SECTIONS[kind];
+        const status = document.getElementById('sectionEditorStatus');
+        const btn = document.getElementById('sectionEditorSaveBtn');
+        btn.disabled = true;
+        status.textContent = 'Saving…';
+        status.className = 'section-editor-status';
+        try {
+          if (kind === 'awards') {
+            const groupName = data.group;
+            if (pendingNewGroup && !awardsData.groups.find(g => g.title === pendingNewGroup)) {
+              awardsData.groups.push({ title: pendingNewGroup, items: [] });
+            }
+            const item = { year: data.year, name: data.name, level: data.level };
+            if (isNew) {
+              const g = awardsData.groups.find(g => g.title === groupName)
+                     || (awardsData.groups.push({ title: groupName, items: [] }), awardsData.groups[awardsData.groups.length - 1]);
+              g.items.push(item);
+            } else {
+              const { groupIdx, itemIdx } = address;
+              const oldGroup = awardsData.groups[groupIdx];
+              if (oldGroup.title === groupName) {
+                oldGroup.items[itemIdx] = item;
+              } else {
+                oldGroup.items.splice(itemIdx, 1);
+                let g = awardsData.groups.find(g => g.title === groupName);
+                if (!g) { g = { title: groupName, items: [] }; awardsData.groups.push(g); }
+                g.items.push(item);
+                // Drop any group left empty
+                awardsData.groups = awardsData.groups.filter(g => g.items.length > 0);
+              }
+            }
+          } else {
+            const list = cfg.getList();
+            const newList = list.slice();
+            if (isNew) {
+              newList.unshift(data);
+            } else {
+              newList[address] = data;
+            }
+            cfg.setList(newList);
+          }
+          await commitFile(cfg.file, cfg.serialize(cfg.getList ? cfg.getList() : awardsData),
+            (isNew ? 'Add ' : 'Update ') + cfg.label.toLowerCase() + ': ' + (data.title || data.name || data.zh_title || '(unnamed)'));
+          if (kind === 'awards') renderAwards();
+          else cfg.setList(cfg.getList());
+          status.textContent = 'Saved!';
+          status.className = 'section-editor-status success';
+          setTimeout(closeSectionEditor, 600);
+        } catch (err) {
+          console.error('Section save failed:', err);
+          status.textContent = 'Error: ' + err.message;
+          status.className = 'section-editor-status error';
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      function newSectionItem(kind) {
+        if (!ghToken) { openAuthModal(); return; }
+        const cfg = SECTIONS[kind];
+        openSectionEditor(kind, null, cfg.empty(), true);
+      }
+      function editSectionItem(kind, address) {
+        if (!ghToken) { openAuthModal(); return; }
+        if (kind === 'awards') {
+          const { groupIdx, itemIdx } = address;
+          const it = awardsData.groups[groupIdx].items[itemIdx];
+          openSectionEditor('awards', address, { group: awardsData.groups[groupIdx].title, ...it }, false);
+        } else {
+          const list = SECTIONS[kind].getList();
+          openSectionEditor(kind, address, list[address], false);
+        }
+      }
+      async function deleteSectionItem(kind, address) {
+        if (!ghToken) { openAuthModal(); return; }
+        const cfg = SECTIONS[kind];
+        const label = cfg.label.toLowerCase();
+        if (!confirm('Delete this ' + label + '?')) return;
+        try {
+          if (kind === 'awards') {
+            const { groupIdx, itemIdx } = address;
+            const it = awardsData.groups[groupIdx].items[itemIdx];
+            awardsData.groups[groupIdx].items.splice(itemIdx, 1);
+            awardsData.groups = awardsData.groups.filter(g => g.items.length > 0);
+            await commitFile(cfg.file, cfg.serialize(), 'Delete ' + label + ': ' + it.name);
+            renderAwards();
+          } else {
+            const list = cfg.getList();
+            const removed = list[address];
+            const newList = list.slice();
+            newList.splice(address, 1);
+            cfg.setList(newList);
+            await commitFile(cfg.file, cfg.serialize(newList),
+              'Delete ' + label + ': ' + (removed.title || removed.name || removed.zh_title || '(unnamed)'));
+          }
+        } catch (err) {
+          console.error('Delete failed:', err);
+          alert('Delete failed: ' + err.message);
+        }
+      }
+
+      // Poem panel-button callbacks
+      let currentPoemIdx = null;
+      function editCurrentPoem() {
+        if (currentPoemIdx == null) return;
+        editSectionItem('poems', currentPoemIdx);
+      }
+      function deleteCurrentPoem() {
+        if (currentPoemIdx == null) return;
+        deleteSectionItem('poems', currentPoemIdx);
+      }
+
+      // Renderers for projects + awards (replacing the previously hardcoded HTML)
+      function escHtml(s) {
+        return String(s == null ? '' : s)
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+      function actionBtns(kind, addressJson) {
+        return (
+          '<div class="item-actions' + (ghToken ? ' authed' : '') + '">' +
+            '<button class="item-action-btn" title="Edit" onclick=\'event.preventDefault();event.stopPropagation();editSectionItem("' + kind + '", ' + addressJson + ')\'>' +
+              '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
+            '</button>' +
+            '<button class="item-action-btn del" title="Delete" onclick=\'event.preventDefault();event.stopPropagation();deleteSectionItem("' + kind + '", ' + addressJson + ')\'>' +
+              '<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>' +
+            '</button>' +
+          '</div>'
+        );
+      }
+      function renderProjects() {
+        const list = document.getElementById('projectsList');
+        if (!list) return;
+        list.innerHTML = projects.map((p, i) =>
+          '<a class="project-item item-host" href="' + escHtml(p.link) + '">' +
+            actionBtns('projects', i) +
+            '<div class="project-icon">' + escHtml(p.icon) + '</div>' +
+            '<div class="project-info">' +
+              '<p class="project-name">' + escHtml(p.name) + '</p>' +
+              '<p class="project-desc">' + (p.desc || '') + '</p>' +
+            '</div>' +
+            '<span class="project-arrow">→</span>' +
+          '</a>'
+        ).join('');
+      }
+      function renderAwards() {
+        const c = document.getElementById('awardsContainer');
+        if (!c) return;
+        c.innerHTML = awardsData.groups.map((g, gi) =>
+          '<div class="awards-group">' +
+            '<div class="awards-group-title">' + escHtml(g.title) + '</div>' +
+            g.items.map((it, ii) =>
+              '<div class="award-item item-host">' +
+                actionBtns('awards', '{groupIdx:' + gi + ',itemIdx:' + ii + '}') +
+                '<span class="award-year">' + escHtml(it.year) + '</span>' +
+                '<span class="award-name">' + escHtml(it.name) + '</span>' +
+                '<span class="award-level">' + escHtml(it.level) + '</span>' +
+              '</div>'
+            ).join('') +
+          '</div>'
+        ).join('');
+      }
+
+      // Initial loaders
+      fetch('projects/projects.json')
+        .then(r => r.ok ? r.json() : [])
+        .then(data => { projects = Array.isArray(data) ? data : []; renderProjects(); })
+        .catch(() => { projects = []; renderProjects(); });
+      fetch('awards/awards.json')
+        .then(r => r.ok ? r.json() : { groups: [] })
+        .then(data => { awardsData = data && Array.isArray(data.groups) ? data : { groups: [] }; renderAwards(); })
+        .catch(() => { awardsData = { groups: [] }; renderAwards(); });
+
+      // Close modal on backdrop click / Esc
+      document.getElementById('sectionEditor').addEventListener('mousedown', (e) => {
+        if (e.target.id === 'sectionEditor') closeSectionEditor();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.getElementById('sectionEditor').classList.contains('active')) {
+          closeSectionEditor();
+        }
+      });
 
       // ── Create new post ──
       let isNewPost = false; // flag: current editor session is a new post
