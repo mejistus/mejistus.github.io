@@ -12,7 +12,7 @@
     "link": "https://github.com/mejistus/timeshift-completion.git"
   },
   {
-    "icon": "💻",
+    "icon": "🐉",
     "name": "makepkg-completion",
     "desc": "Zsh completion plugin for makepkg (pacman 7.x). Designed for Oh My Zsh.",
     "link": "https://github.com/mejistus/makepkg-completion.git"
@@ -24,9 +24,9 @@
     "link": "https://github.com/mejistus/python-args-completion.git"
   },
   {
-    "icon": "🖥️",
-    "name": "fantastic-i3",
+    "icon": "🪟",
+    "name": "Fantastic i3",
     "desc": "My personal i3wm configuration — clean, minimal, and aesthetically considered. Self-described as \"decent taste.\"",
-    "link": "https://github.com/mejistus/fantastic-i3.git"
+    "link": "https://github.com/mejistus/fantastic-i3"
   }
 ]
