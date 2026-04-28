@@ -1,5 +1,11 @@
 [
   {
+    "icon": "💻",
+    "name": "makepkg-completion",
+    "desc": "Zsh completion plugin for makepkg (pacman 7.x). Designed for Oh My Zsh.",
+    "link": "https://github.com/mejistus/makepkg-completion.git"
+  },
+  {
     "icon": "⚙️",
     "name": "Python Args Completion",
     "desc": "Auto-parses Python script arguments via the <code>ast</code> standard library — a shell plugin for effortless argument auto-completion.",
