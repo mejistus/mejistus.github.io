@@ -1052,8 +1052,9 @@
 
       /* ── PROJECTS ── */
       .projects-list {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-auto-rows: 8.5rem;
         gap: 1.2rem;
       }
       .project-item {
@@ -1095,6 +1096,11 @@
       .project-desc {
         font-size: 0.875rem;
         color: var(--muted);
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
       }
       .project-arrow {
         color: var(--muted);
@@ -1104,6 +1110,25 @@
       .project-item:hover .project-arrow {
         transform: translateX(4px);
         color: var(--rust);
+      }
+      .project-tag {
+        display: inline-block;
+        margin-top: 0.5rem;
+        font-size: 0.7rem;
+        padding: 0.15rem 0.6rem;
+        border-radius: 2rem;
+        background: var(--cream);
+        border: 1px solid var(--border);
+        color: var(--muted);
+        letter-spacing: 0.04em;
+      }
+      .project-item.placeholder {
+        visibility: hidden;
+        pointer-events: none;
+      }
+      .project-item.placeholder:hover {
+        border-color: var(--border);
+        box-shadow: none;
       }
 
       /* ── AWARDS ── */
@@ -2042,7 +2067,9 @@
           <button class="search-clear" onclick="clearSectionSearch('projects')">&times;</button>
         </div>
       </div>
+      <div class="blog-filter-bar" id="projectsFilterBar"></div>
       <div class="projects-list" id="projectsList"></div>
+      <div class="pager" id="projectsPager"></div>
     </section>
 
     <!-- AWARDS -->
@@ -3681,15 +3708,19 @@
           file: 'projects/projects.json',
           label: 'Project',
           fields: [
-            { key: 'icon', label: 'Icon (emoji)', type: 'text' },
-            { key: 'name', label: 'Name',         type: 'text' },
-            { key: 'desc', label: 'Description (HTML allowed)', type: 'textarea', rows: 4 },
-            { key: 'link', label: 'Link',         type: 'text' },
+            { key: 'icon',     label: 'Icon (emoji)', type: 'text' },
+            { key: 'name',     label: 'Name',         type: 'text' },
+            { key: 'desc',     label: 'Description (HTML allowed)', type: 'textarea', rows: 4 },
+            { key: 'link',     label: 'Link',         type: 'text' },
+            { key: 'category', label: 'Category',     type: 'text' },
           ],
           getList: () => projects,
-          setList: (arr) => { projects = arr; renderProjects(); },
+          setList: (arr) => { projects = arr; buildProjectFilters(); renderProjects(); },
           serialize: (arr) => JSON.stringify(arr, null, 2) + '\n',
-          empty: () => ({ icon: '', name: '', desc: '', link: '' }),
+          empty: () => ({
+            icon: '', name: '', desc: '', link: '',
+            category: projectFilter !== 'all' ? projectFilter : 'Tools',
+          }),
         },
         awards: {
           // Awards have a nested {groups:[{title,items:[...]}]} shape — the
@@ -3920,35 +3951,117 @@
       }
       let projectQuery = '';
       let projectSorted = false;
+      let projectFilter = 'all';
+      let projectPage = 0;
+      const PROJECTS_PER_PAGE = 5;
       let awardQuery = '';
       let awardSorted = false;
 
+      function buildProjectFilters() {
+        const cats = new Set();
+        projects.forEach(p => { if (p.category) cats.add(p.category); });
+        const sorted = [...cats].sort();
+        const bar = document.getElementById('projectsFilterBar');
+        if (!bar) return;
+        const all = ['All', ...sorted];
+        bar.innerHTML = all.map(t => {
+          const val = t === 'All' ? 'all' : t;
+          return '<button class="blog-filter-btn' + (val === projectFilter ? ' active' : '') +
+                 '" data-cat="' + escHtml(val) + '" onclick="setProjectFilter(\'' + val.replace(/'/g, "\\'") + '\')">' +
+                 escHtml(t) + '</button>';
+        }).join('');
+      }
+      function setProjectFilter(cat) {
+        projectFilter = cat;
+        projectPage = 0;
+        projectSorted = false;
+        const sortBtn = document.getElementById('projectsSort');
+        if (sortBtn) sortBtn.classList.remove('active');
+        buildProjectFilters();
+        renderProjects();
+      }
+
       function renderProjects() {
         const list = document.getElementById('projectsList');
+        const pager = document.getElementById('projectsPager');
         if (!list) return;
+
+        // Apply search + category filter
         let indexed = projects.map((p, i) => ({ p, i }));
         if (projectQuery) {
           const q = projectQuery.toLowerCase();
           indexed = indexed.filter(({ p }) =>
-            [p.name, p.desc, p.link].filter(Boolean).join(' ').toLowerCase().includes(q)
+            [p.name, p.desc, p.link, p.category].filter(Boolean).join(' ').toLowerCase().includes(q)
           );
         }
-        if (projectSorted) {
-          indexed.sort((a, b) => (a.p.name || '').localeCompare(b.p.name || ''));
+        if (projectFilter !== 'all') {
+          indexed = indexed.filter(({ p }) => (p.category || '') === projectFilter);
         }
-        list.innerHTML = indexed.length
-          ? indexed.map(({ p, i }) =>
-              '<a class="project-item item-host" href="' + escHtml(p.link) + '">' +
-                actionBtns('projects', i) +
-                '<div class="project-icon">' + escHtml(p.icon) + '</div>' +
-                '<div class="project-info">' +
-                  '<p class="project-name">' + escHtml(p.name) + '</p>' +
-                  '<p class="project-desc">' + (p.desc || '') + '</p>' +
-                '</div>' +
-                '<span class="project-arrow">→</span>' +
-              '</a>'
-            ).join('')
-          : '<div class="search-no-results">No matching projects</div>';
+        if (projectSorted) {
+          // Sort by category then name (mirrors blog's tag-then-date sort)
+          indexed.sort((a, b) => {
+            const ca = (a.p.category || '￿').localeCompare(b.p.category || '￿');
+            if (ca !== 0) return ca;
+            return (a.p.name || '').localeCompare(b.p.name || '');
+          });
+        }
+
+        // Paginate (5 per page)
+        const total = indexed.length;
+        const totalPages = Math.max(1, Math.ceil(total / PROJECTS_PER_PAGE));
+        if (projectPage >= totalPages) projectPage = totalPages - 1;
+        if (projectPage < 0) projectPage = 0;
+        const start = projectPage * PROJECTS_PER_PAGE;
+        const pageItems = indexed.slice(start, start + PROJECTS_PER_PAGE);
+
+        if (!pageItems.length) {
+          list.innerHTML = '<div class="search-no-results">No matching projects</div>';
+          if (pager) pager.innerHTML = '';
+          return;
+        }
+
+        const cardsHtml = pageItems.map(({ p, i }) =>
+          '<a class="project-item item-host" href="' + escHtml(p.link) + '">' +
+            actionBtns('projects', i) +
+            '<div class="project-icon">' + escHtml(p.icon) + '</div>' +
+            '<div class="project-info">' +
+              '<p class="project-name">' + escHtml(p.name) + '</p>' +
+              '<p class="project-desc">' + (p.desc || '') + '</p>' +
+              (p.category ? '<span class="project-tag">' + escHtml(p.category) + '</span>' : '') +
+            '</div>' +
+            '<span class="project-arrow">→</span>' +
+          '</a>'
+        ).join('');
+
+        // Pad the last (under-full) page with invisible placeholders so the
+        // section keeps a consistent height across pages.
+        let placeholderHtml = '';
+        if (totalPages > 1 && pageItems.length < PROJECTS_PER_PAGE) {
+          const need = PROJECTS_PER_PAGE - pageItems.length;
+          placeholderHtml = Array(need).fill(
+            '<div class="project-item placeholder" aria-hidden="true">' +
+              '<div class="project-icon">·</div>' +
+              '<div class="project-info">' +
+                '<p class="project-name">&nbsp;</p>' +
+                '<p class="project-desc">&nbsp;</p>' +
+                '<span class="project-tag">&nbsp;</span>' +
+              '</div>' +
+              '<span class="project-arrow">→</span>' +
+            '</div>'
+          ).join('');
+        }
+        list.innerHTML = cardsHtml + placeholderHtml;
+
+        if (pager) {
+          if (totalPages <= 1) {
+            pager.innerHTML = '';
+          } else {
+            pager.innerHTML =
+              '<button class="pager-btn" onclick="projectPage--;renderProjects()" ' + (projectPage === 0 ? 'disabled' : '') + '>← Prev</button>' +
+              '<span class="pager-info">' + (projectPage + 1) + ' / ' + totalPages + '</span>' +
+              '<button class="pager-btn" onclick="projectPage++;renderProjects()" ' + (projectPage === totalPages - 1 ? 'disabled' : '') + '>Next →</button>';
+          }
+        }
       }
       // Awards isn't paginated; instead of padding rows we cache the natural
       // unfiltered render height once and apply it as min-height so search /
@@ -4036,7 +4149,7 @@
       }
       function setSectionQuery(kind, q) {
         if (kind === 'poems')    { poemQuery = q; poemPage = 0; renderCards(); }
-        else if (kind === 'projects') { projectQuery = q; renderProjects(); }
+        else if (kind === 'projects') { projectQuery = q; projectPage = 0; renderProjects(); }
         else if (kind === 'awards')   { awardQuery = q; renderAwards(); }
       }
       function toggleSectionSort(kind) {
@@ -4053,8 +4166,8 @@
       // Initial loaders
       fetch('projects/projects.json')
         .then(r => r.ok ? r.json() : [])
-        .then(data => { projects = Array.isArray(data) ? data : []; renderProjects(); })
-        .catch(() => { projects = []; renderProjects(); });
+        .then(data => { projects = Array.isArray(data) ? data : []; buildProjectFilters(); renderProjects(); })
+        .catch(() => { projects = []; buildProjectFilters(); renderProjects(); });
       fetch('awards/awards.json')
         .then(r => r.ok ? r.json() : { groups: [] })
         .then(data => { awardsData = data && Array.isArray(data.groups) ? data : { groups: [] }; renderAwards(); })

@@ -3,30 +3,35 @@
     "icon": "🔭",
     "name": "ollama-zsh-completion",
     "desc": "A Zsh completion plugin for Ollama, providing rich tab-completion for all commands, flags, and model names.",
-    "link": "https://github.com/mejistus/ollama-zsh-completion.git"
+    "link": "https://github.com/mejistus/ollama-zsh-completion.git",
+    "category": "Shell"
   },
   {
     "icon": "⌚",
     "name": "timeshift-completion",
     "desc": "Zsh completion plugin for Timeshift (v25.12.4+). Designed for Oh My Zsh.",
-    "link": "https://github.com/mejistus/timeshift-completion.git"
+    "link": "https://github.com/mejistus/timeshift-completion.git",
+    "category": "Shell"
   },
   {
     "icon": "🐙",
     "name": "makepkg-completion",
     "desc": "Zsh completion plugin for makepkg (pacman 7.x). Designed for Oh My Zsh.",
-    "link": "https://github.com/mejistus/makepkg-completion.git"
+    "link": "https://github.com/mejistus/makepkg-completion.git",
+    "category": "Shell"
   },
   {
     "icon": "🐍",
     "name": "python-args-completion",
     "desc": "An intelligent oh-my-zsh plugin that provides automatic completion for Python script command-line arguments.",
-    "link": "https://github.com/mejistus/python-args-completion.git"
+    "link": "https://github.com/mejistus/python-args-completion.git",
+    "category": "Shell"
   },
   {
     "icon": "🪟",
     "name": "Fantastic i3",
     "desc": "My personal i3wm configuration — clean, minimal, and aesthetically considered. Self-described as \"decent taste.\"",
-    "link": "https://github.com/mejistus/fantastic-i3"
+    "link": "https://github.com/mejistus/fantastic-i3",
+    "category": "Config"
   }
 ]
