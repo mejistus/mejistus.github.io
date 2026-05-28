@@ -1,5 +1,12 @@
 [
   {
+    "file": "ML/EM算法.md",
+    "title": "EM算法",
+    "date": "2026-05-28",
+    "tag": "ML",
+    "excerpt": "Expectation Maxium Algorithm"
+  },
+  {
     "file": "ML/不同基在损失作用下的优表现.md",
     "title": "损失与正交基",
     "date": "2026-04-26",
