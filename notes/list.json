@@ -1,5 +1,12 @@
 [
   {
+    "file": "Notes/Untitled.md",
+    "title": "Untitled",
+    "date": "2026-05-28",
+    "tag": "Notes",
+    "excerpt": "考虑以下情况：对可观测随机变量X与不可观测随机变量Z建模"
+  },
+  {
     "file": "ML/EM算法.md",
     "title": "EM算法",
     "date": "2026-05-28",
