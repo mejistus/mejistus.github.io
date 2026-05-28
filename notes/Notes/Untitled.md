@@ -148,7 +148,7 @@ q_{ij}
 \right). \tag{10}
 $$
 
-由於 $\ln(\cdot)$ 是凹函數，根據 Jensen 不等式，
+由於 $\ln(\cdot)$ 是下凹函數，根據 Jensen 不等式，
 
 <span id="eq-jensen-single"></span>
 
