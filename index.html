@@ -3124,6 +3124,7 @@
         if (isNewPost && currentBlog === 0 && blogs[0] && blogs[0].file === null) {
           blogs.shift();
           displayBlogs = [];
+          parsedHtmlCache.clear();
           buildBlogFilters();
           renderBlogCards();
           closeAllPanels();
@@ -3545,6 +3546,25 @@
         return null;
       }
 
+      async function deleteGitHubFile(path, message) {
+        const sha = await getFileSha(path);
+        if (!sha) return false;
+
+        const resp = await fetch(
+          `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${ghEncodePath(path)}`,
+          {
+            method: 'DELETE',
+            headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message, sha, branch: REPO_BRANCH })
+          }
+        );
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({}));
+          throw new Error(err.message || 'Failed to delete file');
+        }
+        return true;
+      }
+
       async function commitFile(path, content, message, _retry = 0) {
         const sha = await getFileSha(path);
         const body = {
@@ -3578,7 +3598,36 @@
 
       // Sanitize title to filename
       function titleToFilename(title) {
-        return title.replace(/[\/\\:*?"<>|]/g, '').replace(/\s+/g, '-').slice(0, 80);
+        const filename = String(title || '')
+          .replace(/[\/\\:*?"<>|]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 80);
+        return filename || 'Untitled';
+      }
+
+      function tagToFolder(tag) {
+        const folder = String(tag || 'Notes')
+          .replace(/[\/\\:*?"<>|]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 80);
+        return folder || 'Notes';
+      }
+
+      async function makeUniqueBlogFilePath(tag, title, currentFile) {
+        const folder = tagToFolder(tag);
+        const stem = titleToFilename(title);
+        let candidate = `${folder}/${stem}.md`;
+        if (candidate === currentFile) return candidate;
+
+        let suffix = 2;
+        while (await getFileSha(`notes/${candidate}`)) {
+          candidate = `${folder}/${stem}-${suffix}.md`;
+          if (candidate === currentFile) return candidate;
+          suffix += 1;
+        }
+        return candidate;
       }
 
       async function saveToGitHub() {
@@ -3598,14 +3647,13 @@
           const newDate = parseFrontMatterField(fullContent, 'date') || new Date().toISOString().split('T')[0];
           const newExcerpt = extractExcerpt(fullContent);
 
-          // For new posts, derive file path from front matter
-          if (isNewPost) {
-            b.file = `${newTag}/${titleToFilename(newTitle)}.md`;
-          }
+          const oldFile = b.file;
+          const newFile = await makeUniqueBlogFilePath(newTag, newTitle, oldFile);
+          const fileMoved = !!oldFile && oldFile !== newFile;
 
           // 1. Commit the markdown file
-          const mdPath = `notes/${b.file}`;
-          const commitMsg = isNewPost ? `New blog: ${newTitle}` : `Update blog: ${newTitle}`;
+          const mdPath = `notes/${newFile}`;
+          const commitMsg = isNewPost ? `New blog: ${newTitle}` : (fileMoved ? `Move blog: ${newTitle}` : `Update blog: ${newTitle}`);
           await commitFile(mdPath, fullContent, commitMsg);
 
           // 2. Update list.json via GitHub API
@@ -3620,11 +3668,12 @@
 
           if (isNewPost) {
             // Insert new entry at the top
-            listContent.unshift({ file: b.file, title: newTitle, date: newDate, tag: newTag, excerpt: newExcerpt });
+            listContent.unshift({ file: newFile, title: newTitle, date: newDate, tag: newTag, excerpt: newExcerpt });
           } else {
             // Update existing entry
-            const entry = listContent.find(e => e.file === b.file);
+            const entry = listContent.find(e => e.file === oldFile);
             if (entry) {
+              entry.file = newFile;
               entry.title = newTitle;
               entry.tag = newTag;
               entry.date = newDate;
@@ -3651,7 +3700,12 @@
             throw new Error('list.json: ' + (err.message || 'commit failed'));
           }
 
+          if (fileMoved) {
+            await deleteGitHubFile(`notes/${oldFile}`, `Remove old blog path: ${oldFile}`);
+          }
+
           // 3. Update local state immediately
+          b.file = newFile;
           b.title = newTitle;
           b.tag = newTag;
           b.date = newDate;
@@ -3660,8 +3714,9 @@
           isNewPost = false;
 
           // Invalidate caches
-          parsedHtmlCache.delete(currentBlog);
-          blogContentCache.delete(b.file);
+          parsedHtmlCache.clear();
+          if (oldFile) blogContentCache.delete(oldFile);
+          blogContentCache.delete(newFile);
 
           // Re-render everything
           renderBlog(currentBlog);
@@ -4192,10 +4247,10 @@
         // Tag = current filter, or Notes if "all"
         const tag = blogFilter !== 'all' ? blogFilter : 'Notes';
         const today = new Date().toISOString().split('T')[0];
-        const template = `---\ntitle: New Post\ndate: ${today}\ntag: ${tag}\nexcerpt: \n---\n\n# New Post\n\n`;
+        const template = `---\ntitle: Untitled\ndate: ${today}\ntag: ${tag}\nexcerpt: \n---\n\n# Untitled\n\n`;
 
         // Create a placeholder blog entry in local state
-        const placeholder = { file: null, title: 'New Post', date: today, tag, excerpt: '', content: template };
+        const placeholder = { file: null, title: 'Untitled', date: today, tag, excerpt: '', content: template };
         blogs.unshift(placeholder);
         displayBlogs = [];
         buildBlogFilters();
@@ -4206,7 +4261,7 @@
         isNewPost = true;
         const panel = document.getElementById('blogPanel');
         document.getElementById('blogPanelLabel').textContent = 'Blog · New post';
-        document.getElementById('blogPanelTitle').textContent = 'New Post';
+        document.getElementById('blogPanelTitle').textContent = 'Untitled';
 
         // Go fullscreen + editor
         panel.classList.remove('open', 'fullscreen');
@@ -4236,28 +4291,19 @@
         if (!ghToken || currentBlog === null) return;
 
         const b = blogs[currentBlog];
+        if (!b || !b.file) {
+          alert('This post has not been saved yet.');
+          return;
+        }
         if (!confirm(`Delete "${b.title}"?\n\nThis will remove the file and list.json entry. This cannot be undone.`)) return;
 
         try {
-          // 1. Delete the markdown file
-          const sha = await getFileSha(`notes/${b.file}`);
-          if (sha) {
-            const delResp = await fetch(
-              `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${ghEncodePath(`notes/${b.file}`)}`,
-              {
-                method: 'DELETE',
-                headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: `Delete blog: ${b.title}`, sha, branch: REPO_BRANCH })
-              }
-            );
-            if (!delResp.ok) throw new Error('Failed to delete file');
-          }
-
-          // 2. Remove from list.json
+          // 1. Remove from list.json first, so the site never points at a deleted file.
           const listResp = await fetch(
             `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/notes/list.json?ref=${REPO_BRANCH}`,
             { headers: { 'Authorization': `token ${ghToken}` } }
           );
+          if (!listResp.ok) throw new Error('Failed to fetch list.json');
           const listData = await listResp.json();
           let listContent = JSON.parse(decodeURIComponent(escape(atob(listData.content.replace(/\n/g, '')))));
           listContent = listContent.filter(e => e.file !== b.file);
@@ -4268,14 +4314,21 @@
             sha: listData.sha,
             branch: REPO_BRANCH
           };
-          await fetch(
+          const listPutResp = await fetch(
             `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/notes/list.json`,
             { method: 'PUT', headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(listBody) }
           );
+          if (!listPutResp.ok) {
+            const err = await listPutResp.json().catch(() => ({}));
+            throw new Error('list.json: ' + (err.message || 'commit failed'));
+          }
+
+          // 2. Delete the markdown file
+          await deleteGitHubFile(`notes/${b.file}`, `Delete blog: ${b.title}`);
 
           // 3. Update local state immediately
           blogContentCache.delete(b.file);
-          parsedHtmlCache.delete(currentBlog);
+          parsedHtmlCache.clear();
           blogs.splice(currentBlog, 1);
           displayBlogs = [];
           currentBlog = null;
