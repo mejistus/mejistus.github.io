@@ -1,7 +1,7 @@
 ---
 title: Expectation Maximization Algorithm
 date: 2026-05-28
-tag: Notes
+tag: ML
 excerpt: Recapped from [知乎专栏：EM算法]{https://zhuanlan.zhihu.com/p/484134651}
 ---
 
