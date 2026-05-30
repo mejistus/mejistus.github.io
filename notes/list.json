@@ -196,13 +196,6 @@
     "excerpt": "Monte Callo Method is a method for analyzing the uncertainty of a model."
   },
   {
-    "file": "ML/EM Algorithm.md",
-    "title": "Expectation Maximization Algorithm is an iterative algorithm, which is used to make MLE on probability parameter model with hidden variables.",
-    "date": "2026-03-29",
-    "tag": "ML",
-    "excerpt": ""
-  },
-  {
     "file": "Diffusion/ODE-has-no-GRPO.md",
     "title": "ODE has no GRPO",
     "date": "2025/12/22",
