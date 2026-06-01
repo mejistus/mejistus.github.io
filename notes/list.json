@@ -1,5 +1,12 @@
 [
   {
+    "file": "Math/Parseval’s-theorem.md",
+    "title": "Parseval’s theorem",
+    "date": "2026-06-01",
+    "tag": "Math",
+    "excerpt": "Parseval’s theorem states that the total energy of a signal is preserved under an orthonormal change of basis, especially under Fourier transform."
+  },
+  {
     "file": "Math/信息论入门.md",
     "title": "信息论入门",
     "date": "2026-06-01",
