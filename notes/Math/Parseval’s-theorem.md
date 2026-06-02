@@ -193,7 +193,7 @@ x[n]=
 
 \frac{1}{N}
 \sum_{k=0}^{N-1}
-X[k]=\
+X[k]\
 \exp\left(
 \frac{2\pi i kn}{N}
 \right).
@@ -261,7 +261,7 @@ c_n=
 
 \frac{1}{2\pi}
 \int_{-\pi}^{\pi}
-f(x)e^{-inx},dx.
+f(x)e^{-inx}dx.
 $$
 
 The functions
@@ -308,7 +308,7 @@ $$
 F(\omega)
 =
 \int_{-\infty}^{\infty}
-f(x)e^{-i\omega x},dx.
+f(x)e^{-i\omega x}dx.
 $$
 
 The inverse transform is
