@@ -1,28 +1,96 @@
 {
-  "dir": "photos",
-  "photos": [
-    { "file": "1.jpg",  "tag": "flora" },
-    { "file": "2.jpg",  "tag": "landscape" },
-    { "file": "3.jpg",  "tag": "landscape" },
-    { "file": "4.jpg",  "tag": "landscape" },
-    { "file": "5.jpg",  "tag": "urban" },
-    { "file": "6.jpg",  "tag": "urban" },
-    { "file": "7.jpg",  "tag": "urban" },
-    { "file": "8.jpg",  "tag": "night" },
-    { "file": "9.jpg",  "tag": "night" },
-    { "file": "10.jpg", "tag": "night" },
-    { "file": "11.jpg", "tag": "flora" },
-    { "file": "12.jpg", "tag": "landscape" },
-    { "file": "13.jpg", "tag": "flora" },
-    { "file": "14.jpg", "tag": "flora" },
-    { "file": "15.jpg", "tag": "flora" },
-    { "file": "16.jpg", "tag": "landscape" },
-    { "file": "17.jpg", "tag": "urban" },
-    { "file": "18.jpg", "tag": "flora" },
-    { "file": "19.jpg", "tag": "urban" },
-    { "file": "20.jpg", "tag": "flora" },
-    { "file": "21.jpg", "tag": "flora" },
-    { "file": "22.jpg", "tag": "landscape" },
-    { "file": "23.jpg"  }
-  ]
+    "dir": "photos",
+    "photos": [
+        {
+            "file": "1.jpg",
+            "tag": "flora"
+        },
+        {
+            "file": "2.jpg",
+            "tag": "landscape"
+        },
+        {
+            "file": "3.jpg",
+            "tag": "landscape"
+        },
+        {
+            "file": "4.jpg",
+            "tag": "landscape"
+        },
+        {
+            "file": "5.jpg",
+            "tag": "urban"
+        },
+        {
+            "file": "6.jpg",
+            "tag": "urban"
+        },
+        {
+            "file": "7.jpg",
+            "tag": "urban"
+        },
+        {
+            "file": "8.jpg",
+            "tag": "night"
+        },
+        {
+            "file": "9.jpg",
+            "tag": "night"
+        },
+        {
+            "file": "10.jpg",
+            "tag": "night"
+        },
+        {
+            "file": "11.jpg",
+            "tag": "flora"
+        },
+        {
+            "file": "12.jpg",
+            "tag": "landscape"
+        },
+        {
+            "file": "13.jpg",
+            "tag": "flora"
+        },
+        {
+            "file": "14.jpg",
+            "tag": "flora"
+        },
+        {
+            "file": "15.jpg",
+            "tag": "flora"
+        },
+        {
+            "file": "16.jpg",
+            "tag": "landscape"
+        },
+        {
+            "file": "17.jpg",
+            "tag": "urban"
+        },
+        {
+            "file": "18.jpg",
+            "tag": "flora"
+        },
+        {
+            "file": "19.jpg",
+            "tag": "urban"
+        },
+        {
+            "file": "20.jpg",
+            "tag": "flora"
+        },
+        {
+            "file": "21.jpg",
+            "tag": "flora"
+        },
+        {
+            "file": "22.jpg",
+            "tag": "landscape"
+        },
+        {
+            "file": "23.jpg"
+        }
+    ]
 }
