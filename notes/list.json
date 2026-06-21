@@ -1,5 +1,12 @@
 [
   {
+    "file": "ML/Krogh-Vedelsby-集成误差分解.md",
+    "title": "Krogh-Vedelsby 集成误差分解",
+    "date": "2026-06-21",
+    "tag": "ML",
+    "excerpt": "Krogh-Vedelsby 集成误差分解说明，集成模型的误差可以表示为单模型平均误差减去模型之间的差异性，因此好的集成不仅依赖单模型准确性，也依赖模型之间的有效分歧。"
+  },
+  {
     "file": "Math/Parseval’s-theorem.md",
     "title": "Parseval’s theorem",
     "date": "2026-06-01",
