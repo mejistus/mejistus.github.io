@@ -193,7 +193,6 @@ $$
 [p_1, p_2, \dots, p_M] \rightarrow y
 $$
 
----
 
 ## 6. 为什么可以支持 MLP Fusion
 
@@ -220,7 +219,6 @@ $$
 
 因此，MLP fusion 可以被理解为一种利用 ambiguity 的融合方法。
 
----
 
 ## 7. Logit Fusion 与 Embedding Fusion
 
@@ -259,21 +257,7 @@ $$
 \text{Logit + Embedding Fusion}
 $$
 
----
-
-## 8. 论文表述
-
-可以在论文中这样表述：
-
-According to the Krogh-Vedelsby ambiguity decomposition, the error of an ensemble can be expressed as the average error of individual predictors minus their diversity. This suggests that ensemble gains arise not only from strong individual detectors, but also from complementary disagreement among them. In our setting, different forensic detectors may respond to different evidence, such as low-level artifacts, semantic inconsistencies, compression traces, or generator-specific cues. Therefore, instead of simply averaging detector scores, we train a lightweight fusion network to learn the structured disagreement pattern across detectors.
-
-对应中文含义是：
-
-根据 Krogh-Vedelsby 集成误差分解，集成模型的误差可以表示为单个预测器的平均误差减去模型之间的差异性。这说明集成收益不仅来自单个检测器本身的准确性，也来自不同检测器之间的互补分歧。在 AIGC 检测中，不同检测器可能关注低层伪影、语义异常、压缩痕迹或生成器特定线索。因此，相比简单平均检测分数，我们使用轻量融合网络学习检测器之间的结构化分歧模式。
-
----
-
-## 9. 总结
+## 8. 总结
 
 Krogh-Vedelsby 集成误差分解的核心思想是：
 
@@ -286,4 +270,4 @@ $$
 - 单个模型本身足够准确；
 - 不同模型之间具有有效互补分歧。
 
-对于多专家 AIGC 检测，MLP fusion 的理论动机就在于：它可以学习专家之间的结构化分歧，而不是仅仅平均专家置信度。
+为提升分类性能，学习专家之间的结构化分歧，而不是仅仅平均专家置信度。
