@@ -1,5 +1,12 @@
 [
   {
+    "file": "Notes/Rethink-Diffusion-Models-for-Feature-Modeling.md",
+    "title": "Rethink Diffusion Models for Feature Modeling",
+    "date": "2026-06-21",
+    "tag": "Notes",
+    "excerpt": "本文总结了扩散模型在特征建模中的优势与局限，重点讨论小样本特征建模和高维特征建模两个场景。"
+  },
+  {
     "file": "ML/Krogh-Vedelsby-集成误差分解.md",
     "title": "Krogh-Vedelsby 集成误差分解",
     "date": "2026-06-21",
