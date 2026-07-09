@@ -137,6 +137,30 @@ nav {
 .card img {
   display: block; width: 100%; height: auto;
 }
+.card.video-card::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(45, 45, 45, 0.48);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.card.video-card::before {
+  content: "";
+  position: absolute;
+  left: calc(50% + 3px);
+  top: 50%;
+  border-left: 14px solid rgba(255, 255, 255, 0.92);
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+}
 
 /* meta on hover */
 .card-meta {
@@ -147,6 +171,7 @@ nav {
   opacity: 0;
   transition: all .25s ease;
   pointer-events: none;
+  z-index: 2;
 }
 .card:hover .card-meta { opacity: 1; transform: translateY(0); }
 .card-meta h3 {
@@ -187,12 +212,16 @@ nav {
   max-width: 90vw; max-height: 88vh;
   display: flex; flex-direction: column; align-items: center;
 }
-.lb-img {
+.lb-img,
+.lb-video {
   max-width: 90vw; max-height: 82vh;
   object-fit: contain;
   border-radius: 0.75rem;
   box-shadow: 0 16px 48px rgba(0,0,0,.15);
   user-select: none;
+}
+.lb-video {
+  background: #000;
 }
 .lb-caption {
   margin-top: 12px;
