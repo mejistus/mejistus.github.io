@@ -1,77 +1,75 @@
 {
-    "dir": "photos",
-    "photos": [
-        {
-            "file": "1.jpg",
-            "tag": "flora"
-        },
-        {
-            "file": "2.jpg",
-            "tag": "landscape"
-        },
-        {
-            "file": "3.jpg",
-            "tag": "landscape"
-        },
-        {
-            "file": "4.jpg",
-            "tag": "landscape"
-        },
-        {
-            "file": "5.jpg",
-            "tag": "urban"
-        },
-        {
-            "file": "6.jpg",
-            "tag": "urban"
-        },
-        {
-            "file": "7.jpg",
-            "tag": "urban"
-        },
-        {
-            "file": "8.jpg",
-            "tag": "night"
-        },
-        {
-            "file": "9.jpg",
-            "tag": "night"
-        },
-        {
-            "file": "10.jpg",
-            "tag": "night"
-        },
-        {
-            "file": "11.jpg",
-            "tag": "flora"
-        },
-        {
-            "file": "12.jpg",
-            "tag": "landscape"
-        },
-        {
-            "file": "13.jpg",
-            "tag": "flora"
-        },
-        {
-            "file": "14.jpg",
-            "tag": "flora"
-        },
-        {
-            "file": "15.jpg",
-            "tag": "flora"
-        },
-        {
-            "file": "16.jpg",
-            "tag": "landscape"
-        },
-        {
-            "file": "17.jpg",
-            "tag": "urban"
-        },
-        {
-            "file": "18.jpg",
-            "tag": "flora"
-        }
-    ]
+  "dir": "photos",
+  "photos": [
+    {
+      "file": "合照1.jpg",
+      "thumb": "合照1-thumb.jpg",
+      "type": "image",
+      "title": "合照 1",
+      "tag": "photo"
+    },
+    {
+      "file": "合照2.jpg",
+      "thumb": "合照2-thumb.jpg",
+      "type": "image",
+      "title": "合照 2",
+      "tag": "photo"
+    },
+    {
+      "file": "合照3.jpg",
+      "thumb": "合照3-thumb.jpg",
+      "type": "image",
+      "title": "合照 3",
+      "tag": "photo"
+    },
+    {
+      "file": "合照4.jpg",
+      "thumb": "合照4-thumb.jpg",
+      "type": "image",
+      "title": "合照 4",
+      "tag": "photo"
+    },
+    {
+      "file": "合照5.jpg",
+      "thumb": "合照5-thumb.jpg",
+      "type": "image",
+      "title": "合照 5",
+      "tag": "photo"
+    },
+    {
+      "file": "合照6.jpg",
+      "thumb": "合照6-thumb.jpg",
+      "type": "image",
+      "title": "合照 6",
+      "tag": "photo"
+    },
+    {
+      "file": "合照7.jpg",
+      "thumb": "合照7-thumb.jpg",
+      "type": "image",
+      "title": "合照 7",
+      "tag": "photo"
+    },
+    {
+      "file": "合照8.jpg",
+      "thumb": "合照8-thumb.jpg",
+      "type": "image",
+      "title": "合照 8",
+      "tag": "photo"
+    },
+    {
+      "file": "合影1.mp4",
+      "thumb": "合影1-thumb.jpg",
+      "type": "video",
+      "title": "合影 1",
+      "tag": "video"
+    },
+    {
+      "file": "合影2.mp4",
+      "thumb": "合影2-thumb.jpg",
+      "type": "video",
+      "title": "合影 2",
+      "tag": "video"
+    }
+  ]
 }

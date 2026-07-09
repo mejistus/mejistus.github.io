@@ -13,7 +13,12 @@ async function init() {
 
     // index entries from JSON
     (data.photos || []).forEach((p) => {
-      knownMap.set(p.file, { title: p.title || null, tag: p.tag || null });
+      knownMap.set(p.file, {
+        title: p.title || null,
+        tag: p.tag || null,
+        thumb: p.thumb || null,
+        type: p.type || null,
+      });
     });
 
     // scan: list all image files in the dir
@@ -25,8 +30,11 @@ async function init() {
     // unlisted files (discovered later) get no tag
     photos = listedFiles.map((file) => {
       const info = knownMap.get(file);
+      const type = info.type || mediaTypeFromFile(file);
       return {
         src:   `${dir}/${file}`,
+        thumb: `${dir}/${info.thumb || file}`,
+        type,
         title: info.title,
         tag:   info.tag,  // null if not tagged
       };
@@ -38,6 +46,10 @@ async function init() {
     console.error("Failed to load photos.json:", err);
     gallery.innerHTML = `<p style="color:var(--muted);text-align:center;">Failed to load gallery data.</p>`;
   }
+}
+
+function mediaTypeFromFile(file) {
+  return /\.(mp4|webm|mov)$/i.test(file) ? "video" : "image";
 }
 
 // ── build filter buttons dynamically ──
@@ -84,11 +96,12 @@ function renderCards(tag) {
       if (p.tag !== tag) return;
     }
     const card = document.createElement("div");
-    card.className = "card";
+    card.className = `card${p.type === "video" ? " video-card" : ""}`;
     card.dataset.index = i;
+    card.dataset.type = p.type;
     const hasMeta = p.title || p.tag;
     card.innerHTML = `
-      <img src="${p.src}" alt="${p.title || ""}" loading="lazy" />${
+      <img src="${p.thumb}" alt="${p.title || ""}" loading="lazy" />${
       hasMeta ? `
       <div class="card-meta">
         ${p.title ? `<h3>${p.title}</h3>` : ""}
@@ -103,6 +116,7 @@ function renderCards(tag) {
 const lightbox  = document.getElementById("lightbox");
 const overlay   = document.getElementById("lb-overlay");
 const lbImg     = document.getElementById("lb-img");
+const lbVideo   = document.getElementById("lb-video");
 const lbCaption = document.getElementById("lb-caption");
 const lbCounter = document.getElementById("lb-counter");
 let currentLb = 0;
@@ -131,14 +145,37 @@ function closeLightbox() {
   lightbox.classList.remove("open");
   overlay.classList.remove("open");
   document.body.style.overflow = "";
+  resetLightboxMedia();
 }
 
 function showSlide() {
   const p = photos[visibleIndices[currentLb]];
-  lbImg.src = p.src;
-  lbImg.alt = p.title || "";
+  resetLightboxMedia();
+
+  if (p.type === "video") {
+    lbVideo.poster = p.thumb;
+    lbVideo.src = p.src;
+    lbVideo.hidden = false;
+  } else {
+    lbImg.src = p.src;
+    lbImg.alt = p.title || "";
+    lbImg.hidden = false;
+  }
+
   lbCaption.textContent = p.title || "";
   lbCounter.textContent = `${currentLb + 1} / ${visibleIndices.length}`;
+}
+
+function resetLightboxMedia() {
+  lbImg.hidden = true;
+  lbImg.removeAttribute("src");
+  lbImg.alt = "";
+
+  lbVideo.pause();
+  lbVideo.hidden = true;
+  lbVideo.removeAttribute("src");
+  lbVideo.removeAttribute("poster");
+  lbVideo.load();
 }
 
 function nextSlide() {
