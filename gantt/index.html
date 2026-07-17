@@ -1,57 +1,41 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>甘特图编辑器</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>甘特图 · Xu Chen</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;transition:background-color .2s,border-color .2s,color .2s}
 :root{
-  --bg:#0e0f11;--surface:#16181c;--surface2:#1d2025;--surface3:#252930;
-  --border:#2e3238;--border2:#3a4048;
-  --text:#e8eaed;--text2:#9aa0ab;--text3:#5c6370;
-  --blue:#4a9eff;--blue-dim:rgba(74,158,255,.15);--blue-bar:rgba(74,158,255,.75);
-  --green:#3ecf8e;--green-dim:rgba(62,207,142,.12);--green-bar:rgba(62,207,142,.72);
-  --purple:#a07ee8;--purple-dim:rgba(160,126,232,.14);--purple-bar:rgba(160,126,232,.72);
-  --amber:#f5a623;--amber-dim:rgba(245,166,35,.13);--amber-bar:rgba(230,148,20,.72);
-  --red:#ff6b6b;--red-dim:rgba(255,107,107,.12);--red-bar:rgba(255,107,107,.68);
-  --radius:6px;--font:'Noto Sans SC',sans-serif;--mono:'IBM Plex Mono',monospace;
+  --sand:#f5f0ea;--cream:#fdfaf6;--sage:#8aaa8c;--rust:#c47c5a;
+  --ink:#2d2d2d;--muted:#8a8278;--border:#e8e0d6;
+  --radius:6px;--font:'Inter',sans-serif;--serif:'Playfair Display',serif;
 }
-html.light{
-  --bg:#f4f5f7;--surface:#ffffff;--surface2:#f0f1f3;--surface3:#e4e6ea;
-  --border:#dde0e6;--border2:#c8ccd4;
-  --text:#1a1d23;--text2:#4a5060;--text3:#8a919e;
-  --blue:#1a6fe8;--blue-dim:rgba(26,111,232,.1);--blue-bar:rgba(26,111,232,.72);
-  --green:#0f9e68;--green-dim:rgba(15,158,104,.1);--green-bar:rgba(15,158,104,.68);
-  --purple:#7044c8;--purple-dim:rgba(112,68,200,.1);--purple-bar:rgba(112,68,200,.68);
-  --amber:#b87d0a;--amber-dim:rgba(184,125,10,.1);--amber-bar:rgba(184,125,10,.68);
-  --red:#d93535;--red-dim:rgba(217,53,53,.1);--red-bar:rgba(210,50,50,.68);
-}
-body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px;min-height:100vh}
-header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--surface)}
+body{background:var(--cream);color:var(--ink);font-family:var(--font);font-size:13px;min-height:100vh}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--cream)}
 .logo{display:flex;align-items:center;gap:10px}
-.logo-mark{width:28px;height:28px;background:var(--blue);border-radius:4px;display:grid;place-items:center;flex-shrink:0}
+.logo-mark{width:28px;height:28px;background:var(--rust);border-radius:4px;display:grid;place-items:center;flex-shrink:0}
 .logo-mark svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round}
-.logo-text{font-size:14px;font-weight:600}
-.logo-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:1px}
+.logo-text{font-size:14px;font-weight:600;font-family:var(--serif);color:var(--ink)}
+.logo-sub{font-size:11px;color:var(--muted);margin-top:1px}
 .header-actions{display:flex;gap:8px;flex-wrap:wrap}
-.btn{padding:6px 14px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;font-size:12px;font-family:var(--font);white-space:nowrap}
-.btn:hover{background:var(--surface3);border-color:var(--blue);color:var(--blue)}
-.btn-primary{background:var(--blue);border-color:var(--blue);color:#fff}
-.btn-primary:hover{background:#60adff;border-color:#60adff;color:#fff}
-.btn-danger{color:var(--red);border-color:transparent;background:transparent}
-.btn-danger:hover{background:var(--red-dim);border-color:var(--red)}
-.toolbar{display:flex;align-items:center;gap:10px;padding:10px 24px;border-bottom:1px solid var(--border);background:var(--surface);flex-wrap:wrap}
-.toolbar-label{font-size:11px;color:var(--text3);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;flex-shrink:0}
+.btn{padding:6px 14px;border-radius:var(--radius);border:1px solid var(--border);background:var(--sand);color:var(--ink);cursor:pointer;font-size:12px;font-family:var(--font);white-space:nowrap}
+.btn:hover{background:var(--sand);border-color:var(--rust);color:var(--rust)}
+.btn-primary{background:var(--rust);border-color:var(--rust);color:#fff}
+.btn-primary:hover{background:#b36a48;border-color:#b36a48;color:#fff}
+.btn-danger{color:var(--rust);border-color:transparent;background:transparent}
+.btn-danger:hover{background:rgba(196,124,90,.1);border-color:var(--rust)}
+.toolbar{display:flex;align-items:center;gap:10px;padding:10px 24px;border-bottom:1px solid var(--border);background:var(--cream);flex-wrap:wrap}
+.toolbar-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;flex-shrink:0}
 .days-ctrl{display:flex;align-items:center;gap:6px}
-.days-ctrl input{width:50px;padding:4px 6px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:12px;font-family:var(--mono);text-align:center}
-.days-ctrl input:focus{outline:none;border-color:var(--blue)}
+.days-ctrl input{width:50px;padding:4px 6px;background:var(--sand);border:1px solid var(--border);border-radius:var(--radius);color:var(--ink);font-size:12px;font-family:var(--font);text-align:center}
+.days-ctrl input:focus{outline:none;border-color:var(--rust)}
 .sep{width:1px;height:20px;background:var(--border);margin:0 2px;flex-shrink:0}
-#title-input{padding:5px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:12px;font-family:var(--font);width:210px}
-#title-input:focus{outline:none;border-color:var(--blue)}
+#title-input{padding:5px 10px;background:var(--sand);border:1px solid var(--border);border-radius:var(--radius);color:var(--ink);font-size:12px;font-family:var(--font);width:210px}
+#title-input:focus{outline:none;border-color:var(--rust)}
 main{padding:20px 24px;overflow-x:auto}
-#chart-title{font-size:15px;font-weight:600;margin-bottom:14px;color:var(--text2);font-family:var(--mono)}
+#chart-title{font-size:15px;font-weight:600;margin-bottom:14px;color:var(--muted);font-family:var(--serif)}
 .section-header{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius);margin-bottom:1px;margin-top:6px;cursor:pointer;border-left:3px solid transparent}
 .section-title{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
 .sec-actions{margin-left:auto;display:flex;gap:6px;opacity:0}
@@ -60,51 +44,50 @@ main{padding:20px 24px;overflow-x:auto}
 .gantt-wrap{overflow-x:auto}
 table.gantt{border-collapse:collapse;width:100%;min-width:500px}
 table.gantt th,table.gantt td{border:1px solid var(--border);vertical-align:middle}
-table.gantt th{background:var(--surface2);color:var(--text3);font-family:var(--mono);font-size:10px;font-weight:500;text-align:center;padding:6px 2px;position:sticky;top:0;z-index:2}
-th.day-cp{background:rgba(255,107,107,.08);color:var(--red)}
+table.gantt th{background:var(--sand);color:var(--muted);font-size:10px;font-weight:500;text-align:center;padding:6px 2px;position:sticky;top:0;z-index:2}
+th.day-cp{background:rgba(196,124,90,.1);color:var(--rust)}
 th.label-th{position:relative;text-align:left;padding:6px 10px;width:var(--label-w,160px);min-width:80px;user-select:none}
 .col-resizer{position:absolute;right:0;top:0;bottom:0;width:6px;cursor:col-resize;display:flex;align-items:center;justify-content:center;z-index:3}
-.col-resizer::after{content:'';width:2px;height:60%;border-radius:1px;background:var(--border2)}
-.col-resizer:hover::after,.col-resizer.dragging::after{background:var(--blue)}
-.task-row td{background:var(--surface)}
-.task-row:hover td{background:var(--surface2)}
+.col-resizer::after{content:'';width:2px;height:60%;border-radius:1px;background:var(--border)}
+.col-resizer:hover::after,.col-resizer.dragging::after{background:var(--rust)}
+.task-row td{background:var(--cream)}
+.task-row:hover td{background:var(--sand)}
 .task-row td.label-cell{width:var(--label-w,160px);min-width:80px;padding:0;overflow:hidden}
 .task-inner{display:flex;flex-direction:column;gap:2px;padding:6px 10px;cursor:pointer;min-height:40px;justify-content:center}
-.task-name{font-size:11.5px;font-weight:500;color:var(--text);line-height:1.4}
-.task-assign{font-size:10px;color:var(--text3);line-height:1.3}
-.task-inner:hover .task-name{color:var(--blue)}
+.task-name{font-size:11.5px;font-weight:500;color:var(--ink);line-height:1.4}
+.task-assign{font-size:10px;color:var(--muted);line-height:1.3}
+.task-inner:hover .task-name{color:var(--rust)}
 td.day-cell{width:34px;min-width:34px;height:36px;padding:3px}
-td.cp-col{background:rgba(255,107,107,.04)}
+td.cp-col{background:rgba(196,124,90,.05)}
 .bar{width:100%;height:100%;border-radius:3px}
-.milestone-row td{background:var(--surface);padding:0}
-.milestone-row .label-cell{padding:4px 10px;font-size:10px;color:var(--text3);font-family:var(--mono)}
-.milestone-row .cp-col{background:rgba(255,107,107,.07)}
-.m-diamond{color:var(--red);font-size:14px;line-height:1;text-align:center}
-.m-label{font-size:8px;color:var(--red);font-family:var(--mono);margin-top:1px;text-align:center}
+.milestone-row td{background:var(--cream);padding:0}
+.milestone-row .label-cell{padding:4px 10px;font-size:10px;color:var(--muted)}
+.milestone-row .cp-col{background:rgba(196,124,90,.07)}
+.m-diamond{color:var(--rust);font-size:14px;line-height:1;text-align:center}
+.m-label{font-size:8px;color:var(--rust);margin-top:1px;text-align:center}
 .legend{display:flex;align-items:center;gap:18px;padding:12px 24px;border-top:1px solid var(--border);flex-wrap:wrap}
-.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3)}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
 .ldot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:none;place-items:center}
+.overlay{position:fixed;inset:0;background:rgba(45,45,45,.45);z-index:100;display:none;place-items:center}
 .overlay.open{display:grid}
-.modal{background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:22px;width:460px;max-width:95vw}
-.modal h2{font-size:15px;font-weight:600;margin-bottom:18px}
+.modal{background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:22px;width:460px;max-width:95vw}
+.modal h2{font-size:15px;font-weight:600;font-family:var(--serif);margin-bottom:18px}
 .field{margin-bottom:13px}
-.field label{display:block;font-size:11px;color:var(--text3);margin-bottom:5px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em}
-.field input,.field select{width:100%;padding:8px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);color:var(--text);font-size:12px;font-family:var(--font)}
-.field input:focus,.field select:focus{outline:none;border-color:var(--blue)}
-.field select option{background:var(--surface2)}
+.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.field input,.field select{width:100%;padding:8px 10px;background:var(--sand);border:1px solid var(--border);border-radius:var(--radius);color:var(--ink);font-size:12px;font-family:var(--font)}
+.field input:focus,.field select:focus{outline:none;border-color:var(--rust)}
+.field select option{background:var(--sand)}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .modal-footer{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
 .swatches{display:flex;gap:10px;flex-wrap:wrap}
 .swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;flex-shrink:0}
 .swatch:hover{transform:scale(1.1)}
-.swatch.sel{border-color:var(--text);transform:scale(1.18)}
-.toast{position:fixed;bottom:24px;right:24px;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 16px;font-size:12px;color:var(--text);z-index:200;transform:translateY(20px);opacity:0;pointer-events:none}
+.swatch.sel{border-color:var(--ink);transform:scale(1.18)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;font-size:12px;color:var(--cream);z-index:200;transform:translateY(20px);opacity:0;pointer-events:none}
 .toast.show{transform:translateY(0);opacity:1}
 @media print{
   header,.toolbar,.sec-actions,.legend,button{display:none!important}
   body{background:#fff;color:#111}
-  :root,html.light{--bg:#fff;--surface:#fff;--surface2:#f5f5f5;--border:#ddd;--text:#111;--text2:#555;--text3:#888}
   main{padding:10px}
 }
 </style>
@@ -122,7 +105,7 @@ td.cp-col{background:rgba(255,107,107,.04)}
     </div>
   </div>
   <div class="header-actions">
-    <button class="btn" id="theme-btn" onclick="toggleTheme()" style="font-size:14px;padding:6px 10px">🌙</button>
+    <a href="/" class="btn" style="text-decoration:none">← 主页</a>
     <button class="btn" onclick="openSecModal('new')">＋ 新建分类</button>
     <button class="btn" onclick="addCheckpoint()">＋ 检查点</button>
     <button class="btn" onclick="window.print()">🖨 打印</button>
@@ -207,21 +190,18 @@ td.cp-col{background:rgba(255,107,107,.04)}
 <script>
 // ── DATA ──
 let totalDays = 14;
-const COLORS = ['blue','green','purple','amber','red'];
-const COLOR_HEX_DARK  = {blue:'#4a9eff',green:'#3ecf8e',purple:'#a07ee8',amber:'#f5a623',red:'#ff6b6b'};
-const COLOR_HEX_LIGHT = {blue:'#1a6fe8',green:'#0f9e68',purple:'#7044c8',amber:'#b87d0a',red:'#d93535'};
-const COLOR_DIM_DARK  = {blue:'rgba(74,158,255,.15)',green:'rgba(62,207,142,.12)',purple:'rgba(160,126,232,.14)',amber:'rgba(245,166,35,.13)',red:'rgba(255,107,107,.12)'};
-const COLOR_DIM_LIGHT = {blue:'rgba(26,111,232,.1)',green:'rgba(15,158,104,.1)',purple:'rgba(112,68,200,.1)',amber:'rgba(184,125,10,.1)',red:'rgba(217,53,53,.1)'};
-const COLOR_BAR_DARK  = {blue:'rgba(74,158,255,.75)',green:'rgba(62,207,142,.72)',purple:'rgba(160,126,232,.72)',amber:'rgba(230,148,20,.72)',red:'rgba(255,107,107,.68)'};
-const COLOR_BAR_LIGHT = {blue:'rgba(26,111,232,.72)',green:'rgba(15,158,104,.68)',purple:'rgba(112,68,200,.68)',amber:'rgba(184,125,10,.68)',red:'rgba(210,50,50,.68)'};
+const COLORS = ['rust','sage','ink','muted'];
+const COLOR_HEX = {rust:'#c47c5a',sage:'#8aaa8c',ink:'#2d2d2d',muted:'#8a8278'};
+const COLOR_DIM = {rust:'rgba(196,124,90,.15)',sage:'rgba(138,170,140,.15)',ink:'rgba(45,45,45,.1)',muted:'rgba(138,130,120,.12)'};
+const COLOR_BAR = {rust:'rgba(196,124,90,.75)',sage:'rgba(138,170,140,.72)',ink:'rgba(45,45,45,.5)',muted:'rgba(138,130,120,.55)'};
 
-function getAccent(c){ return isLight ? COLOR_HEX_LIGHT[c]  : COLOR_HEX_DARK[c];  }
-function getDim(c)   { return isLight ? COLOR_DIM_LIGHT[c]  : COLOR_DIM_DARK[c];  }
-function getBar(c)   { return isLight ? COLOR_BAR_LIGHT[c]  : COLOR_BAR_DARK[c];  }
+function getAccent(c){ return COLOR_HEX[c]; }
+function getDim(c)   { return COLOR_DIM[c]; }
+function getBar(c)   { return COLOR_BAR[c]; }
 
 let sections = [
-  {id:1, label:'增量学习', color:'blue'},
-  {id:2, label:'智能模型评估系统（预研）', color:'green'},
+  {id:1, label:'增量学习', color:'rust'},
+  {id:2, label:'智能模型评估系统（预研）', color:'sage'},
 ];
 
 let tasks = [
@@ -245,7 +225,7 @@ let nextId = 300;
 let editingTaskId = null;
 let editingSecId  = null;
 let editingCpId   = null;
-let selectedColor = 'blue';
+let selectedColor = 'rust';
 
 // ── RENDER ──
 function cpDays(){ return checkpoints.map(c=>c.day); }
@@ -305,7 +285,7 @@ function render(){
   });
 
   // Milestone row
-  html += `<tr class="milestone-row"><td class="label-cell" style="padding:4px 10px;font-size:10px;color:var(--text3);font-family:var(--mono)">里程碑</td>`;
+  html += `<tr class="milestone-row"><td class="label-cell" style="padding:4px 10px;font-size:10px;color:var(--muted)">里程碑</td>`;
   for(let d=1;d<=totalDays;d++){
     const cp = checkpoints.find(c=>c.day===d);
     const cls = 'day-cell'+(cp?' cp-col':'');
@@ -316,8 +296,8 @@ function render(){
 
   // Legend
   let leg = sections.map(s=>`<div class="legend-item"><div class="ldot" style="background:${getBar(s.color)}"></div>${esc(s.label)}</div>`).join('');
-  leg += `<div class="legend-item"><span style="color:var(--red);font-size:12px">◆</span>检查点</div>`;
-  leg += `<div style="margin-left:auto;font-size:10px;color:var(--text3);font-family:var(--mono)">点击任务名编辑 · 双击格子切换 · 点击分类行编辑分类</div>`;
+  leg += `<div class="legend-item"><span style="color:var(--rust);font-size:12px">◆</span>检查点</div>`;
+  leg += `<div style="margin-left:auto;font-size:10px;color:var(--muted)">点击任务名编辑 · 双击格子切换 · 点击分类行编辑分类</div>`;
   document.getElementById('legend').innerHTML = leg;
 }
 
@@ -382,8 +362,8 @@ function addTask(catId){
 // ── SECTION MODAL ──
 function buildSwatches(cur){
   document.getElementById('swatches').innerHTML=COLORS.map(c=>{
-    const hex=isLight?COLOR_HEX_LIGHT[c]:COLOR_HEX_DARK[c];
-    return `<div class="swatch${c===cur?' sel':''}" data-c="${c}" style="background:${hex};border-color:${c===cur?'var(--text)':'transparent'}" onclick="pickColor('${c}')"></div>`;
+    const hex=COLOR_HEX[c];
+    return `<div class="swatch${c===cur?' sel':''}" data-c="${c}" style="background:${hex};border-color:${c===cur?'var(--ink)':'transparent'}" onclick="pickColor('${c}')"></div>`;
   }).join('');
   selectedColor=cur;
 }
@@ -392,7 +372,7 @@ function pickColor(c){
   document.querySelectorAll('.swatch').forEach(s=>{
     const isSel=s.dataset.c===c;
     s.classList.toggle('sel',isSel);
-    s.style.borderColor=isSel?'var(--text)':'transparent';
+    s.style.borderColor=isSel?'var(--ink)':'transparent';
   });
 }
 function openSecModal(id){
@@ -475,23 +455,7 @@ function toast(msg){
   clearTimeout(toast._t); toast._t=setTimeout(()=>el.classList.remove('show'),2200);
 }
 
-// ── THEME ──
-let isLight=false;
-function toggleTheme(){
-  isLight=!isLight;
-  document.documentElement.classList.toggle('light',isLight);
-  document.getElementById('theme-btn').textContent=isLight?'🌑':'🌙';
-  try{ localStorage.setItem('gantt-theme',isLight?'light':'dark'); }catch(e){}
-  render();
-}
-(function(){
-  try{
-    if(localStorage.getItem('gantt-theme')==='light'){
-      isLight=true; document.documentElement.classList.add('light');
-      window.addEventListener('DOMContentLoaded',()=>{ const b=document.getElementById('theme-btn'); if(b) b.textContent='🌑'; });
-    }
-  }catch(e){}
-})();
+
 
 // ── COLUMN RESIZE ──
 let labelW=160;
