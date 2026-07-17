@@ -6,6 +6,7 @@
       "thumb": "合照1-thumb.jpg",
       "type": "image",
       "title": "合照 1",
+      "date": "2024-06-13",
       "tag": "photo"
     },
     {
@@ -13,6 +14,7 @@
       "thumb": "合照2-thumb.jpg",
       "type": "image",
       "title": "合照 2",
+      "date": "2024-06-13",
       "tag": "photo"
     },
     {
@@ -20,6 +22,7 @@
       "thumb": "合照3-thumb.jpg",
       "type": "image",
       "title": "合照 3",
+      "date": "2024-06-13",
       "tag": "photo"
     },
     {
@@ -27,6 +30,7 @@
       "thumb": "合照4-thumb.jpg",
       "type": "image",
       "title": "合照 4",
+      "date": "2024-06-13",
       "tag": "photo"
     },
     {
@@ -34,6 +38,7 @@
       "thumb": "合照5-thumb.jpg",
       "type": "image",
       "title": "合照 5",
+      "date": "2024-06-13",
       "tag": "photo"
     },
     {
@@ -41,6 +46,7 @@
       "thumb": "合照6-thumb.jpg",
       "type": "image",
       "title": "合照 6",
+      "date": "2024-06-13",
       "tag": "photo"
     },
     {
@@ -48,6 +54,7 @@
       "thumb": "合照7-thumb.jpg",
       "type": "image",
       "title": "合照 7",
+      "date": "2024-06-13",
       "tag": "photo"
     },
     {
@@ -55,6 +62,7 @@
       "thumb": "合照8-thumb.jpg",
       "type": "image",
       "title": "合照 8",
+      "date": "2024-06-13",
       "tag": "photo"
     },
     {
@@ -62,6 +70,7 @@
       "thumb": "合影1-thumb.jpg",
       "type": "video",
       "title": "合影 1",
+      "date": "2024-06-13",
       "tag": "video"
     },
     {
@@ -69,6 +78,7 @@
       "thumb": "合影2-thumb.jpg",
       "type": "video",
       "title": "合影 2",
+      "date": "2024-06-13",
       "tag": "video"
     }
   ]

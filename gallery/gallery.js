@@ -18,6 +18,7 @@ async function init() {
         tag: p.tag || null,
         thumb: p.thumb || null,
         type: p.type || null,
+        date: p.date || null,
       });
     });
 
@@ -36,7 +37,8 @@ async function init() {
         thumb: `${dir}/${info.thumb || file}`,
         type,
         title: info.title,
-        tag:   info.tag,  // null if not tagged
+        tag:   info.tag,
+        date:  info.date,
       };
     });
 
@@ -86,6 +88,12 @@ function buildFilters() {
   });
 }
 
+function formatDate(d) {
+  const parts = d.split("-");
+  if (parts.length === 3) return `${parts[0]}.${parts[1]}.${parts[2]}`;
+  return d;
+}
+
 // ── render cards ──
 function renderCards(tag) {
   gallery.innerHTML = "";
@@ -99,13 +107,12 @@ function renderCards(tag) {
     card.className = `card${p.type === "video" ? " video-card" : ""}`;
     card.dataset.index = i;
     card.dataset.type = p.type;
-    const hasMeta = p.title || p.tag;
+    const dateStr = p.date ? formatDate(p.date) : null;
     card.innerHTML = `
       <img src="${p.thumb}" alt="${p.title || ""}" loading="lazy" />${
-      hasMeta ? `
+      dateStr ? `
       <div class="card-meta">
-        ${p.title ? `<h3>${p.title}</h3>` : ""}
-        ${p.tag ? `<span>${p.tag}</span>` : ""}
+        <span>${dateStr}</span>
       </div>` : ""}`;
     card.addEventListener("click", () => openLightbox(i));
     gallery.appendChild(card);
@@ -162,7 +169,10 @@ function showSlide() {
     lbImg.hidden = false;
   }
 
-  lbCaption.textContent = p.title || "";
+  const parts = [];
+  if (p.title) parts.push(p.title);
+  if (p.date) parts.push(formatDate(p.date));
+  lbCaption.textContent = parts.join(" · ");
   lbCounter.textContent = `${currentLb + 1} / ${visibleIndices.length}`;
 }
 
