@@ -49,7 +49,7 @@ nav {
 
 /* ── HERO ── */
 .hero {
-  padding: 10rem 2rem 4rem;
+  padding: 7rem 2rem 2.5rem;
   max-width: 860px; margin: 0 auto;
   text-align: center;
 }
@@ -74,7 +74,7 @@ nav {
 .gallery-section {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 2rem 2rem 6rem;
+  padding: 1.5rem 1.5rem 5rem;
 }
 
 /* ── FILTER BAR ── */
@@ -83,9 +83,9 @@ nav {
   gap: 0.5rem; margin-bottom: 2.5rem; flex-wrap: wrap;
 }
 .filter-btn {
-  padding: 0.35rem 1rem;
+  padding: 0.3rem 0.85rem;
   border-radius: 2rem;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-family: "Inter", sans-serif;
   letter-spacing: 0.04em;
   background: transparent;
@@ -98,17 +98,17 @@ nav {
   border-color: var(--rust); color: var(--rust);
 }
 .filter-btn.active {
-  background: var(--sand);
+  background: var(--rust);
   border-color: var(--rust);
-  color: var(--rust);
+  color: #fff;
 }
 
 /* ── MASONRY GRID ── */
 .gallery {
   column-count: 3;
-  column-gap: 1.4rem;
+  column-gap: 0.5rem;
 }
-@media (max-width: 900px)  { .gallery { column-count: 2; } }
+@media (max-width: 900px)  { .gallery { column-count: 2; column-gap: 0.4rem; } }
 @media (max-width: 520px)  {
   .gallery { column-count: 1; }
   .gallery-section { padding: 1rem 1rem 4rem; }
@@ -117,22 +117,20 @@ nav {
 /* ── CARD ── */
 .card {
   break-inside: avoid;
-  margin-bottom: 1.4rem;
+  margin-bottom: 0.5rem;
   position: relative;
-  border-radius: 0.75rem;
+  border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
-  border: 1px solid var(--border);
-  background: var(--sand);
-  transition: transform .25s, box-shadow .25s, border-color .25s;
+  transition: transform .25s;
   opacity: 0;
   transform: translateY(16px);
   animation: card-in .45s ease forwards;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
-  border-color: var(--rust);
+  transform: translateY(-2px) !important;
 }
 .card img {
   display: block; width: 100%; height: auto;
@@ -142,46 +140,42 @@ nav {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 46px;
-  height: 46px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: rgba(45, 45, 45, 0.48);
+  background: rgba(0, 0, 0, 0.55);
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
 .card.video-card::before {
   content: "";
   position: absolute;
-  left: calc(50% + 3px);
+  left: calc(50% + 2px);
   top: 50%;
-  border-left: 14px solid rgba(255, 255, 255, 0.92);
-  border-top: 9px solid transparent;
-  border-bottom: 9px solid transparent;
+  border-left: 12px solid rgba(255, 255, 255, 0.92);
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 1;
 }
 
-/* meta on hover */
+/* meta on hover — 小红书风格 */
 .card-meta {
   position: absolute; bottom: 0; left: 0; right: 0;
-  padding: 1rem;
-  background: linear-gradient(0deg, rgba(45,45,45,.7) 0%, transparent 100%);
+  padding: 0.6rem 0.75rem;
+  background: linear-gradient(0deg, rgba(0,0,0,.6) 0%, transparent 100%);
   transform: translateY(4px);
   opacity: 0;
-  transition: all .25s ease;
+  transition: all .2s ease;
   pointer-events: none;
   z-index: 2;
 }
 .card:hover .card-meta { opacity: 1; transform: translateY(0); }
-.card-meta h3 {
-  font-family: "Playfair Display", serif;
-  font-size: 0.9rem; font-weight: 400; color: #fff;
-  margin-bottom: 2px;
-}
 .card-meta span {
-  font-size: 0.68rem; text-transform: uppercase;
-  letter-spacing: 0.08em; color: rgba(255,255,255,.7);
+  font-size: 0.72rem;
+  color: rgba(255,255,255,.85);
+  letter-spacing: 0.03em;
 }
 
 @keyframes card-in {
