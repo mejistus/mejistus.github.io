@@ -94,19 +94,49 @@ function formatDate(d) {
   return d;
 }
 
+// ── masonry helpers ──
+function getColCount() {
+  const w = gallery.clientWidth;
+  if (w < 520) return 1;
+  if (w < 900) return 2;
+  return 3;
+}
+
+function createColumns(n) {
+  gallery.innerHTML = "";
+  const cols = [];
+  for (let i = 0; i < n; i++) {
+    const col = document.createElement("div");
+    col.className = "gallery-col";
+    gallery.appendChild(col);
+    cols.push(col);
+  }
+  return cols;
+}
+
+function shortestCol(cols) {
+  let min = cols[0], idx = 0;
+  for (let i = 1; i < cols.length; i++) {
+    if (cols[i].offsetHeight < min.offsetHeight) {
+      min = cols[i];
+      idx = i;
+    }
+  }
+  return min;
+}
+
 // ── render cards ──
 function renderCards(tag) {
-  gallery.innerHTML = "";
+  const colCount = getColCount();
+  const cols = createColumns(colCount);
+
   photos.forEach((p, i) => {
-    // filter logic: "all" shows everything;
-    // tagged photos match by tag; untagged photos only show under "all"
-    if (tag !== "all") {
-      if (p.tag !== tag) return;
-    }
+    if (tag !== "all" && p.tag !== tag) return;
+
     const card = document.createElement("div");
     card.className = `card${p.type === "video" ? " video-card" : ""}`;
     card.dataset.index = i;
-    card.dataset.type = p.type;
+
     const dateStr = p.date ? formatDate(p.date) : null;
     card.innerHTML = `
       <img src="${p.thumb}" alt="${p.title || ""}" loading="lazy" />${
@@ -114,10 +144,20 @@ function renderCards(tag) {
       <div class="card-meta">
         <span>${dateStr}</span>
       </div>` : ""}`;
+
     card.addEventListener("click", () => openLightbox(i));
-    gallery.appendChild(card);
+    shortestCol(cols).appendChild(card);
   });
 }
+
+let resizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    const active = document.querySelector(".filter-btn.active");
+    if (active) renderCards(active.dataset.tag);
+  }, 200);
+});
 
 // ── lightbox ──
 const lightbox  = document.getElementById("lightbox");
