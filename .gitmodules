@@ -1,0 +1,3 @@
+[submodule "waredb"]
+	path = waredb
+	url = https://github.com/mejistus/waredb.git
