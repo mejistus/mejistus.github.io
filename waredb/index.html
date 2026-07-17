@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GPU/CPU 数据库</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:#f5f1ea;
+  color:#2c2923;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:14px;min-height:100vh
+}
+.header{
+  background:linear-gradient(135deg,#f0e8dc 0%,#e8dfd0 100%);
+  padding:14px 24px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  border-bottom:1px solid #ddd6c8
+}
+.header h1{
+  font-size:18px;font-weight:400;color:#4a4438;
+  font-family:"STSong","SimSun","Songti SC",serif;
+  letter-spacing:4px
+}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat-badge{
+  background:#f7f3eb;border:1px solid #ddd6c8;
+  border-radius:3px;padding:3px 10px;font-size:12px;color:#7a7168
+}
+.stat-badge strong{color:#4a4438}
+.controls{
+  background:#faf7f2;padding:10px 24px;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  border-bottom:1px solid #e8e0d4
+}
+.controls input{
+  background:#f5f1ea;border:1px solid #ddd6c8;border-radius:3px;
+  color:#2c2923;padding:6px 10px;font-size:13px;outline:none;transition:border-color .2s
+}
+.controls input:focus{border-color:#a8c5b8}
+.controls input{flex:1;min-width:180px}
+.filters{
+  background:#faf7f2;padding:6px 24px 10px;
+  display:flex;flex-wrap:wrap;gap:6px;align-items:center;
+  border-bottom:1px solid #e8e0d4
+}
+.filters .filter-btn{
+  background:transparent;border:1px solid #ddd6c8;border-radius:999px;
+  color:#7a7168;padding:3px 12px;font-size:12px;cursor:pointer;transition:all .2s
+}
+.filters .filter-btn:hover{border-color:#a8c5b8;color:#4a4438}
+.filters .filter-btn.active{background:#f0e8dc;border-color:#7a7168;color:#4a4438}
+.table-wrap{overflow-x:auto;padding:0}
+table{width:100%;border-collapse:collapse;white-space:nowrap}
+thead{position:sticky;top:0;z-index:10}
+thead th{
+  background:#f5f1ea;color:#4a4438;
+  font-size:13px;font-weight:700;text-align:center;
+  padding:10px 6px;border-bottom:2px solid #ddd6c8;
+  cursor:pointer;user-select:none;transition:color .15s;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif
+}
+thead th:hover{color:#1a1815}
+thead th .sort-icon{display:inline-block;margin-left:4px;opacity:.3;font-size:10px}
+th.sorted .sort-icon{opacity:1;color:#7a7168}
+th.chk{width:32px;text-align:center;cursor:default;padding:10px 2px}
+th.chk:hover{color:#4a4438}
+thead th.group-header{
+  text-align:center;font-size:11px;font-weight:600;letter-spacing:1.5px;padding:6px 6px;cursor:default;
+  border-bottom:2px solid #ddd6c8
+}
+thead th.group-header:hover{color:#4a4438}
+thead th.name-col{text-align:left}
+td{padding:7px 6px;border-bottom:1px solid #e8e0d4;font-size:13px;text-align:center}
+td.name-col{text-align:left}
+tr:hover td{background:rgba(0,0,0,.02)}
+.pinned-row td{border-bottom-color:#c4b8a4}
+.pinned-row td.td-chk{background:#f0ece4!important}
+.pin-divider td{background:0 0!important;border-bottom:1px solid #a8c5b8;padding:0;height:0;font-size:0}
+.pin-divider td.td-chk{background:0 0!important}
+.name-cell{display:flex;align-items:center;gap:6px}
+.name-cell a{color:#5a7a6c;text-decoration:none;transition:color .2s}
+.name-cell a:hover{color:#2c2923;text-decoration:underline}
+.badge{
+  display:inline-block;padding:1px 8px;border-radius:2px;
+  font-size:10px;font-weight:500;text-transform:uppercase;
+  min-width:46px;text-align:center;letter-spacing:.8px
+}
+.badge-nvidia{background:#e8f0ec;color:#5a7a6c;border:1px solid #d0e0d8}
+.badge-amd{background:#f0e4e0;color:#b07060;border:1px solid #e4d0c8}
+.badge-intel{background:#e0e8f0;color:#507890;border:1px solid #c8d8e4}
+.badge-apple{background:#ece8e0;color:#8a8070;border:1px solid #ddd6c8}
+.badge-other{background:#f0eee8;color:#7a7168;border:1px solid #e0dcd4}
+.val{color:#2c2923}
+.val-empty{color:#c4b8a4;font-size:11px}
+.td-chk{text-align:center;padding:0 2px!important;width:32px}
+.td-chk input{
+  cursor:pointer;
+  appearance:none;-webkit-appearance:none;
+  width:14px;height:14px;
+  border:1.5px solid #c4b8a4;
+  border-radius:2px;
+  background:#faf7f2;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:all .2s;
+  vertical-align:middle;
+  position:relative
+}
+.td-chk input:checked{
+  border-color:#7a9a8c;
+  background:#e8f0ec
+}
+.td-chk input:checked::after{
+  content:'✓';
+  position:absolute;
+  font-size:10px;
+  color:#5a7a6c;
+  font-weight:700;
+  line-height:1;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%)
+}
+.td-chk input:hover{border-color:#7a9a8c}
+
+.ct{font-size:9px;margin-left:2px;cursor:help;vertical-align:middle}
+.col-mem{background:#f5efe7!important}
+.col-vec{background:#edf3f0!important}
+.col-mat{background:#f5eeec!important}
+thead th.col-mem{background:#ede4d8!important;color:#7a6a50}
+thead th.col-vec{background:#dce8e2!important;color:#4a7a6a}
+thead th.col-mat{background:#e8dcd8!important;color:#9a6a5a}
+.ct-vec{color:#5a8a7a}
+.ct-mat{color:#b07060}
+.footer{
+  text-align:center;padding:16px;color:#7a7168;font-size:12px;
+  border-top:1px solid #e8e0d4
+}
+.footer a{color:#5a7a6c;text-decoration:none;transition:color .2s}
+.footer a:hover{color:#2c2923;text-decoration:underline}
+@media(max-width:768px){
+  .header h1{font-size:16px}
+  th,td{padding:5px 4px;font-size:12px}
+  .td-chk input{width:12px;height:12px}
+}
+.loading{text-align:center;padding:60px;color:#7a7168}
+.error{text-align:center;padding:60px;color:#b07060}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>GPU/CPU 数据库</h1>
+  <div class="stats" id="stats"></div>
+</div>
+<div class="controls">
+  <input type="text" id="search" placeholder="搜型号…" oninput="render()">
+</div>
+<div class="filters" id="filters"></div>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th class="chk" onclick="toggleSelectAll()" title="全选/取消"><span id="selectAllIcon">☐</span></th>
+        <th class="name-col" onclick="sort('name')" style="min-width:150px">名称 <span class="sort-icon">▲</span></th>
+        <th class="col-mem" colspan="2" style="cursor:default">内存</th>
+        <th class="col-vec" colspan="7" style="cursor:default">Vector <span class="ct ct-vec" title="通用计算">◆</span></th>
+        <th class="col-mat" colspan="9" style="cursor:default">Matrix <span class="ct ct-mat" title="矩阵加速">◆</span></th>
+      </tr>
+      <tr>
+        <th class="chk" onclick="toggleSelectAll()" title="全选/取消"><span id="selectAllIcon2">☐</span></th>
+        <th class="name-col" onclick="sort('name')">名称 <span class="sort-icon">▲</span></th>
+        <th class="col-mem" onclick="sort('mem_bw')">带宽 <span class="sort-icon">▲</span></th>
+        <th class="col-mem" onclick="sort('mem_cap')">容量 <span class="sort-icon">▲</span></th>
+        <th class="col-vec" onclick="sort('v_fp64')">FP64 <span class="sort-icon">▲</span></th>
+        <th class="col-vec" onclick="sort('v_fp32')">FP32 <span class="sort-icon">▲</span></th>
+        <th class="col-vec" onclick="sort('v_fp16')">FP16 <span class="sort-icon">▲</span></th>
+        <th class="col-vec" onclick="sort('v_bf16')">BF16 <span class="sort-icon">▲</span></th>
+        <th class="col-vec" onclick="sort('v_int8')">INT8 <span class="sort-icon">▲</span></th>
+        <th class="col-vec" onclick="sort('v_int32')">INT32 <span class="sort-icon">▲</span></th>
+        <th class="col-vec" onclick="sort('vector_compute')">ALUs <span class="sort-icon">▲</span></th>
+        <th class="col-mat" onclick="sort('m_fp64')">FP64 <span class="sort-icon">▲</span></th>
+        <th class="col-mat" onclick="sort('m_fp32')">FP32 <span class="sort-icon">▲</span></th>
+        <th class="col-mat" onclick="sort('m_tf32')">TF32 <span class="sort-icon">▲</span></th>
+        <th class="col-mat" onclick="sort('m_fp16')">FP16 <span class="sort-icon">▲</span></th>
+        <th class="col-mat" onclick="sort('m_bf16')">BF16 <span class="sort-icon">▲</span></th>
+        <th class="col-mat" onclick="sort('m_fp8')">FP8 <span class="sort-icon">▲</span></th>
+        <th class="col-mat" onclick="sort('m_int8')">INT8 <span class="sort-icon">▲</span></th>
+        <th class="col-mat" onclick="sort('m_int4')">INT4 <span class="sort-icon">▲</span></th>
+        <th class="col-mat" onclick="sort('matrix_compute')">Cores <span class="sort-icon">▲</span></th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+<div class="footer">
+  <span style="margin-right:12px"><span class="ct ct-vec">◆</span> Vector</span>
+  <span style="margin-right:12px"><span class="ct ct-mat">◆</span> Matrix</span>
+  数据 <a href="https://www.waredb.com">waredb.com</a> · 共 <span id="total">0</span> 器
+</div>
+
+<script>
+const SORT_KEYS = ['name','mem_bw','mem_cap','v_fp64','v_fp32','v_fp16','v_bf16','v_int8','v_int32','vector_compute','m_fp64','m_fp32','m_tf32','m_fp16','m_bf16','m_fp8','m_int8','m_int4','matrix_compute'];
+
+let data = [];
+let sortKey = 'mem_bw';
+let sortDir = 'desc';
+let companyFilter = '';
+let pinned = new Set();
+try {
+  let saved = localStorage.getItem('waredb_pinned');
+  if(saved) pinned = new Set(JSON.parse(saved));
+} catch(e) {}
+
+function numVal(v){
+  if(!v) return -1;
+  let m = v.match(/^([\d.]+)/);
+  return m ? parseFloat(m[1]) : -1;
+}
+
+function fmtVal(v, key, color){
+  if(!v) return '<span class="val-empty">-</span>';
+  let style = color ? ` style="${color}"` : '';
+  return `<span class="val"${style}>${v}</span>`;
+}
+
+function getCompanyClass(c){
+  return 'badge-'+c.toLowerCase();
+}
+
+function savePinned(){
+  try { localStorage.setItem('waredb_pinned', JSON.stringify([...pinned])); } catch(e) {}
+}
+
+function togglePin(slug){
+  if(pinned.has(slug)) pinned.delete(slug);
+  else pinned.add(slug);
+  savePinned();
+  render();
+}
+
+function toggleSelectAll(){
+  let tbody = document.getElementById('tbody');
+  let visible = [...tbody.querySelectorAll('tr:not(.pin-divider):not(.pinned-row)')];
+  let allChecked = visible.every(tr => tr.querySelector('.chk input')?.checked);
+  visible.forEach(tr => {
+    let cb = tr.querySelector('.chk input');
+    if(cb) cb.checked = !allChecked;
+  });
+  pinned.clear();
+  document.querySelectorAll('.chk input').forEach(cb => {
+    if(cb.checked) pinned.add(cb.dataset.slug);
+  });
+  savePinned();
+  render();
+}
+
+function render(){
+  let tbody = document.getElementById('tbody');
+  let search = document.getElementById('search').value.toLowerCase().trim();
+
+  let filtered = data.filter(d=>{
+    if(companyFilter && d.company!==companyFilter) return false;
+    if(search && !d.name.toLowerCase().includes(search) && !d.slug.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  const heatKeys = ['mem_bw','mem_cap','v_fp64','v_fp32','v_fp16','v_bf16','v_int8','v_int32','vector_compute','m_fp64','m_fp32','m_tf32','m_fp16','m_bf16','m_fp8','m_int8','m_int4','matrix_compute'];
+  const ranges = {};
+  for (let k of heatKeys) {
+    let vals = filtered.map(d => numVal(d[k])).filter(v => v >= 0);
+    if (vals.length) {
+      let mn = Math.min(...vals), mx = Math.max(...vals);
+      if (mx > mn) ranges[k] = {min: mn, max: mx};
+    }
+  }
+  function heatFg(key, val) {
+    let r = ranges[key];
+    if (!r || !val) return '';
+    let n = numVal(val);
+    if (n < 0) return '';
+    let t = Math.min(1, Math.max(0, (n - r.min) / (r.max - r.min)));
+    if (!val) return '';
+    return `color:hsl(${120 - t * 120},${25 + t * 10}%,${42}%)`;
+  }
+
+  let pinnedItems = filtered.filter(d => pinned.has(d.slug));
+  let unpinnedItems = filtered.filter(d => !pinned.has(d.slug));
+
+  function sortList(arr){
+    arr.sort((a,b)=>{
+      let va,vb;
+      if(sortKey==='name'){
+        va = a.name.toLowerCase();
+        vb = b.name.toLowerCase();
+      } else {
+        va = numVal(a[sortKey]);
+        vb = numVal(b[sortKey]);
+      }
+      if(va<vb) return sortDir==='asc'?-1:1;
+      if(va>vb) return sortDir==='asc'?1:-1;
+      return 0;
+    });
+  }
+
+  sortList(pinnedItems);
+  sortList(unpinnedItems);
+
+  function row(d,pinnedRow){
+    let badgeClass = getCompanyClass(d.company);
+    let check = pinnedRow ? 'checked' : (pinned.has(d.slug)?'checked':'');
+    let trClass = pinnedRow ? ' class="pinned-row"' : '';
+    return `<tr${trClass}>
+      <td class="td-chk"><input type="checkbox" class="chk" data-slug="${d.slug}" ${check} onchange="togglePin('${d.slug}')"></td>
+      <td class="name-col"><div class="name-cell"><span class="badge ${badgeClass}">${d.company}</span>${escHtml(d.name)}</div></td>
+      <td class="col-mem">${fmtVal(d.mem_bw,'mem_bw',heatFg('mem_bw',d.mem_bw))}</td>
+      <td class="col-mem">${fmtVal(d.mem_cap,'mem_cap',heatFg('mem_cap',d.mem_cap))}</td>
+      <td class="col-vec">${fmtVal(d.v_fp64,'v_fp64',heatFg('v_fp64',d.v_fp64))}</td>
+      <td class="col-vec">${fmtVal(d.v_fp32,'v_fp32',heatFg('v_fp32',d.v_fp32))}</td>
+      <td class="col-vec">${fmtVal(d.v_fp16,'v_fp16',heatFg('v_fp16',d.v_fp16))}</td>
+      <td class="col-vec">${fmtVal(d.v_bf16,'v_bf16',heatFg('v_bf16',d.v_bf16))}</td>
+      <td class="col-vec">${fmtVal(d.v_int8,'v_int8',heatFg('v_int8',d.v_int8))}</td>
+      <td class="col-vec">${fmtVal(d.v_int32,'v_int32',heatFg('v_int32',d.v_int32))}</td>
+      <td class="col-vec">${fmtVal(d.vector_compute,'vector_compute',heatFg('vector_compute',d.vector_compute))}</td>
+      <td class="col-mat">${fmtVal(d.m_fp64,'m_fp64',heatFg('m_fp64',d.m_fp64))}</td>
+      <td class="col-mat">${fmtVal(d.m_fp32,'m_fp32',heatFg('m_fp32',d.m_fp32))}</td>
+      <td class="col-mat">${fmtVal(d.m_tf32,'m_tf32',heatFg('m_tf32',d.m_tf32))}</td>
+      <td class="col-mat">${fmtVal(d.m_fp16,'m_fp16',heatFg('m_fp16',d.m_fp16))}</td>
+      <td class="col-mat">${fmtVal(d.m_bf16,'m_bf16',heatFg('m_bf16',d.m_bf16))}</td>
+      <td class="col-mat">${fmtVal(d.m_fp8,'m_fp8',heatFg('m_fp8',d.m_fp8))}</td>
+      <td class="col-mat">${fmtVal(d.m_int8,'m_int8',heatFg('m_int8',d.m_int8))}</td>
+      <td class="col-mat">${fmtVal(d.m_int4,'m_int4',heatFg('m_int4',d.m_int4))}</td>
+      <td class="col-mat">${fmtVal(d.matrix_compute,'matrix_compute',heatFg('matrix_compute',d.matrix_compute))}</td>
+    </tr>`;
+  }
+
+  let html = pinnedItems.map(d=>row(d,true)).join('');
+  if(pinnedItems.length > 0 && unpinnedItems.length > 0){
+    html += `<tr class="pin-divider"><td class="td-chk"></td><td colspan="19"></td></tr>`;
+  }
+  html += unpinnedItems.map(d=>row(d,false)).join('');
+  tbody.innerHTML = html;
+  document.getElementById('total').textContent = filtered.length;
+
+  let total=data.length, withBw=data.filter(d=>d.mem_bw).length, withDetail=data.filter(d=>d.v_fp32).length;
+  document.getElementById('stats').innerHTML =
+    `<span class="stat-badge">总 <strong>${total}</strong></span>` +
+    `<span class="stat-badge">带宽 <strong>${withBw}</strong></span>` +
+    `<span class="stat-badge">算力 <strong>${withDetail}</strong></span>` +
+    (pinned.size ? `<span class="stat-badge">选 <strong>${pinned.size}</strong></span>` : '');
+
+  document.querySelectorAll('th').forEach(th=>th.classList.remove('sorted'));
+  let headers = document.querySelectorAll('thead tr:nth-child(2) th');
+  let idx = SORT_KEYS.indexOf(sortKey);
+  if(idx>=0 && headers[idx]) headers[idx].classList.add('sorted');
+  document.getElementById('selectAllIcon').textContent = data.length > 0 && pinned.size === data.length ? '☑' : '☐';
+  let s2 = document.getElementById('selectAllIcon2');
+  if(s2) s2.textContent = document.getElementById('selectAllIcon').textContent;
+}
+
+function escHtml(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function sort(key){
+  if(sortKey===key){
+    sortDir = sortDir==='asc'?'desc':'asc';
+  } else {
+    sortKey = key;
+    sortDir = 'desc';
+  }
+  render();
+}
+
+function setFilter(company){
+  if(companyFilter===company){
+    companyFilter = '';
+  } else {
+    companyFilter = company;
+  }
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.company===companyFilter));
+  render();
+}
+
+fetch('gpu_data.json').then(r=>r.json()).then(d=>{
+  data = d;
+  const order={NVIDIA:0,AMD:1,Intel:2,Apple:3,Other:4};
+  let companies = [...new Set(data.map(x=>x.company))].sort((a,b)=>order[a]-order[b]);
+  let fhtml = '';
+  for(let c of companies){
+    let cnt = data.filter(x=>x.company===c).length;
+    fhtml += `<button class="filter-btn ${c.toLowerCase()}" data-company="${c}" onclick="setFilter('${c}')">${c} (${cnt})</button>`;
+  }
+  fhtml += `<button class="filter-btn" data-company="" onclick="setFilter('')" style="margin-left:6px">全部</button>`;
+  document.getElementById('filters').innerHTML = fhtml;
+  render();
+}).catch(e=>{
+  document.getElementById('tbody').innerHTML = '<tr><td colspan="20"><div class="error">加载数据失败: '+e.message+'</div></td></tr>';
+});
+</script>
+</body>
+</html>
