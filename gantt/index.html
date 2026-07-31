@@ -109,6 +109,7 @@ td.cp-col{background:rgba(196,124,90,.05)}
     <button class="btn" onclick="openSecModal('new')">＋ 新建分类</button>
     <button class="btn" onclick="addCheckpoint()">＋ 检查点</button>
     <button class="btn" onclick="window.print()">🖨 打印</button>
+    <button class="btn" onclick="resetData()">↺ 重置</button>
     <button class="btn btn-primary" onclick="exportHTML()">⬇ 导出 HTML</button>
   </div>
 </header>
@@ -190,6 +191,10 @@ td.cp-col{background:rgba(196,124,90,.05)}
 <script>
 // ── DATA ──
 let totalDays = 14;
+const STORE_KEY = 'gantt-data-v1';
+let saved=null;
+try{ saved=JSON.parse(localStorage.getItem(STORE_KEY)||'null'); }catch(e){}
+if(saved && saved.totalDays) totalDays = saved.totalDays;
 const COLORS = ['rust','sage','ink','muted',
   'tianqing','tianshuibi','yuebai','xueqing','dailan','xieqiaqing',
   'meiziqing','songhua','qiuhe','shanlan','dailv','tengluozi',
@@ -218,12 +223,12 @@ function getAccent(c){ return COLOR_HEX[c]; }
 function getDim(c)   { return COLOR_DIM[c]; }
 function getBar(c)   { return COLOR_BAR[c]; }
 
-let sections = [
+let sections = (saved&&Array.isArray(saved.sections))?saved.sections:[
   {id:1, label:'增量学习', color:'rust'},
   {id:2, label:'智能模型评估系统（预研）', color:'sage'},
 ];
 
-let tasks = [
+let tasks = (saved&&Array.isArray(saved.tasks))?saved.tasks:[
   {id:10,catId:1,name:'持续调研、整理数据集（空+海）',assign:'姚扬鑫',start:1,end:3},
   {id:11,catId:1,name:'调研现有方法的技术路线',assign:'方洋洋、陈旭',start:2,end:3},
   {id:12,catId:1,name:'实验预研',assign:'方洋洋、陈旭',start:2,end:7},
@@ -235,16 +240,34 @@ let tasks = [
   {id:23,catId:2,name:'设计系统原型（概念验证）',assign:'徐昊博、姚扬鑫',start:10,end:14},
 ];
 
-let checkpoints = [
+let checkpoints = (saved&&Array.isArray(saved.checkpoints))?saved.checkpoints:[
   {id:101,name:'检查点1',day:11},
   {id:102,name:'检查点2',day:13},
 ];
 
-let nextId = 300;
+let nextId = (saved&&saved.nextId)?saved.nextId:300;
 let editingTaskId = null;
 let editingSecId  = null;
 let editingCpId   = null;
 let selectedColor = 'rust';
+
+if(saved && saved.title){
+  document.getElementById('title-input').value = saved.title;
+  document.getElementById('chart-title').textContent = saved.title;
+}
+function persist(){
+  try{
+    localStorage.setItem(STORE_KEY, JSON.stringify({
+      totalDays, sections, tasks, checkpoints, nextId,
+      title: document.getElementById('title-input').value,
+    }));
+  }catch(e){}
+}
+function resetData(){
+  if(!confirm('恢复默认示例数据？当前浏览器中保存的修改将被清除。')) return;
+  try{ localStorage.removeItem(STORE_KEY); }catch(e){}
+  location.reload();
+}
 
 // ── RENDER ──
 function cpDays(){ return checkpoints.map(c=>c.day); }
@@ -255,6 +278,7 @@ function rebuild(){
 }
 function updateTitle(){
   document.getElementById('chart-title').textContent = document.getElementById('title-input').value;
+  persist();
 }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -316,8 +340,9 @@ function render(){
   // Legend
   let leg = sections.map(s=>`<div class="legend-item"><div class="ldot" style="background:${getBar(s.color)}"></div>${esc(s.label)}</div>`).join('');
   leg += `<div class="legend-item"><span style="color:var(--rust);font-size:12px">◆</span>检查点</div>`;
-  leg += `<div style="margin-left:auto;font-size:10px;color:var(--muted)">点击任务名编辑 · 双击格子切换 · 点击分类行编辑分类</div>`;
+  leg += `<div style="margin-left:auto;font-size:10px;color:var(--muted)">点击任务名编辑 · 双击格子切换 · 点击分类行编辑分类 · 数据自动保存在本浏览器</div>`;
   document.getElementById('legend').innerHTML = leg;
+  persist();
 }
 
 // ── BAR TOGGLE ──
