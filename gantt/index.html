@@ -80,7 +80,7 @@ td.cp-col{background:rgba(196,124,90,.05)}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .modal-footer{display:flex;justify-content:space-between;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
 .swatches{display:flex;gap:10px;flex-wrap:wrap}
-.swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;flex-shrink:0}
+.swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:1px solid var(--border);flex-shrink:0}
 .swatch:hover{transform:scale(1.1)}
 .swatch.sel{border-color:var(--ink);transform:scale(1.18)}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--ink);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;font-size:12px;color:var(--cream);z-index:200;transform:translateY(20px);opacity:0;pointer-events:none}
@@ -158,7 +158,7 @@ td.cp-col{background:rgba(196,124,90,.05)}
   <div class="modal" onclick="event.stopPropagation()" style="width:400px">
     <h2 id="sec-modal-h">新建分类</h2>
     <div class="field"><label>分类名称</label><input type="text" id="sec-name" placeholder="例如：增量学习"></div>
-    <div class="field"><label>颜色</label><div class="swatches" id="swatches"></div></div>
+    <div class="field"><label>颜色</label><div class="swatches" id="swatches"></div><div id="swatch-name" style="margin-top:6px;font-size:11px;color:var(--muted)"></div></div>
     <div class="modal-footer">
       <button class="btn btn-danger" id="sec-del-btn" onclick="deleteSection()">删除分类</button>
       <div style="display:flex;gap:8px">
@@ -190,10 +190,29 @@ td.cp-col{background:rgba(196,124,90,.05)}
 <script>
 // ── DATA ──
 let totalDays = 14;
-const COLORS = ['rust','sage','ink','muted'];
-const COLOR_HEX = {rust:'#c47c5a',sage:'#8aaa8c',ink:'#2d2d2d',muted:'#8a8278'};
-const COLOR_DIM = {rust:'rgba(196,124,90,.15)',sage:'rgba(138,170,140,.15)',ink:'rgba(45,45,45,.1)',muted:'rgba(138,130,120,.12)'};
-const COLOR_BAR = {rust:'rgba(196,124,90,.75)',sage:'rgba(138,170,140,.72)',ink:'rgba(45,45,45,.5)',muted:'rgba(138,130,120,.55)'};
+const COLORS = ['rust','sage','ink','muted',
+  'tianqing','tianshuibi','yuebai','xueqing','dailan','xieqiaqing',
+  'meiziqing','songhua','qiuhe','shanlan','dailv','tengluozi',
+  'mushanzi','ohe','cheshi','chahu'];
+const COLOR_NAMES = {
+  rust:'陶土',sage:'鼠尾草',ink:'墨色',muted:'灰褐',
+  tianqing:'天青',tianshuibi:'天水碧',yuebai:'月白',xueqing:'雪青',
+  dailan:'黛蓝',xieqiaqing:'蟹壳青',meiziqing:'梅子青',songhua:'松花',
+  qiuhe:'秋香',shanlan:'山岚',dailv:'黛绿',tengluozi:'藤萝紫',
+  mushanzi:'暮山紫',ohe:'藕荷',cheshi:'赭石',chahu:'茶褐',
+};
+const COLOR_HEX = {rust:'#c47c5a',sage:'#8aaa8c',ink:'#2d2d2d',muted:'#8a8278',
+  tianqing:'#3d72a8',tianshuibi:'#76bfb7',yuebai:'#b7ddc8',xueqing:'#71b9d6',dailan:'#101724',xieqiaqing:'#5c797f',
+  meiziqing:'#4b9e67',songhua:'#87bd70',qiuhe:'#a69553',shanlan:'#82a782',dailv:'#204330',tengluozi:'#595077',
+  mushanzi:'#422e4b',ohe:'#de926b',cheshi:'#40120b',chahu:'#21150c'};
+const COLOR_DIM = {rust:'rgba(196,124,90,.15)',sage:'rgba(138,170,140,.15)',ink:'rgba(45,45,45,.1)',muted:'rgba(138,130,120,.12)',
+  tianqing:'rgba(61,114,168,.1)',tianshuibi:'rgba(118,191,183,.1)',yuebai:'rgba(183,221,200,.1)',xueqing:'rgba(113,185,214,.1)',dailan:'rgba(16,23,36,.1)',xieqiaqing:'rgba(92,121,127,.1)',
+  meiziqing:'rgba(75,158,103,.1)',songhua:'rgba(135,189,112,.1)',qiuhe:'rgba(166,149,83,.1)',shanlan:'rgba(130,167,130,.1)',dailv:'rgba(32,67,48,.1)',tengluozi:'rgba(89,80,119,.1)',
+  mushanzi:'rgba(66,46,75,.1)',ohe:'rgba(222,146,107,.1)',cheshi:'rgba(64,18,11,.1)',chahu:'rgba(33,21,12,.1)'};
+const COLOR_BAR = {rust:'rgba(196,124,90,.75)',sage:'rgba(138,170,140,.72)',ink:'rgba(45,45,45,.5)',muted:'rgba(138,130,120,.55)',
+  tianqing:'rgba(61,114,168,.7)',tianshuibi:'rgba(118,191,183,.7)',yuebai:'rgba(183,221,200,.7)',xueqing:'rgba(113,185,214,.7)',dailan:'rgba(16,23,36,.7)',xieqiaqing:'rgba(92,121,127,.7)',
+  meiziqing:'rgba(75,158,103,.7)',songhua:'rgba(135,189,112,.7)',qiuhe:'rgba(166,149,83,.7)',shanlan:'rgba(130,167,130,.7)',dailv:'rgba(32,67,48,.7)',tengluozi:'rgba(89,80,119,.7)',
+  mushanzi:'rgba(66,46,75,.7)',ohe:'rgba(222,146,107,.7)',cheshi:'rgba(64,18,11,.7)',chahu:'rgba(33,21,12,.7)'};
 
 function getAccent(c){ return COLOR_HEX[c]; }
 function getDim(c)   { return COLOR_DIM[c]; }
@@ -363,17 +382,21 @@ function addTask(catId){
 function buildSwatches(cur){
   document.getElementById('swatches').innerHTML=COLORS.map(c=>{
     const hex=COLOR_HEX[c];
-    return `<div class="swatch${c===cur?' sel':''}" data-c="${c}" style="background:${hex};border-color:${c===cur?'var(--ink)':'transparent'}" onclick="pickColor('${c}')"></div>`;
+    return `<div class="swatch${c===cur?' sel':''}" data-c="${c}" title="${COLOR_NAMES[c]}" style="background:${hex}" onclick="pickColor('${c}')"></div>`;
   }).join('');
+  updateSwatchName(cur);
   selectedColor=cur;
+}
+function updateSwatchName(c){
+  document.getElementById('swatch-name').textContent='当前颜色：'+COLOR_NAMES[c];
 }
 function pickColor(c){
   selectedColor=c;
   document.querySelectorAll('.swatch').forEach(s=>{
     const isSel=s.dataset.c===c;
     s.classList.toggle('sel',isSel);
-    s.style.borderColor=isSel?'var(--ink)':'transparent';
   });
+  updateSwatchName(c);
 }
 function openSecModal(id){
   editingSecId=id;
@@ -382,7 +405,7 @@ function openSecModal(id){
   document.getElementById('sec-del-btn').style.display=isNew?'none':'';
   const sec=isNew?null:sections.find(s=>s.id===id);
   document.getElementById('sec-name').value=sec?sec.label:'';
-  buildSwatches(sec?sec.color:'blue');
+  buildSwatches(sec?sec.color:'rust');
   openOv('sec-ov');
   setTimeout(()=>document.getElementById('sec-name').focus(),60);
 }
