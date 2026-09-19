@@ -14,10 +14,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.7.0"></script>
-    <script src="assets/latex-complete.js?v=6.7.0"></script>
+    <script src="assets/latex.js?v=6.8.0"></script>
+    <script src="assets/latex-complete.js?v=6.8.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -1664,9 +1666,47 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
+      .editor-pane-header {
+        position: relative;
+      }
+      .editor-snippets-help {
+        position: absolute;
+        z-index: 20;
+        top: calc(100% + 4px);
+        right: 0.8rem;
+        width: min(26rem, calc(100% - 1.6rem));
+        max-height: 60vh;
+        overflow-y: auto;
+        padding: 0.6rem 0.8rem;
+        background: var(--cream);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        font-size: 0.78rem;
+      }
+      .editor-snippets-help p {
+        margin: 0 0 0.5rem;
+        color: var(--muted);
+      }
+      .editor-snippets-help table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .editor-snippets-help td {
+        padding: 0.15rem 0.4rem;
+        color: var(--ink);
+      }
+      .editor-snippets-help td:first-child {
+        font-family: "SF Mono", "Fira Code", monospace;
+        color: #b0603c;
+        white-space: nowrap;
+      }
       .editor-preview-actions {
         display: flex;
         gap: 0.4rem;
+      }
+      .editor-preview-actions[hidden] {
+        display: none;
       }
       .editor-compile-btn {
         border: 1px solid var(--border);
@@ -1718,20 +1758,82 @@
         text-transform: uppercase;
         color: var(--rust);
       }
-      .editor-textarea {
+      .editor-input {
+        position: relative;
         flex: 1;
-        width: 100%;
+        min-height: 0;
+        background: var(--sand);
+      }
+      /* The textarea and its highlight layer must lay text out identically. */
+      .editor-textarea,
+      .editor-highlight {
+        box-sizing: border-box;
+        margin: 0;
         padding: 1.2rem;
         border: none;
-        background: var(--sand);
-        color: var(--ink);
         font-family: "SF Mono", "Fira Code", "Consolas", monospace;
         font-size: 0.85rem;
-        line-height: 1.8;
+        /* Whole pixels: textarea and <pre> round fractional line boxes
+           differently, which drifts the layers apart over long files. */
+        line-height: 24px;
+        letter-spacing: normal;
+        tab-size: 2;
+        white-space: pre-wrap;
+        overflow-wrap: break-word;
+        word-break: normal;
+      }
+      .editor-textarea {
+        position: relative;
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        color: transparent;
+        caret-color: var(--ink);
         resize: none;
         outline: none;
         overflow-y: auto;
       }
+      .editor-textarea::selection {
+        background: rgba(196, 124, 90, 0.25);
+        color: transparent;
+      }
+      .editor-highlight {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        color: var(--ink);
+        background: transparent;
+      }
+      .editor-highlight code {
+        font: inherit;
+        background: none;
+        padding: 0;
+        color: inherit;
+        white-space: inherit;
+      }
+      /* LaTeX */
+      .editor-highlight .token.comment { color: #a59c90; font-style: italic; }
+      .editor-highlight .token.function { color: #b0603c; }
+      .editor-highlight .token.keyword { color: #4f7f57; font-weight: 600; }
+      .editor-highlight .token.headline { color: var(--ink); font-weight: 700; }
+      .editor-highlight .token.equation { color: #3b6591; }
+      .editor-highlight .token.equation .token.regex { color: #6a4c93; }
+      .editor-highlight .token.cdata { color: #6b645b; }
+      .editor-highlight .token.url { color: #4f7f57; text-decoration: underline; }
+      .editor-highlight .token.punctuation { color: #9c8f80; }
+      /* Markdown */
+      .editor-highlight .token.front-matter-block,
+      .editor-highlight .token.front-matter { color: #a59c90; }
+      .editor-highlight .token.title { color: #b0603c; font-weight: 700; }
+      .editor-highlight .token.bold { font-weight: 700; }
+      .editor-highlight .token.italic { font-style: italic; }
+      .editor-highlight .token.code-snippet,
+      .editor-highlight .token.code { color: #6b645b; }
+      .editor-highlight .token.blockquote,
+      .editor-highlight .token.hr,
+      .editor-highlight .token.list { color: #4f7f57; }
       .editor-textarea::placeholder {
         color: var(--muted);
       }
@@ -2249,8 +2351,14 @@
                 <button type="button" data-mode="latex" onclick="setEditorMode('latex')">LaTeX</button>
               </div>
               <span class="editor-pane-label" id="editorModeHint">edit front matter directly</span>
+              <button type="button" class="editor-compile-btn" id="editorSnippetsBtn" onclick="toggleSnippetHelp(event)" hidden>Snippets ⇥</button>
+              <div class="editor-snippets-help" id="editorSnippetsHelp" hidden></div>
             </div>
-            <textarea class="editor-textarea" id="editorTextarea" placeholder="---&#10;title: ...&#10;date: ...&#10;tag: ...&#10;---&#10;&#10;Your content here..."></textarea>
+            <div class="editor-input">
+              <!-- Highlighted copy of the source, drawn under the (transparent-text) textarea. -->
+              <pre class="editor-highlight" id="editorHighlight" aria-hidden="true"><code></code></pre>
+              <textarea class="editor-textarea" id="editorTextarea" spellcheck="false" placeholder="---&#10;title: ...&#10;date: ...&#10;tag: ...&#10;---&#10;&#10;Your content here..."></textarea>
+            </div>
           </div>
           <div class="editor-pane">
             <div class="editor-pane-header">
@@ -3825,6 +3933,9 @@
         document.getElementById('editorTextarea').placeholder = EDITOR_PLACEHOLDERS[editorMode];
         const compile = document.getElementById('editorCompileBtn');
         document.getElementById('editorPreviewActions').hidden = editorMode !== 'latex';
+        document.getElementById('editorSnippetsBtn').hidden = editorMode !== 'latex';
+        document.getElementById('editorSnippetsHelp').hidden = true;
+        updateHighlight();
         compile.textContent = `Compile ${/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘S' : 'Ctrl+S'}`;
       }
 
@@ -3929,6 +4040,50 @@
         fitLatexBoxes(document.getElementById('editorPreview'));
         loadTikzJax(document.getElementById('editorPreview'));
       }
+
+      function toggleSnippetHelp(e) {
+        e.stopPropagation();
+        const help = document.getElementById('editorSnippetsHelp');
+        if (!help.innerHTML) {
+          help.innerHTML = '<p>Type a trigger, then <b>Tab</b>. Tab / Shift+Tab move between the placeholders.</p><table>' +
+            LatexComplete.snippets.map(([t, , d]) => `<tr><td>${escHtml(t)}⇥</td><td>${escHtml(d)}</td></tr>`).join('') +
+            '</table>';
+        }
+        help.hidden = !help.hidden;
+      }
+      document.addEventListener('click', (e) => {
+        const help = document.getElementById('editorSnippetsHelp');
+        if (!help.hidden && !help.contains(e.target)) help.hidden = true;
+      });
+
+      // ── Syntax highlighting: Prism renders the source into a <pre> laid out
+      // exactly like the textarea above it, whose own text is transparent. ──
+      let highlightFrame = 0;
+      function updateHighlight() {
+        cancelAnimationFrame(highlightFrame);
+        highlightFrame = requestAnimationFrame(() => {
+          const ta = document.getElementById('editorTextarea');
+          const pre = document.getElementById('editorHighlight');
+          const lang = editorMode === 'latex' ? 'latex' : 'markdown';
+          const grammar = Prism.languages[lang];
+          const src = ta.value;
+          // Trailing newline so a final empty line still takes up height.
+          pre.firstElementChild.innerHTML = (grammar ? Prism.highlight(src, grammar, lang) : escHtml(src)) + '\n';
+          syncHighlightLayout();
+        });
+      }
+      function syncHighlightLayout() {
+        const ta = document.getElementById('editorTextarea');
+        const pre = document.getElementById('editorHighlight');
+        // Match the textarea's scrollbar so both wrap lines at the same width.
+        const scrollbar = ta.offsetWidth - ta.clientWidth;
+        pre.style.paddingRight = `calc(1.2rem + ${scrollbar}px)`;
+        pre.scrollTop = ta.scrollTop;
+        pre.scrollLeft = ta.scrollLeft;
+      }
+      document.getElementById('editorTextarea').addEventListener('scroll', syncHighlightLayout, { passive: true });
+      document.getElementById('editorTextarea').addEventListener('input', updateHighlight);
+      new ResizeObserver(syncHighlightLayout).observe(document.getElementById('editorTextarea'));
 
       // Markdown previews live. LaTeX would render half-typed commands, so it
       // only compiles on Cmd/Ctrl+S (or the Compile button).

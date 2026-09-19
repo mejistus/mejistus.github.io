@@ -5,6 +5,8 @@
 //   \ref{…       → \label keys found in the document (also \eqref, \autoref, \cref)
 //   \cite{a, …   → \bibitem keys found in the document
 //   Enter right after a hand-typed \begin{env} closes it with \end{env}.
+//   trigger + Tab → snippet (see SNIPPETS); Tab / Shift+Tab then walk its
+//   placeholders, as in VS Code. Snippet bodies use $1, ${1:default}, $0.
 //
 // Usage: LatexComplete.attach(textarea, { isActive, replace })
 //   isActive()                 → whether completion should run (LaTeX mode)
@@ -13,6 +15,90 @@
   'use strict';
 
   const CARET = '¦';
+
+  // [trigger, body, description] — typed at the start of a word, then Tab.
+  const SNIPPETS = [
+    ['fig', '\\begin{figure}[htbp]\n  \\centering\n  \\includegraphics[width=${1:0.8}\\linewidth]{${2:notes/assets/}}\n  \\caption{$3}\\label{fig:$4}\n\\end{figure}\n$0', 'figure'],
+    ['subfig', '\\begin{figure}[htbp]\n  \\centering\n  \\begin{subfigure}[b]{0.45\\linewidth}\n    \\includegraphics[width=\\linewidth]{$1}\n    \\caption{$2}\\label{fig:$3}\n  \\end{subfigure}\n  \\hfill\n  \\begin{subfigure}[b]{0.45\\linewidth}\n    \\includegraphics[width=\\linewidth]{$4}\n    \\caption{$5}\\label{fig:$6}\n  \\end{subfigure}\n  \\caption{$7}\\label{fig:$8}\n\\end{figure}\n$0', 'two sub-figures'],
+    ['tab', '\\begin{table}[htbp]\n  \\centering\n  \\caption{$1}\\label{tab:$2}\n  \\begin{tabular}{${3:lcc}}\n    \\toprule\n    ${4:Method} & ${5:A} & ${6:B} \\\\\n    \\midrule\n    $7 \\\\\n    \\bottomrule\n  \\end{tabular}\n\\end{table}\n$0', 'booktabs table'],
+    ['tabres', '\\begin{table}[htbp]\n  \\centering\n  \\caption{$1}\\label{tab:$2}\n  \\resizebox{\\linewidth}{!}{%\n  \\begin{tabular}{lcccccc c}\n    \\toprule\n    \\multirow{2}{*}{Method} & \\multicolumn{3}{c}{${3:Bench A}} & \\multicolumn{3}{c}{${4:Bench B}} & \\multirow{2}{*}{Avg.} \\\\\n    \\cmidrule(lr){2-4} \\cmidrule(lr){5-7}\n     & Real & Fake & Avg. & Real & Fake & Avg. & \\\\\n    \\midrule\n    ${5:Baseline}~\\cite{$6} & $7 \\\\\n    \\rowcolor{gray!12}\n    Ours & $8 \\\\\n    \\bottomrule\n  \\end{tabular}}\n\\end{table}\n$0', 'results table (multirow / multicolumn)'],
+    ['eq', '\\begin{equation}\\label{eq:$1}\n  $2\n\\end{equation}\n$0', 'numbered equation'],
+    ['eqs', '\\begin{equation*}\n  $1\n\\end{equation*}\n$0', 'unnumbered equation'],
+    ['ali', '\\begin{align}\n  $1 &= $2 \\\\\n  &= $3\n\\end{align}\n$0', 'aligned equations'],
+    ['dm', '\\[\n  $1\n\\]\n$0', 'display math'],
+    ['mk', '$$1$$0', 'inline math'],
+    ['item', '\\begin{itemize}\n  \\item $1\n\\end{itemize}\n$0', 'bullet list'],
+    ['enum', '\\begin{enumerate}\n  \\item $1\n\\end{enumerate}\n$0', 'numbered list'],
+    ['desc', '\\begin{description}\n  \\item[$1] $2\n\\end{description}\n$0', 'labelled list'],
+    ['sec', '\\section{$1}\\label{sec:$2}\n$0', 'section'],
+    ['ssec', '\\subsection{$1}\\label{sec:$2}\n$0', 'subsection'],
+    ['sssec', '\\subsubsection{$1}\n$0', 'subsubsection'],
+    ['thm', '\\begin{theorem}[$1]\\label{thm:$2}\n  $3\n\\end{theorem}\n$0', 'theorem'],
+    ['lem', '\\begin{lemma}\\label{lem:$1}\n  $2\n\\end{lemma}\n$0', 'lemma'],
+    ['defn', '\\begin{definition}[$1]\n  $2\n\\end{definition}\n$0', 'definition'],
+    ['prf', '\\begin{proof}\n  $1\n\\end{proof}\n$0', 'proof'],
+    ['lst', '\\begin{lstlisting}[language=${1:python}]\n$2\n\\end{lstlisting}\n$0', 'code block'],
+    ['quote', '\\begin{quote}\n  $1\n\\end{quote}\n$0', 'block quote'],
+    ['cen', '\\begin{center}\n  $1\n\\end{center}\n$0', 'centred'],
+    ['mini', '\\begin{minipage}{${1:0.45}\\linewidth}\n  $2\n\\end{minipage}$0', 'minipage'],
+    ['tikz', '\\begin{tikzpicture}\n  $1\n\\end{tikzpicture}\n$0', 'TikZ picture'],
+    ['plot', '\\begin{tikzpicture}\n  \\begin{axis}[width=8cm, height=5cm, xlabel={$1}, ylabel={$2}]\n    \\addplot[${3:blue, thick}] {$4};\n  \\end{axis}\n\\end{tikzpicture}\n$0', 'pgfplots plot'],
+    ['cd', '\\begin{tikzcd}\n  ${1:A} \\arrow[r, "${2:f}"] & ${3:B}\n\\end{tikzcd}\n$0', 'commutative diagram'],
+    ['bib', '\\begin{thebibliography}{9}\n  \\bibitem{$1} $2\n\\end{thebibliography}\n$0', 'references'],
+    ['bi', '\\bibitem{$1} $0', 'bibliography entry'],
+    ['fr', '\\frac{$1}{$2}$0', 'fraction'],
+    ['bf', '\\textbf{$1}$0', 'bold'],
+    ['it', '\\emph{$1}$0', 'emphasis'],
+    ['tt', '\\texttt{$1}$0', 'monospace'],
+    ['ul', '\\underline{$1}$0', 'underline'],
+    ['fn', '\\footnote{$1}$0', 'footnote'],
+    ['href', '\\href{$1}{$2}$0', 'link'],
+    ['eqr', '\\eqref{eq:$1}$0', 'equation reference'],
+    ['figr', '图~\\ref{fig:$1}$0', 'figure reference'],
+    ['tabr', '表~\\ref{tab:$1}$0', 'table reference'],
+    ['mc', '\\multicolumn{${1:2}}{${2:c}}{$3}$0', 'span columns'],
+    ['mr', '\\multirow{${1:2}}{*}{$2}$0', 'span rows'],
+    ['rc', '\\rowcolor{${1:gray!12}}$0', 'row shading'],
+    ['bb', '\\mathbb{$1}$0', 'blackboard bold'],
+    ['cal', '\\mathcal{$1}$0', 'calligraphic'],
+  ];
+
+  // Literal "$" coming from completion data (never a tab stop).
+  const DOLLAR = '\u0006';
+
+  // "$1", "${1:default}", "$0" → plain text plus tab stops (offsets into it).
+  // A "$" not followed by a digit or "{digit" is literal (so "$$1$" is inline math).
+  function parseSnippet(body) {
+    let text = '';
+    const stops = [];
+    for (let i = 0; i < body.length; i++) {
+      if (body[i] === DOLLAR) { text += '$'; continue; }
+      const m = /^\$(?:(\d)|\{(\d):([^}]*)\})/.exec(body.slice(i));
+      if (m) {
+        const n = +(m[1] || m[2]);
+        const def = m[3] || '';
+        stops.push({ n, start: text.length, end: text.length + def.length });
+        text += def;
+        i += m[0].length - 1;
+      } else {
+        text += body[i];
+      }
+    }
+    // $1, $2, ... in order, $0 (the exit) last; no $0 means "after the text".
+    stops.sort((a, b) => (a.n || 1e9) - (b.n || 1e9));
+    if (!stops.some(st => st.n === 0)) stops.push({ n: 0, start: text.length, end: text.length });
+    return { text, stops };
+  }
+
+  // Old-style completion inserts ("frac{¦}{}") → snippet bodies with tab stops.
+  function toSnippet(insert) {
+    if (!insert.includes(CARET)) return insert.replace(/\$/g, DOLLAR) + '$0';
+    let n = 1;
+    let body = insert.replace(/\$/g, DOLLAR).replace(CARET, '$1');
+    const tail = body.slice(body.indexOf('$1') + 2)
+      .replace(/\{((?:fig|tab|eq|sec|thm|lem):)?\}/g, (m, pre) => `{${pre || ''}$${++n}}`);
+    return body.slice(0, body.indexOf('$1') + 2) + tail + '$0';
+  }
 
   // [name, snippet (after the backslash), hint]
   const COMMANDS = [
@@ -162,6 +248,58 @@
     document.body.appendChild(box);
 
     let state = null; // { start, end, items: [{label, hint, insert}], active }
+    let session = null; // active snippet: { stops: [{start, end}], current }
+    let lastValue = ta.value;
+
+    // Insert a snippet body over [start, end) and select its first stop.
+    function expand(start, end, body) {
+      const indent = indentAt(start);
+      const { text, stops } = parseSnippet(body.replace(/\n/g, '\n' + indent));
+      session = null;
+      opts.replace(start, end, text);
+      lastValue = ta.value;
+      session = { stops: stops.map(st => ({ start: start + st.start, end: start + st.end })), current: -1 };
+      nextStop(1);
+      close();
+    }
+
+    function nextStop(dir) {
+      if (!session) return;
+      const i = session.current + dir;
+      if (i < 0) return;
+      const st = session.stops[i];
+      if (!st) { session = null; return; }
+      session.current = i;
+      ta.setSelectionRange(st.start, st.end);
+      // Reaching $0 ends the snippet.
+      if (i === session.stops.length - 1) session = null;
+    }
+
+    // Keep stop offsets right while the user types inside the snippet.
+    function trackEdit() {
+      const now = ta.value;
+      if (session) {
+        let p = 0;
+        const max = Math.min(now.length, lastValue.length);
+        while (p < max && now[p] === lastValue[p]) p++;
+        let sfx = 0;
+        while (sfx < max - p && now[now.length - 1 - sfx] === lastValue[lastValue.length - 1 - sfx]) sfx++;
+        const oldEnd = lastValue.length - sfx;
+        const delta = now.length - lastValue.length;
+        const cur = session.stops[session.current];
+        if (cur && p >= cur.start && oldEnd <= cur.end) {
+          cur.end += delta;
+          // Later placeholders after the edit move with it (earlier ones at
+          // the same offset, e.g. an emptied $1 before $2, stay put).
+          session.stops.forEach((st, k) => {
+            if (k > session.current && st.start >= oldEnd) { st.start += delta; st.end += delta; }
+          });
+        } else {
+          session = null; // edited outside the current placeholder
+        }
+      }
+      lastValue = now;
+    }
 
     function close() {
       state = null;
@@ -189,13 +327,8 @@
       if (!it) return;
       const { start, end } = state;
       close();
-      let text = it.insert;
-      const caret = text.indexOf(CARET);
-      text = text.replace(CARET, '');
-      opts.replace(start, end, text);
-      const pos = start + (caret >= 0 ? caret : text.length);
-      ta.selectionStart = ta.selectionEnd = pos;
       ta.focus();
+      expand(start, end, it.snippet || toSnippet(it.insert));
       // A snippet may open another completion right away (e.g. \begin{).
       setTimeout(update, 0);
     }
@@ -205,9 +338,13 @@
       return /^[ \t]*/.exec(ta.value.slice(lineStart))[0];
     }
 
-    function envSnippet(name, body, args, indent) {
-      const inner = body.split('\n').map(l => indent + '  ' + l).join('\n');
-      return `\\begin{${name}}${args || ''}\n${inner}\n${indent}\\end{${name}}`;
+    // expand() adds the current line's indentation to every inserted line.
+    function envSnippet(name, body, args) {
+      let n = 1;
+      const withStops = body.replace(/\$/g, DOLLAR).replace(CARET, '$1')
+        .replace(/\{((?:fig|tab|eq|sec|thm|lem):)?\}/g, (m, pre) => `{${pre || ''}$${++n}}`);
+      const inner = withStops.split('\n').map(l => '  ' + l).join('\n');
+      return `\\begin{${name}}${args || ''}\n${inner}\n\\end{${name}}$0`;
     }
 
     function update() {
@@ -227,10 +364,9 @@
         start = pos - m[0].length;
         // Swallow a "}" the user already typed after the caret.
         const end = ta.value[pos] === '}' ? pos + 1 : pos;
-        const indent = indentAt(start);
         const envs = ENVIRONMENTS.concat(doc.theorems);
         items = rank(envs, m[1], x => x[0]).map(([name, body, hint, args]) => ({
-          label: name, hint, insert: envSnippet(name, body, args, indent),
+          label: name, hint, snippet: envSnippet(name, body, args),
         }));
         state = items.length ? { start, end, items, active: 0 } : null;
         if (state) render(); else close();
@@ -251,8 +387,12 @@
       render();
     }
 
-    ta.addEventListener('input', update);
-    ta.addEventListener('click', close);
+    ta.addEventListener('input', () => { trackEdit(); update(); });
+    ta.addEventListener('click', () => {
+      close();
+      // Clicking outside every placeholder leaves the snippet.
+      if (session && !session.stops.some(st => ta.selectionStart >= st.start && ta.selectionStart <= st.end)) session = null;
+    });
     ta.addEventListener('blur', () => setTimeout(close, 150));
     ta.addEventListener('scroll', close);
     window.addEventListener('resize', close);
@@ -286,6 +426,27 @@
           return;
         }
       }
+      if (e.key === 'Tab' && opts.isActive() && !e.altKey && !e.metaKey && !e.ctrlKey) {
+        // Inside a snippet: walk its placeholders.
+        if (session) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          nextStop(e.shiftKey ? -1 : 1);
+          return;
+        }
+        // "trigger⇥" at the end of a word expands a snippet.
+        const pos = ta.selectionStart;
+        const m = !e.shiftKey && ta.selectionStart === ta.selectionEnd &&
+          /(?:^|[^\\a-zA-Z])([a-zA-Z]+)$/.exec(ta.value.slice(Math.max(0, pos - 40), pos));
+        const snip = m && SNIPPETS.find(x => x[0] === m[1]);
+        if (snip) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          expand(pos - m[1].length, pos, snip[1]);
+          return;
+        }
+      }
+      if (e.key === 'Escape' && session) session = null;
       // Enter at the end of a hand-typed "\begin{env}" line closes the environment.
       if (e.key === 'Enter' && opts.isActive() && !e.shiftKey && ta.selectionStart === ta.selectionEnd) {
         const pos = ta.selectionStart;
@@ -308,5 +469,5 @@
     }, true);
   }
 
-  window.LatexComplete = { attach, caretRect };
+  window.LatexComplete = { attach, caretRect, snippets: SNIPPETS };
 })();
