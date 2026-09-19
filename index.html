@@ -18,9 +18,10 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.10.0"></script>
-    <script src="assets/latex-complete.js?v=6.10.0"></script>
-    <script src="assets/vim.js?v=6.10.0"></script>
+    <script src="assets/latex.js?v=6.11.0"></script>
+    <script src="assets/latex-complete.js?v=6.11.0"></script>
+    <script src="assets/vim.js?v=6.11.0"></script>
+    <script src="assets/lint.js?v=6.11.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -1725,11 +1726,60 @@
         background: var(--sage);
         color: #fff;
       }
+      .editor-problems {
+        position: absolute;
+        z-index: 20;
+        top: calc(100% + 4px);
+        right: 0.8rem;
+        width: min(32rem, calc(100% - 1.6rem));
+        max-height: 50vh;
+        overflow-y: auto;
+        padding: 0.4rem;
+        background: var(--cream);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        font-size: 0.78rem;
+      }
+      .editor-problem {
+        display: flex;
+        gap: 0.5rem;
+        align-items: baseline;
+        padding: 0.25rem 0.4rem;
+        border-radius: 0.35rem;
+        cursor: pointer;
+      }
+      .editor-problem:hover {
+        background: rgba(196, 124, 90, 0.12);
+      }
+      .editor-problem-line {
+        font-family: "SF Mono", "Fira Code", monospace;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      .editor-problem.error .editor-problem-mark { color: #b3261e; }
+      .editor-problem.warning .editor-problem-mark { color: #b0603c; }
+      .editor-problem-none {
+        padding: 0.3rem 0.4rem;
+        color: var(--muted);
+      }
+      .editor-compile-btn.has-errors {
+        border-color: #b3261e;
+        background: #b3261e;
+        color: #fff;
+      }
+      .editor-compile-btn.has-warnings {
+        border-color: #b0603c;
+        color: #b0603c;
+      }
       .editor-preview-actions {
         display: flex;
         gap: 0.4rem;
       }
       .editor-preview-actions[hidden] {
+        display: none;
+      }
+      .editor-preview-actions [hidden] {
         display: none;
       }
       .editor-compile-btn {
@@ -2388,8 +2438,10 @@
           <div class="editor-pane">
             <div class="editor-pane-header">
               <span class="editor-pane-label">Preview</span>
-              <div class="editor-preview-actions" id="editorPreviewActions" hidden>
-                <button type="button" class="editor-compile-btn" onclick="syncSourceToPreview(true)" title="Show the caret's position in the preview (double-click the preview to go back to the source)">Go to caret →</button>
+              <div class="editor-problems" id="editorProblems" hidden></div>
+              <div class="editor-preview-actions" id="editorPreviewActions">
+                <button type="button" class="editor-compile-btn" id="editorProblemsBtn" onclick="toggleProblems(event)" hidden>Problems</button>
+                <button type="button" class="editor-compile-btn" id="editorCaretBtn" onclick="syncSourceToPreview(true)" title="Show the caret's position in the preview (double-click the preview to go back to the source)">Go to caret →</button>
                 <button type="button" class="editor-compile-btn" id="editorCompileBtn" onclick="compileLatex()">Compile</button>
               </div>
             </div>
@@ -3960,9 +4012,14 @@
         document.getElementById('editorTextarea').placeholder = EDITOR_PLACEHOLDERS[editorMode];
         const compile = document.getElementById('editorCompileBtn');
         editorVim.reset();
-        document.getElementById('editorPreviewActions').hidden = editorMode !== 'latex';
+        // The Problems list applies to both modes; the rest is LaTeX-only.
+        ['editorCaretBtn', 'editorCompileBtn'].forEach(id => {
+          document.getElementById(id).hidden = editorMode !== 'latex';
+        });
         document.getElementById('editorSnippetsBtn').hidden = editorMode !== 'latex';
         document.getElementById('editorSnippetsHelp').hidden = true;
+        document.getElementById('editorProblems').hidden = true;
+        runLint();
         updateHighlight();
         compile.textContent = `Compile ${/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘S' : 'Ctrl+S'}`;
       }
@@ -4268,8 +4325,80 @@
       }
       document.getElementById('editorPreview').addEventListener('dblclick', syncPreviewToSource);
 
+      // ── Problems: lint the source, plus a repo lookup for missing images ──
+      let problems = [];
+      const imageChecked = new Map(); // path → exists
+
+      async function checkImages(list) {
+        const out = [];
+        for (const { path, line } of list) {
+          if (!imageChecked.has(path)) {
+            let ok = false;
+            try {
+              const resp = await fetchSite(path);
+              ok = resp.ok && !(resp.headers.get('content-type') || '').includes('text/html');
+            } catch (_) { ok = false; }
+            imageChecked.set(path, ok);
+          }
+          if (!imageChecked.get(path)) out.push({ line, severity: 'warning', message: `Image not found: ${path}` });
+        }
+        return out;
+      }
+
+      async function runLint() {
+        const src = document.getElementById('editorTextarea').value;
+        problems = lintSource(src, editorMode);
+        renderProblems();
+        const imgs = await checkImages(referencedImages(src, editorMode));
+        problems = problems.concat(imgs).sort((a, b) => a.line - b.line);
+        renderProblems();
+      }
+
+      function renderProblems() {
+        const btn = document.getElementById('editorProblemsBtn');
+        const panel = document.getElementById('editorProblems');
+        const errors = problems.filter(p => p.severity === 'error').length;
+        btn.hidden = false;
+        btn.textContent = problems.length ? `Problems ${problems.length}` : 'Problems';
+        btn.classList.toggle('has-errors', errors > 0);
+        btn.classList.toggle('has-warnings', !errors && problems.length > 0);
+        panel.innerHTML = problems.length
+          ? problems.map((p, i) =>
+              `<div class="editor-problem ${p.severity}" data-i="${i}">` +
+              `<span class="editor-problem-mark">${p.severity === 'error' ? '✕' : '⚠'}</span>` +
+              `<span class="editor-problem-line">L${p.line}</span>` +
+              `<span>${escHtml(p.message)}</span></div>`).join('')
+          : '<div class="editor-problem-none">No problems found.</div>';
+        panel.querySelectorAll('.editor-problem').forEach(el => {
+          el.addEventListener('click', () => goToLine(problems[+el.dataset.i].line));
+        });
+      }
+
+      function goToLine(line) {
+        const ta = document.getElementById('editorTextarea');
+        const pos = sourceOffsetOfLine(ta.value, line);
+        ta.focus();
+        ta.setSelectionRange(pos, pos);
+        const r = LatexComplete.caretRect(ta), tr = ta.getBoundingClientRect();
+        ta.scrollTop += r.top - tr.top - ta.clientHeight / 3;
+        const lineEnd = ta.value.indexOf('\n', pos);
+        ta.setSelectionRange(pos, lineEnd < 0 ? ta.value.length : lineEnd);
+      }
+
+      function toggleProblems(e) {
+        e.stopPropagation();
+        const panel = document.getElementById('editorProblems');
+        panel.hidden = !panel.hidden;
+        if (!panel.hidden) runLint();
+      }
+      document.addEventListener('click', (e) => {
+        const panel = document.getElementById('editorProblems');
+        if (!panel.hidden && !panel.contains(e.target)) panel.hidden = true;
+      });
+
       function compileLatex() {
         updatePreview();
+        runLint();
         requestAnimationFrame(() => syncSourceToPreview(false));
       }
 
