@@ -17,7 +17,7 @@
   ];
   const TABULAR_ENVS = ['tabular', 'tabular*', 'tabularx', 'tabulary', 'longtable', 'longtable*'];
   const FLOAT_ENVS = {
-    figure: 'figure', 'figure*': 'figure', wrapfigure: 'figure', subfigure: 'figure',
+    figure: 'figure', 'figure*': 'figure', wrapfigure: 'figure',
     table: 'table', 'table*': 'table',
   };
   const LIST_ENVS = { itemize: 'ul', enumerate: 'ol', description: 'dl' };
@@ -279,9 +279,9 @@
     let html = renderBlocks(ctx, s);
 
     if (ctx.footnotes.length) {
-      html += '<section class="latex-footnotes"><ol>' + ctx.footnotes.map((fn, n) =>
+      html += '<div class="latex-footnotes"><ol>' + ctx.footnotes.map((fn, n) =>
         `<li id="${ctx.uid}-fn${n + 1}">${fn} <a href="#${ctx.uid}-fnref${n + 1}" class="latex-fn-back">↩</a></li>`
-      ).join('') + '</ol></section>';
+      ).join('') + '</ol></div>';
     }
 
     // Resolve slots (they may nest) then cross-references.
@@ -396,11 +396,16 @@
     s = s.replace(envRe, (m, env, body) => {
       const numbered = !env.endsWith('*') && env !== 'displaymath' && env !== 'math';
       const rows = /^(multline|equation)$/.test(env) ? [body] : body.split(/\\\\/);
+      let anchors = '';
       rows.forEach(row => {
         const isNumbered = numbered && !/\\(nonumber|notag)\b/.test(row);
         if (isNumbered) ctx.counters.equation++;
         const lbl = /\\label\{([^}]*)\}/.exec(row);
-        if (lbl && isNumbered) ctx.labels[lbl[1].trim()] = { num: String(ctx.counters.equation), type: 'equation' };
+        if (lbl && isNumbered) {
+          const key = lbl[1].trim();
+          ctx.labels[key] = { num: String(ctx.counters.equation), type: 'equation' };
+          anchors += `<span class="latex-anchor" id="${esc(ctx.uid + '-' + key)}"></span>`;
+        }
       });
       body = body.replace(/\\label\{[^}]*\}/g, '');
       let tex;
@@ -408,7 +413,7 @@
       if (env === 'displaymath') tex = body;
       else if (env.startsWith('eqnarray')) tex = `\\begin{array}{rcl}${body}\\end{array}`;
       else tex = `\\begin{${env}}${body}\\end{${env}}`;
-      return slot(ctx, renderMath(ctx, tex, true), false);
+      return slot(ctx, anchors + renderMath(ctx, tex, true), false);
     });
 
     // \[..\], \(..\), $$..$$, $..$ — scanned so that \$ is left alone.
@@ -450,6 +455,8 @@
 
   const BLOCK_RE = /\\begin\{([^}]+)\}|\\(part|chapter|section|subsection|subsubsection|paragraph|subparagraph)(\*?)|\n[ \t]*\n|\\par\b|\\(?:hrule|noindent|maketitle|tableofcontents|newpage|clearpage)\b|\\rule\s*(?:\[[^\]]*\])?\s*\{[^}]*\}\s*\{[^}]*\}/g;
 
+  const LAYOUT_GLUE = /\\(?:hfill|hfil|quad|qquad|centering|par|medskip|bigskip|smallskip|vfill|noindent)(?![a-zA-Z])|\\[hv]space\*?\s*\{[^}]*\}|~|\\\\/g;
+
   function renderBlocks(ctx, s) {
     let out = '', para = '';
     const flush = () => {
@@ -457,9 +464,11 @@
       para = '';
       if (!text) return;
       // A paragraph made only of block-level slots is emitted bare.
-      const onlySlots = /^(\u0001\d+\u0001\s*)+$/.test(text) &&
-        text.match(/\u0001(\d+)\u0001/g).every(t => ctx.slots[+t.slice(1, -1)].block);
-      if (onlySlots) { out += text; return; }
+      // Layout glue between them (\hfill, \quad, ...) is dropped, as on paper.
+      const bare = text.replace(LAYOUT_GLUE, '').trim();
+      const onlySlots = /^(\u0001\d+\u0001\s*)+$/.test(bare) &&
+        bare.match(/\u0001(\d+)\u0001/g).every(t => ctx.slots[+t.slice(1, -1)].block);
+      if (onlySlots) { out += bare; return; }
       const html = renderInline(ctx, text).trim();
       if (html.replace(/<(?!img|hr|br|\u0001)[^>]*>/g, '').trim()) out += '<p>' + html + '</p>';
     };
@@ -527,6 +536,9 @@
     if (LIST_ENVS[env]) return renderList(ctx, env, body);
     if (TABULAR_ENVS.includes(env)) return renderTabular(ctx, env, body, null);
     if (FLOAT_ENVS[env]) return renderFloat(ctx, FLOAT_ENVS[env], env, body);
+    if (env === 'subfigure' || env === 'subtable') {
+      return renderSubfloat(ctx, env === 'subtable' ? 'table' : 'figure', String(ctx.counters.figure + 1), body);
+    }
     if (QUOTE_ENVS.includes(env)) return '<blockquote class="latex-quote">' + renderBlocks(ctx, body) + '</blockquote>';
     if (env === 'center') return '<div class="latex-center">' + renderBlocks(ctx, body) + '</div>';
     if (env === 'flushright') return '<div class="latex-right">' + renderBlocks(ctx, body) + '</div>';
@@ -544,7 +556,9 @@
     if (env === 'minipage') {
       const opt = readOptional(body, 0);
       const w = readGroup(body, opt ? opt.end : 0);
-      return '<div class="latex-minipage">' + renderBlocks(ctx, w ? body.slice(w.end) : body) + '</div>';
+      const width = w ? cssWidth(w.content) : '';
+      return `<div class="latex-minipage"${width ? ` style="width:${width}"` : ''}>` +
+        renderBlocks(ctx, w ? body.slice(w.end) : body) + '</div>';
     }
     if (ctx.theorems[env] || ctx.theorems[base]) return renderTheorem(ctx, ctx.theorems[env] || ctx.theorems[base], env, body);
     // document, unknown environments, ...: just their content.
@@ -575,44 +589,116 @@
     return `<${tag} class="latex-list"${type}>${inner}</${tag}>`;
   }
 
-  function renderFloat(ctx, kind, env, body) {
-    const n = ++ctx.counters[kind];
-    const prev = ctx.currentRef;
-    ctx.currentRef = { num: String(n), type: kind };
-    let id = '';
-    // Captions are rendered where they appear (above or below), so they become block slots.
+  const SUBFLOAT_ENVS = ['subfigure', 'subtable', 'minipage'];
+
+  // \caption{...} → a block slot rendered in place (above or below the content).
+  function replaceCaptions(ctx, body, label) {
     body = body.replace(/\\caption\*?\s*(?:\[[^\]]*\])?\s*(?=\{)/g, '\\caption');
     let out = '', i = 0, k;
     while ((k = body.indexOf('\\caption', i)) >= 0) {
       const g = readGroup(body, k + 8);
       if (!g) break;
       out += body.slice(i, k);
-      const cap = `<figcaption><span class="latex-cap-label">${ctx.names[kind]} ${n}${ctx.names === NAMES.zh ? '' : ':'}</span> ` +
-        renderInline(ctx, g.content) + '</figcaption>';
+      const cap = `<figcaption><span class="latex-cap-label">${label}</span> ` + renderInline(ctx, g.content) + '</figcaption>';
       out += '\n\n' + slot(ctx, cap, true) + '\n\n';
       i = g.end;
     }
-    body = out + body.slice(i);
+    return out + body.slice(i);
+  }
+
+  function takeLabels(ctx, body, num, type) {
+    let id = '';
     body = body.replace(/\\label\{([^}]*)\}/g, (m, key) => {
       key = key.trim();
-      ctx.labels[key] = { num: String(n), type: kind };
+      if (num) ctx.labels[key] = { num, type };
       if (!id) id = `${ctx.uid}-${key}`;
       return '';
     });
-    // wrapfigure / subfigure carry placement/width arguments first.
-    if (env === 'wrapfigure' || env === 'subfigure') {
+    return { body, id };
+  }
+
+  function capLabel(ctx, kind, num) {
+    return `${ctx.names[kind]} ${num}${ctx.names === NAMES.zh ? '' : ':'}`;
+  }
+
+  // Like LaTeX, a float is numbered by its own \caption; sub-figures inside it
+  // are rendered first so their captions and labels stay theirs.
+  function renderFloat(ctx, kind, env, body) {
+    const prev = ctx.currentRef;
+    if (env === 'wrapfigure') {
       const o = readOptional(body, 0);
       let j = o ? o.end : 0;
-      const a = readGroup(body, j); if (a) j = a.end;
-      if (env === 'wrapfigure') { const b = readGroup(body, j); if (b) j = b.end; }
+      for (let a = 0; a < 2; a++) { const g = readGroup(body, j); if (g) j = g.end; }
       body = body.slice(j);
     } else {
       const o = readOptional(body, 0); // placement like [htbp]
       if (o && /^[!htbpH]*$/.test(o.content.trim())) body = body.slice(o.end);
     }
-    const html = renderBlocks(ctx, body);
+
+    // Mask nested sub-floats so the top-level caption check sees only ours.
+    const nested = [];
+    let top = '', i = 0;
+    const openRe = new RegExp('\\\\begin\\{(' + SUBFLOAT_ENVS.join('|') + ')\\}', 'g');
+    let m;
+    while ((m = openRe.exec(body))) {
+      const { bodyEnd, end } = findEnd(body, m[1], m.index + m[0].length);
+      top += body.slice(i, m.index) + `\u0003${nested.length}\u0003`;
+      nested.push({ env: m[1], body: body.slice(m.index + m[0].length, bodyEnd) });
+      i = end;
+      openRe.lastIndex = end;
+    }
+    top += body.slice(i);
+
+    const hasCaption = /\\caption/.test(top);
+    const n = hasCaption ? String(++ctx.counters[kind]) : null;
+    ctx.currentRef = n ? { num: n, type: kind } : prev;
+    ctx.subCounter = 0;
+
+    top = top.replace(/\u0003(\d+)\u0003/g, (x, idx) => {
+      const { env: e, body: b } = nested[+idx];
+      if (e === 'minipage' && !/\\caption/.test(b)) return slot(ctx, renderEnvironment(ctx, e, b), true);
+      if (e === 'minipage') return slot(ctx, renderMinipageFloat(ctx, kind, b), true);
+      return slot(ctx, renderSubfloat(ctx, e === 'subtable' ? 'table' : kind, n || String(ctx.counters[kind] + 1), b), true);
+    });
+
+    if (n) top = replaceCaptions(ctx, top, capLabel(ctx, kind, n));
+    const lab = takeLabels(ctx, top, n, kind);
+    const html = renderBlocks(ctx, lab.body);
     ctx.currentRef = prev;
-    return `<figure class="latex-float latex-float-${kind}"${id ? ` id="${esc(id)}"` : ''}>${html}</figure>`;
+    return `<figure class="latex-float latex-float-${kind}"${lab.id ? ` id="${esc(lab.id)}"` : ''}>${html}</figure>`;
+  }
+
+  // A captioned minipage inside a float is a float of its own (side-by-side figures).
+  function renderMinipageFloat(ctx, kind, body) {
+    const o = readOptional(body, 0);
+    const w = readGroup(body, o ? o.end : 0);
+    const width = w ? cssWidth(w.content) : '';
+    const inner = renderFloat(ctx, kind, 'minipage', w ? body.slice(w.end) : body);
+    return inner.replace('<figure class="latex-float', `<figure${width ? ` style="width:${width}"` : ''} class="latex-subfloat latex-float`);
+  }
+
+  // subfigure / subtable: "(a) caption", referenced as "1a".
+  function renderSubfloat(ctx, kind, parentNum, body) {
+    const o = readOptional(body, 0);
+    const w = readGroup(body, o ? o.end : 0);
+    const width = w ? cssWidth(w.content) : '';
+    body = w ? body.slice(w.end) : body;
+    const letter = String.fromCharCode(97 + (ctx.subCounter++ % 26));
+    const prev = ctx.currentRef;
+    ctx.currentRef = { num: parentNum + letter, type: kind };
+    body = replaceCaptions(ctx, body, `(${letter})`);
+    const lab = takeLabels(ctx, body, parentNum + letter, kind);
+    const html = renderBlocks(ctx, lab.body);
+    ctx.currentRef = prev;
+    return `<figure class="latex-subfloat"${width ? ` style="width:${width}"` : ''}${lab.id ? ` id="${esc(lab.id)}"` : ''}>${html}</figure>`;
+  }
+
+  // "0.45\linewidth" → "45%", "5cm" → "5cm"
+  function cssWidth(w) {
+    const rel = /^\s*([\d.]*)\s*\\(linewidth|textwidth|columnwidth|hsize)/.exec(w);
+    if (rel) return Math.round(parseFloat(rel[1] || '1') * 1000) / 10 + '%';
+    const abs = /^\s*([\d.]+)\s*(cm|mm|in|pt|em|px)\s*$/.exec(w);
+    return abs ? abs[1] + abs[2] : '';
   }
 
   function renderBibliography(ctx, body) {
@@ -627,7 +713,7 @@
       return `<li id="${esc(ctx.uid + '-bib-' + k)}"><span class="latex-bib-num">[${ctx.bib[k]}]</span>` +
         renderInline(ctx, raw.slice(key.end).trim()) + '</li>';
     }).join('');
-    return `<section class="latex-bib"><h2>${ctx.names.references}</h2><ol>${lis}</ol></section>`;
+    return `<div class="latex-bib"><h2>${ctx.names.references}</h2><ol>${lis}</ol></div>`;
   }
 
   function renderTheorem(ctx, def, env, body) {
