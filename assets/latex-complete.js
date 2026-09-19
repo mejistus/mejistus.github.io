@@ -308,5 +308,5 @@
     }, true);
   }
 
-  window.LatexComplete = { attach };
+  window.LatexComplete = { attach, caretRect };
 })();
