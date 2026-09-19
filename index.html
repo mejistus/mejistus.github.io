@@ -1074,17 +1074,6 @@
         border-color: var(--rust);
         box-shadow: 0 4px 20px rgba(196, 124, 90, 0.1);
       }
-      .project-icon {
-        font-size: 1.8rem;
-        flex-shrink: 0;
-        width: 52px;
-        height: 52px;
-        background: var(--sand);
-        border-radius: 0.75rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
       .project-info {
         flex: 1;
       }
@@ -1538,6 +1527,56 @@
         outline-offset: -6px;
       }
 
+      /* ── Publish bar (staged local changes → one GitHub commit) ── */
+      .publish-bar {
+        position: fixed;
+        left: 50%;
+        bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+        transform: translate(-50%, 150%);
+        z-index: 900;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        max-width: calc(100vw - 2rem);
+        padding: 0.6rem 0.7rem 0.6rem 1.1rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--cream, #fff);
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
+        font-size: 0.85rem;
+        transition: transform 0.3s ease;
+      }
+      .publish-bar.visible {
+        transform: translate(-50%, 0);
+      }
+      .publish-bar-info {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .publish-bar-info.error {
+        color: #b3261e;
+      }
+      .publish-bar button {
+        flex-shrink: 0;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 0.4rem 0.95rem;
+        font: inherit;
+        cursor: pointer;
+        background: transparent;
+        color: inherit;
+      }
+      .publish-bar button.primary {
+        background: var(--ink, #222);
+        border-color: var(--ink, #222);
+        color: var(--cream, #fff);
+      }
+      .publish-bar button:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+
       /* ── Generic section editor modal (poems / projects / awards) ── */
       .section-editor-overlay {
         position: fixed;
@@ -1756,6 +1795,13 @@
       </div>
     </div>
 
+    <!-- PUBLISH BAR (visible while there are unpublished local edits) -->
+    <div class="publish-bar" id="publishBar" role="status">
+      <span class="publish-bar-info" id="publishBarInfo"></span>
+      <button id="publishDiscardBtn" onclick="discardStaged()">Discard</button>
+      <button class="primary" id="publishBtn" onclick="publishStaged()">Publish</button>
+    </div>
+
     <!-- OVERLAY -->
     <div class="panel-overlay" id="overlay" onclick="closeAllPanels()"></div>
 
@@ -1775,7 +1821,7 @@
           <span class="section-editor-status" id="sectionEditorStatus"></span>
           <div class="section-editor-actions">
             <button class="section-editor-btn cancel" onclick="closeSectionEditor()">Cancel</button>
-            <button class="section-editor-btn save" id="sectionEditorSaveBtn" onclick="sectionEditorSave()">Save &amp; Commit</button>
+            <button class="section-editor-btn save" id="sectionEditorSaveBtn" onclick="sectionEditorSave()">Save</button>
           </div>
         </div>
       </div>
@@ -1863,7 +1909,7 @@
             <button class="editor-cancel-btn" onclick="closeEditor()">Cancel</button>
             <span class="editor-status" id="editorStatus"></span>
           </div>
-          <button class="editor-save-btn" id="editorSaveBtn" onclick="saveToGitHub()">Save &amp; Commit</button>
+          <button class="editor-save-btn" id="editorSaveBtn" onclick="saveToGitHub()">Save</button>
         </div>
         <!-- Right-click context menu -->
         <div class="editor-ctx-menu" id="editorCtxMenu">
@@ -1939,7 +1985,7 @@
       </p>
       <div class="hero-cta">
         <a href="#about" class="btn btn-primary">Learn more</a>
-        <a href="#poetry" class="btn btn-outline">Read my poems</a>
+        <a href="#posts" class="btn btn-outline">Read my blogs</a>
       </div>
     </section>
 
@@ -2756,6 +2802,7 @@
           `Blog · ${i + 1} of ${blogs.length}`;
         document.getElementById("blogPanelTitle").innerHTML = renderInline(b.title);
         document.getElementById("blogPanelContent").innerHTML = getParsedHtml(i);
+        applyStagedImages(document.getElementById("blogPanelContent"));
         document.getElementById("blogCounter").textContent =
           `${i + 1} / ${blogs.length}`;
         document.getElementById("blogBtnPrev").disabled = i === 0;
@@ -2856,8 +2903,181 @@
         }
       });
 
+      // ══════════════════════════════════════════════════
+      // ── STAGED CHANGES ──
+      // Edits are kept in localStorage and only reach GitHub when "Publish"
+      // pushes them all as a single commit (see publishStaged).
+      // ══════════════════════════════════════════════════
+      const STAGE_KEY = 'site_staged_changes';
+
+      // { files: { path: { content, encoding: 'utf-8'|'base64' } | { deleted: true } }, messages: [] }
+      function loadStaged() {
+        try {
+          const data = JSON.parse(localStorage.getItem(STAGE_KEY));
+          if (data && data.files && Array.isArray(data.messages)) return data;
+        } catch (_) {}
+        return { files: {}, messages: [] };
+      }
+      function saveStaged(data) {
+        try {
+          localStorage.setItem(STAGE_KEY, JSON.stringify(data));
+        } catch (err) {
+          throw new Error('Browser storage is full — publish or discard pending changes first');
+        }
+        updatePublishBar();
+      }
+      function stageFile(path, content, message, encoding = 'utf-8') {
+        const data = loadStaged();
+        data.files[path] = { content, encoding };
+        data.messages.push(message);
+        saveStaged(data);
+      }
+      function stageDelete(path, message) {
+        const data = loadStaged();
+        data.files[path] = { deleted: true };
+        data.messages.push(message);
+        saveStaged(data);
+      }
+      function getStagedEntry(path) {
+        return loadStaged().files[path] || null;
+      }
+
+      // Same-origin fetch that sees staged edits first, so this browser shows
+      // unpublished changes while every other visitor sees the live site.
+      function fetchSite(path) {
+        const entry = getStagedEntry(path.replace(/^\.\//, ''));
+        if (!entry) return fetch(path);
+        if (entry.deleted) return Promise.resolve(new Response('', { status: 404 }));
+        return Promise.resolve(new Response(entry.content, { status: 200 }));
+      }
+
+      // Staged images are not on the server yet — show them from base64.
+      const IMAGE_MIME = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml' };
+      function applyStagedImages(root) {
+        const files = loadStaged().files;
+        root.querySelectorAll('img').forEach(img => {
+          const entry = files[img.getAttribute('src')];
+          if (!entry || entry.encoding !== 'base64') return;
+          const ext = img.getAttribute('src').split('.').pop().toLowerCase();
+          img.src = `data:${IMAGE_MIME[ext] || 'image/png'};base64,${entry.content}`;
+        });
+      }
+
+      function updatePublishBar() {
+        const bar = document.getElementById('publishBar');
+        const info = document.getElementById('publishBarInfo');
+        const n = Object.keys(loadStaged().files).length;
+        bar.classList.toggle('visible', n > 0);
+        info.className = 'publish-bar-info';
+        info.textContent = `${n} unpublished file${n === 1 ? '' : 's'}`;
+      }
+
+      function discardStaged() {
+        if (!confirm('Discard all unpublished changes? This cannot be undone.')) return;
+        localStorage.removeItem(STAGE_KEY);
+        location.reload();
+      }
+
+      async function ghApi(path, options = {}) {
+        const resp = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}${path}`, {
+          ...options,
+          headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' },
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          const err = new Error(data.message || `GitHub API error ${resp.status}`);
+          err.status = resp.status;
+          throw err;
+        }
+        return data;
+      }
+
+      // Push every staged file as one commit via the Git Data API.
+      async function publishStaged(_retry = 0) {
+        if (!ghToken) { openAuthModal(); return; }
+        const data = loadStaged();
+        const paths = Object.keys(data.files);
+        if (!paths.length) return;
+
+        const info = document.getElementById('publishBarInfo');
+        const btn = document.getElementById('publishBtn');
+        const discardBtn = document.getElementById('publishDiscardBtn');
+        btn.disabled = discardBtn.disabled = true;
+        info.className = 'publish-bar-info';
+        info.textContent = 'Publishing…';
+
+        try {
+          const ref = await ghApi(`/git/ref/heads/${REPO_BRANCH}`);
+          const parentSha = ref.object.sha;
+          const parent = await ghApi(`/git/commits/${parentSha}`);
+
+          const tree = [];
+          for (const path of paths) {
+            const f = data.files[path];
+            if (f.deleted) {
+              tree.push({ path, mode: '100644', type: 'blob', sha: null });
+            } else {
+              const blob = await ghApi('/git/blobs', {
+                method: 'POST',
+                body: JSON.stringify({ content: f.content, encoding: f.encoding }),
+              });
+              tree.push({ path, mode: '100644', type: 'blob', sha: blob.sha });
+            }
+          }
+          const newTree = await ghApi('/git/trees', {
+            method: 'POST',
+            body: JSON.stringify({ base_tree: parent.tree.sha, tree }),
+          });
+
+          const msgs = [...new Set(data.messages)];
+          const message = msgs.length === 1
+            ? msgs[0]
+            : `Site edits (${paths.length} files)\n\n` + msgs.map(m => `- ${m}`).join('\n');
+          const commit = await ghApi('/git/commits', {
+            method: 'POST',
+            body: JSON.stringify({ message, tree: newTree.sha, parents: [parentSha] }),
+          });
+
+          try {
+            await ghApi(`/git/refs/heads/${REPO_BRANCH}`, {
+              method: 'PATCH',
+              body: JSON.stringify({ sha: commit.sha }),
+            });
+          } catch (err) {
+            // Branch moved while we were building the commit — rebuild on the new head.
+            if (_retry < 2 && err.status === 422) {
+              btn.disabled = discardBtn.disabled = false;
+              return publishStaged(_retry + 1);
+            }
+            throw err;
+          }
+
+          // Only clear what we published; edits made meanwhile stay staged.
+          const now = loadStaged();
+          paths.forEach(p => {
+            if (JSON.stringify(now.files[p]) === JSON.stringify(data.files[p])) delete now.files[p];
+          });
+          now.messages = Object.keys(now.files).length ? now.messages.slice(data.messages.length) : [];
+          saveStaged(now);
+          if (!Object.keys(now.files).length) {
+            const bar = document.getElementById('publishBar');
+            info.textContent = 'Published ✓ — the site updates in a minute or two';
+            bar.classList.add('visible');
+            setTimeout(updatePublishBar, 3500);
+          }
+        } catch (err) {
+          console.error('Publish failed:', err);
+          info.className = 'publish-bar-info error';
+          info.textContent = 'Publish failed: ' + err.message;
+        } finally {
+          btn.disabled = discardBtn.disabled = false;
+        }
+      }
+
+      updatePublishBar();
+
       // Fetch poems
-      fetch("poems/poems.json")
+      fetchSite("poems/poems.json")
         .then((r) => r.json())
         .then((data) => {
           poems = data;
@@ -2876,7 +3096,7 @@
           return blogContentCache.get(file);
         }
         try {
-          const resp = await fetch(`notes/${file}`);
+          const resp = await fetchSite(`notes/${file}`);
           if (!resp.ok) throw new Error("Failed to load");
           let content = await resp.text();
           // Convert relative image paths
@@ -2898,7 +3118,7 @@
       async function loadBlogs() {
         try {
           // Fetch list from JSON file
-          const listResp = await fetch("./notes/list.json");
+          const listResp = await fetchSite("./notes/list.json");
           if (!listResp.ok) throw new Error("Failed to load list.json");
           const list = await listResp.json();
           blogListData = list;
@@ -3144,6 +3364,7 @@
       function updatePreview() {
         const md = document.getElementById('editorTextarea').value;
         document.getElementById('editorPreview').innerHTML = parseMarkdown(md, false);
+        applyStagedImages(document.getElementById('editorPreview'));
       }
 
       // Live preview with debounce
@@ -3330,22 +3551,7 @@
       }
 
       async function commitBinaryFile(path, base64Content, message) {
-        const sha = await getFileSha(path);
-        const body = { message, content: base64Content, branch: REPO_BRANCH };
-        if (sha) body.sha = sha;
-        const resp = await fetch(
-          `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${ghEncodePath(path)}`,
-          {
-            method: 'PUT',
-            headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-          }
-        );
-        if (!resp.ok) {
-          const err = await resp.json().catch(() => ({}));
-          throw new Error(err.message || 'Upload failed');
-        }
-        return resp.json();
+        stageFile(path, base64Content, message, 'base64');
       }
 
       async function uploadAndInsertImage(file) {
@@ -3376,9 +3582,9 @@
           replacePlaceholder(ref);
           const newPos = insertPos + ref.length;
           ta.selectionStart = ta.selectionEnd = newPos;
-          status.textContent = 'Image uploaded';
+          status.textContent = 'Image added';
           status.className = 'editor-status success';
-          setTimeout(() => { if (status.textContent === 'Image uploaded') status.textContent = ''; }, 1500);
+          setTimeout(() => { if (status.textContent === 'Image added') status.textContent = ''; }, 1500);
         } catch (err) {
           console.error('Image upload failed:', err);
           replacePlaceholder('');
@@ -3535,6 +3741,8 @@
       }
 
       async function getFileSha(path) {
+        const entry = getStagedEntry(path);
+        if (entry) return entry.deleted ? null : 'staged';
         const resp = await fetch(
           `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${ghEncodePath(path)}?ref=${REPO_BRANCH}`,
           { headers: { 'Authorization': `token ${ghToken}` } }
@@ -3549,51 +3757,25 @@
       async function deleteGitHubFile(path, message) {
         const sha = await getFileSha(path);
         if (!sha) return false;
-
-        const resp = await fetch(
-          `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${ghEncodePath(path)}`,
-          {
-            method: 'DELETE',
-            headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message, sha, branch: REPO_BRANCH })
-          }
-        );
-        if (!resp.ok) {
-          const err = await resp.json().catch(() => ({}));
-          throw new Error(err.message || 'Failed to delete file');
-        }
+        stageDelete(path, message);
         return true;
       }
 
-      async function commitFile(path, content, message, _retry = 0) {
-        const sha = await getFileSha(path);
-        const body = {
-          message,
-          content: btoa(unescape(encodeURIComponent(content))),
-          branch: REPO_BRANCH
-        };
-        if (sha) body.sha = sha;
+      async function commitFile(path, content, message) {
+        stageFile(path, content, message);
+      }
 
+      // Current text of a repo file: staged version if any, else from GitHub.
+      async function readRepoText(path) {
+        const entry = getStagedEntry(path);
+        if (entry && !entry.deleted) return entry.content;
         const resp = await fetch(
-          `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${ghEncodePath(path)}`,
-          {
-            method: 'PUT',
-            headers: {
-              'Authorization': `token ${ghToken}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-          }
+          `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${ghEncodePath(path)}?ref=${REPO_BRANCH}`,
+          { headers: { 'Authorization': `token ${ghToken}` } }
         );
-        if (!resp.ok) {
-          const err = await resp.json();
-          // SHA mismatch — retry once with fresh SHA
-          if (_retry < 2 && (resp.status === 409 || resp.status === 422)) {
-            return commitFile(path, content, message, _retry + 1);
-          }
-          throw new Error(err.message || 'Failed to commit');
-        }
-        return resp.json();
+        if (!resp.ok) throw new Error(`Failed to fetch ${path}`);
+        const data = await resp.json();
+        return decodeURIComponent(escape(atob(data.content.replace(/\n/g, ''))));
       }
 
       // Sanitize title to filename
@@ -3656,15 +3838,8 @@
           const commitMsg = isNewPost ? `New blog: ${newTitle}` : (fileMoved ? `Move blog: ${newTitle}` : `Update blog: ${newTitle}`);
           await commitFile(mdPath, fullContent, commitMsg);
 
-          // 2. Update list.json via GitHub API
-          status.textContent = 'Updating list.json...';
-          const listResp = await fetch(
-            `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/notes/list.json?ref=${REPO_BRANCH}`,
-            { headers: { 'Authorization': `token ${ghToken}` } }
-          );
-          if (!listResp.ok) throw new Error('Failed to fetch list.json');
-          const listData = await listResp.json();
-          const listContent = JSON.parse(decodeURIComponent(escape(atob(listData.content.replace(/\n/g, '')))));
+          // 2. Update list.json
+          const listContent = JSON.parse(await readRepoText('notes/list.json'));
 
           if (isNewPost) {
             // Insert new entry at the top
@@ -3681,24 +3856,8 @@
             }
           }
 
-          const listBody = {
-            message: isNewPost ? `Add to list.json: ${newTitle}` : `Update list.json: ${newTitle}`,
-            content: btoa(unescape(encodeURIComponent(JSON.stringify(listContent, null, 2) + '\n'))),
-            sha: listData.sha,
-            branch: REPO_BRANCH
-          };
-          const listPutResp = await fetch(
-            `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/notes/list.json`,
-            {
-              method: 'PUT',
-              headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' },
-              body: JSON.stringify(listBody)
-            }
-          );
-          if (!listPutResp.ok) {
-            const err = await listPutResp.json();
-            throw new Error('list.json: ' + (err.message || 'commit failed'));
-          }
+          await commitFile('notes/list.json', JSON.stringify(listContent, null, 2) + '\n',
+            isNewPost ? `Add to list.json: ${newTitle}` : `Update list.json: ${newTitle}`);
 
           if (fileMoved) {
             await deleteGitHubFile(`notes/${oldFile}`, `Remove old blog path: ${oldFile}`);
@@ -3723,7 +3882,7 @@
           buildBlogFilters();
           renderBlogCards();
 
-          status.textContent = 'Saved!';
+          status.textContent = 'Saved locally — Publish to push';
           status.className = 'editor-status success';
           setTimeout(() => closeEditor(), 800);
 
@@ -3763,7 +3922,6 @@
           file: 'projects/projects.json',
           label: 'Project',
           fields: [
-            { key: 'icon',     label: 'Icon (emoji)', type: 'text' },
             { key: 'name',     label: 'Name',         type: 'text' },
             { key: 'desc',     label: 'Description (HTML allowed)', type: 'textarea', rows: 4 },
             { key: 'link',     label: 'Link',         type: 'text' },
@@ -3773,7 +3931,7 @@
           setList: (arr) => { projects = arr; buildProjectFilters(); renderProjects(); },
           serialize: (arr) => JSON.stringify(arr, null, 2) + '\n',
           empty: () => ({
-            icon: '', name: '', desc: '', link: '',
+            name: '', desc: '', link: '',
             category: projectFilter !== 'all' ? projectFilter : 'Tools',
           }),
         },
@@ -3919,7 +4077,7 @@
             (isNew ? 'Add ' : 'Update ') + cfg.label.toLowerCase() + ': ' + (data.title || data.name || data.zh_title || '(unnamed)'));
           if (kind === 'awards') renderAwards();
           else cfg.setList(cfg.getList());
-          status.textContent = 'Saved!';
+          status.textContent = 'Saved locally — Publish to push';
           status.className = 'section-editor-status success';
           setTimeout(closeSectionEditor, 600);
         } catch (err) {
@@ -4078,7 +4236,6 @@
         const cardsHtml = pageItems.map(({ p, i }) =>
           '<a class="project-item item-host" href="' + escHtml(p.link) + '">' +
             actionBtns('projects', i) +
-            '<div class="project-icon">' + escHtml(p.icon) + '</div>' +
             '<div class="project-info">' +
               '<p class="project-name">' + escHtml(p.name) + '</p>' +
               '<p class="project-desc">' + (p.desc || '') + '</p>' +
@@ -4095,7 +4252,6 @@
           const need = PROJECTS_PER_PAGE - pageItems.length;
           placeholderHtml = Array(need).fill(
             '<div class="project-item placeholder" aria-hidden="true">' +
-              '<div class="project-icon">·</div>' +
               '<div class="project-info">' +
                 '<p class="project-name">&nbsp;</p>' +
                 '<p class="project-desc">&nbsp;</p>' +
@@ -4219,11 +4375,11 @@
       }
 
       // Initial loaders
-      fetch('projects/projects.json')
+      fetchSite('projects/projects.json')
         .then(r => r.ok ? r.json() : [])
         .then(data => { projects = Array.isArray(data) ? data : []; buildProjectFilters(); renderProjects(); })
         .catch(() => { projects = []; buildProjectFilters(); renderProjects(); });
-      fetch('awards/awards.json')
+      fetchSite('awards/awards.json')
         .then(r => r.ok ? r.json() : { groups: [] })
         .then(data => { awardsData = data && Array.isArray(data.groups) ? data : { groups: [] }; renderAwards(); })
         .catch(() => { awardsData = { groups: [] }; renderAwards(); });
@@ -4295,33 +4451,14 @@
           alert('This post has not been saved yet.');
           return;
         }
-        if (!confirm(`Delete "${b.title}"?\n\nThis will remove the file and list.json entry. This cannot be undone.`)) return;
+        if (!confirm(`Delete "${b.title}"?\n\nThis will remove the file and list.json entry when you publish.`)) return;
 
         try {
           // 1. Remove from list.json first, so the site never points at a deleted file.
-          const listResp = await fetch(
-            `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/notes/list.json?ref=${REPO_BRANCH}`,
-            { headers: { 'Authorization': `token ${ghToken}` } }
-          );
-          if (!listResp.ok) throw new Error('Failed to fetch list.json');
-          const listData = await listResp.json();
-          let listContent = JSON.parse(decodeURIComponent(escape(atob(listData.content.replace(/\n/g, '')))));
+          let listContent = JSON.parse(await readRepoText('notes/list.json'));
           listContent = listContent.filter(e => e.file !== b.file);
-
-          const listBody = {
-            message: `Remove from list.json: ${b.title}`,
-            content: btoa(unescape(encodeURIComponent(JSON.stringify(listContent, null, 2) + '\n'))),
-            sha: listData.sha,
-            branch: REPO_BRANCH
-          };
-          const listPutResp = await fetch(
-            `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/notes/list.json`,
-            { method: 'PUT', headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(listBody) }
-          );
-          if (!listPutResp.ok) {
-            const err = await listPutResp.json().catch(() => ({}));
-            throw new Error('list.json: ' + (err.message || 'commit failed'));
-          }
+          await commitFile('notes/list.json', JSON.stringify(listContent, null, 2) + '\n',
+            `Remove from list.json: ${b.title}`);
 
           // 2. Delete the markdown file
           await deleteGitHubFile(`notes/${b.file}`, `Delete blog: ${b.title}`);
