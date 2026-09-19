@@ -2,7 +2,7 @@
 % title: LaTeX 写作示例
 % date: 2026-09-20
 % tag: Example
-% excerpt: 本站 LaTeX 模式的完整示例：章节与交叉引用、公式、复杂表格、引用与参考文献、代码等日常写作场景，可直接复制作为模板。
+% excerpt: 本站 LaTeX 模式的完整示例：章节与交叉引用、公式、复杂表格、插图与子图、引用与参考文献、代码等日常写作场景，可直接复制作为模板。
 % ---
 \definecolor{oursbg}{HTML}{F6E7DE}
 \newcommand{\E}{\mathbb{E}}
@@ -102,6 +102,49 @@
   \end{tabular}
 \end{table}
 
+\section{插图}\label{sec:figure}
+\subsection{单张图片}
+图片放在 \texttt{notes/assets/} 下（编辑器中粘贴或拖入图片会自动上传并插入代码），宽度用 \verb|width=0.7\linewidth| 这样的比例设置。
+如图~\ref{fig:psd} 所示，粉噪声的功率随频率按 $1/f$ 衰减。点击正文中的任何编号都会平滑跳转到对应的图、表、公式或文献，并短暂高亮。
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.7\linewidth]{notes/assets/example-psd.png}
+  \caption{白噪声与粉噪声的功率谱密度（双对数坐标）。}\label{fig:psd}
+\end{figure}
+
+\subsection{子图}
+用 \texttt{subfigure} 环境把多张图并排放在同一个编号下，子图自动编为 (a)、(b)，引用时显示为 \ref{fig:white}、\ref{fig:pink}：
+\begin{figure}[htbp]
+  \centering
+  \begin{subfigure}[b]{0.4\linewidth}
+    \includegraphics[width=\linewidth]{notes/assets/example-white-noise.png}
+    \caption{白噪声}\label{fig:white}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.4\linewidth}
+    \includegraphics[width=\linewidth]{notes/assets/example-pink-noise.png}
+    \caption{粉噪声}\label{fig:pink}
+  \end{subfigure}
+  \caption{两种噪声的二维样本。粉噪声（图~\ref{fig:pink}）比白噪声（图~\ref{fig:white}）具有更多低频结构。}\label{fig:noise}
+\end{figure}
+
+\subsection{并排的独立图}
+两个带 \verb|\caption| 的 \texttt{minipage} 会各自编号，如图~\ref{fig:left} 与图~\ref{fig:right}：
+\begin{figure}[htbp]
+  \centering
+  \begin{minipage}{0.4\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{notes/assets/example-white-noise.png}
+    \caption{独立编号的左图}\label{fig:left}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.4\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{notes/assets/example-pink-noise.png}
+    \caption{独立编号的右图}\label{fig:right}
+  \end{minipage}
+\end{figure}
+
 \section{代码}\label{sec:code}
 \begin{lstlisting}[language=python]
 def q_sample(x0, t, noise):
@@ -112,7 +155,7 @@ def q_sample(x0, t, noise):
 \section{引用}\label{sec:cite}
 单篇引用写作 \verb|\cite{key}|~\cite{wang2020cnn}，多篇写作 \verb|\cite{a,b}|~\cite{ojha2023towards,tan2024rethinking}。
 文献列表写在 \texttt{thebibliography} 环境中，编号按 \verb|\bibitem| 出现的顺序生成。
-交叉引用同样适用于章节：表格见第~\ref{sec:table} 节，公式见第~\ref{sec:math} 节，定理见 \autoref{thm:converge}。
+交叉引用同样适用于章节、定理和子图：表格在第~\ref{sec:table} 节，插图在第~\ref{sec:figure} 节；\verb|\autoref| 会自动带上类型名，例如 \autoref{thm:converge} 与 \autoref{fig:pink}。
 
 \begin{quote}
 用 \LaTeX{} 写博客，表格终于不再难看。

@@ -782,6 +782,36 @@
         font-weight: 600;
         color: var(--ink);
       }
+      .latex-subfloat {
+        display: inline-block;
+        vertical-align: top;
+        margin: 0 0.75% 0.5rem;
+        text-align: center;
+      }
+      .latex-subfloat figcaption {
+        margin-top: 0.3rem;
+      }
+      .latex-subfloat .latex-img {
+        width: 100%;
+      }
+      .latex-minipage {
+        display: inline-block;
+        vertical-align: top;
+        margin: 0 0.75%;
+      }
+      .latex-anchor {
+        display: block;
+        height: 0;
+      }
+      /* Target of a clicked \ref / \cite / footnote briefly lights up. */
+      @keyframes latex-flash {
+        from { background-color: rgba(58, 163, 91, 0.22); }
+        to { background-color: transparent; }
+      }
+      .latex-flash {
+        animation: latex-flash 1.6s ease-out;
+        border-radius: 0.3rem;
+      }
       .latex-img {
         max-width: 100%;
         height: auto;
@@ -3229,6 +3259,26 @@
           img.src = `data:${IMAGE_MIME[ext] || 'image/png'};base64,${entry.content}`;
         });
       }
+
+      // In-post links (\ref, \eqref, \cite, footnotes) scroll inside the panel
+      // instead of touching the page URL, then flash their target.
+      document.addEventListener('click', (e) => {
+        const a = e.target.closest('.blog-content a[href^="#tex"]');
+        if (!a) return;
+        e.preventDefault();
+        const root = a.closest('.blog-content');
+        let target = root.querySelector('#' + CSS.escape(a.getAttribute('href').slice(1)));
+        if (!target) return;
+        // Equation anchors are empty markers: flash the equation that follows.
+        if (target.classList.contains('latex-anchor')) {
+          const eq = target.nextElementSibling;
+          if (eq && eq.classList.contains('katex-display')) target = eq;
+        }
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        target.classList.remove('latex-flash');
+        void target.offsetWidth;
+        target.classList.add('latex-flash');
+      });
 
       // LaTeX \resizebox{\linewidth}{!}{...}: scale the content down to the
       // available width (not below 55%, after which it scrolls instead).
