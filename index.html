@@ -2564,6 +2564,11 @@
       const exitFullscreenOrClose = (panelId) => {
         const panel = document.getElementById(panelId);
         if (!panel) return;
+        // The editor only lives in fullscreen, so ✕ while editing means Cancel.
+        if (panelId === 'blogPanel' && editorActive) {
+          closeEditor();
+          return;
+        }
 
         // Exit fullscreen to half screen
         panel.classList.remove('fullscreen');
@@ -3178,6 +3183,8 @@
       }
 
       function closeAllPanels() {
+        // Closing the panel mid-edit cancels the edit (and drops an unsaved new post).
+        if (editorActive) closeEditor();
         const poemPanel = document.getElementById("poemPanel");
         const blogPanel = document.getElementById("blogPanel");
 
@@ -3852,22 +3859,33 @@
         updatePreview();
       }
 
-      function closeEditor() {
-        // If cancelling a new post that hasn't been saved, remove the placeholder
-        if (isNewPost && currentBlog === 0 && blogs[0] && blogs[0].file === null) {
-          blogs.shift();
-          displayBlogs = [];
-          parsedHtmlCache.clear();
-          buildBlogFilters();
-          renderBlogCards();
-          closeAllPanels();
+      // Drop the in-memory placeholder of a new post that was never saved.
+      function discardUnsavedPosts() {
+        let removed = false;
+        for (let i = blogs.length - 1; i >= 0; i--) {
+          if (blogs[i].file === null) { blogs.splice(i, 1); removed = true; }
         }
+        if (!removed) return false;
+        displayBlogs = [];
+        parsedHtmlCache.clear();
+        buildBlogFilters();
+        renderBlogCards();
+        return true;
+      }
+
+      function closeEditor() {
         isNewPost = false;
         editorActive = false;
         document.getElementById('blogReadBody').classList.remove('hidden');
         document.getElementById('blogNavBar').style.display = '';
         document.getElementById('editorContainer').classList.remove('active');
         document.getElementById('blogEditBtn').classList.remove('active');
+        // Leaving a new post that was never saved closes it entirely.
+        if (discardUnsavedPosts()) {
+          currentBlog = null;
+          closeAllPanels();
+          return;
+        }
         // Re-render read view with latest content
         if (currentBlog !== null && currentBlog < blogs.length) {
           renderBlog(currentBlog);
@@ -5024,8 +5042,11 @@
         if (!ghToken || currentBlog === null) return;
 
         const b = blogs[currentBlog];
-        if (!b || !b.file) {
-          alert('This post has not been saved yet.');
+        if (!b) return;
+        if (!b.file) {
+          // Never saved: nothing to remove from the repo, just drop it.
+          if (!confirm('Discard this unsaved post?')) return;
+          closeEditor();
           return;
         }
         if (!confirm(`Delete "${b.title}"?\n\nThis will remove the file and list.json entry when you publish.`)) return;
