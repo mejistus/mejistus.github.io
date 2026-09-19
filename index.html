@@ -799,6 +799,16 @@
         vertical-align: top;
         margin: 0 0.75%;
       }
+      .latex-tikz {
+        margin: 1.2rem 0;
+        text-align: center;
+        overflow-x: auto;
+      }
+      .latex-tikz svg {
+        max-width: 100%;
+        height: auto;
+        overflow: visible;
+      }
       .latex-anchor {
         display: block;
         height: 0;
@@ -3100,6 +3110,7 @@
         document.getElementById("blogPanelContent").innerHTML = getParsedHtml(i);
         applyStagedImages(document.getElementById("blogPanelContent"));
         fitLatexBoxes(document.getElementById("blogPanelContent"));
+        loadTikzJax(document.getElementById("blogPanelContent"));
         document.getElementById("blogCounter").textContent =
           `${i + 1} / ${blogs.length}`;
         document.getElementById("blogBtnPrev").disabled = i === 0;
@@ -3293,6 +3304,97 @@
           });
         });
       }
+      // TikZ: a post's pictures are pre-rendered to notes/tikz/<hash>.svg when
+      // the author saves, so readers just load an SVG. Without one, TikZJax
+      // (real TeX in WebAssembly, ~6 MB on first use) compiles it live.
+      const TIKZJAX_BASE = 'https://cdn.jsdelivr.net/npm/@drgrice1/tikzjax@1.0.0-beta24/dist/';
+      const tikzMissing = new Set(); // hashes with no pre-rendered SVG on the server
+      let tikzFontsLoaded = false, tikzJaxLoaded = false;
+
+      function loadTikzFonts() {
+        if (tikzFontsLoaded) return;
+        tikzFontsLoaded = true;
+        const css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = TIKZJAX_BASE + 'fonts.css';
+        document.head.appendChild(css);
+      }
+      function loadTikzJaxScript() {
+        loadTikzFonts();
+        if (tikzJaxLoaded) return;
+        tikzJaxLoaded = true;
+        const js = document.createElement('script');
+        js.src = TIKZJAX_BASE + 'tikzjax.js';
+        document.head.appendChild(js);
+      }
+
+      // TeX sizes are in pt; show pictures 1.2× so their 10pt labels match the body text.
+      function scaleTikzSvg(svg) {
+        const w = parseFloat(svg && svg.getAttribute('width'));
+        if (!w) return;
+        svg.style.width = (w * 4 / 3 * 1.2).toFixed(1) + 'px';
+        svg.style.height = 'auto';
+      }
+
+      async function prerenderedTikz(hash) {
+        const path = `notes/tikz/${hash}.svg`;
+        if (!getStagedEntry(path) && tikzMissing.has(hash)) return null;
+        try {
+          const resp = await fetchSite(path);
+          const text = resp.ok ? await resp.text() : '';
+          if (text.trim().startsWith('<svg')) return text;
+        } catch (_) {}
+        tikzMissing.add(hash);
+        return null;
+      }
+
+      function loadTikzJax(root) {
+        root.querySelectorAll('.latex-tikz[data-tikz-hash]:not([data-tikz-state])').forEach(async (box) => {
+          box.dataset.tikzState = 'loading';
+          const pending = box.querySelector('script[type="text/x-tikz"]');
+          const svg = await prerenderedTikz(box.dataset.tikzHash);
+          if (!box.isConnected) return;
+          if (svg) {
+            loadTikzFonts();
+            box.innerHTML = svg;
+            scaleTikzSvg(box.querySelector('svg'));
+            box.dataset.tikzState = 'static';
+            return;
+          }
+          // A fresh <script type="text/tikz"> is what TikZJax's observer picks up.
+          const live = document.createElement('script');
+          live.type = 'text/tikz';
+          [...pending.attributes].forEach(a => { if (a.name !== 'type') live.setAttribute(a.name, a.value); });
+          live.textContent = pending.textContent;
+          pending.replaceWith(live);
+          box.dataset.tikzState = 'live';
+          loadTikzJaxScript();
+        });
+      }
+      document.addEventListener('tikzjax-load-finished', (e) => {
+        const box = e.target.closest && e.target.closest('.latex-tikz');
+        if (!box) return;
+        box.dataset.tikzState = 'compiled';
+        scaleTikzSvg(e.target);
+      });
+
+      // Stage SVGs of pictures compiled in the editor preview alongside the post.
+      async function stageCompiledTikz() {
+        let staged = 0, pending = 0;
+        for (const box of document.querySelectorAll('#editorPreview .latex-tikz[data-tikz-hash]')) {
+          const state = box.dataset.tikzState;
+          if (state === 'static') continue;
+          const svg = box.querySelector('svg');
+          if (state !== 'compiled' || !svg) { pending++; continue; }
+          const path = `notes/tikz/${box.dataset.tikzHash}.svg`;
+          if (getStagedEntry(path) || await getFileSha(path)) continue;
+          stageFile(path, svg.outerHTML + '\n', `Add TikZ figure ${box.dataset.tikzHash}`);
+          tikzMissing.delete(box.dataset.tikzHash);
+          staged++;
+        }
+        return { staged, pending };
+      }
+
       window.addEventListener('resize', () => {
         document.querySelectorAll('#blogPanelContent, #editorPreview').forEach(fitLatexBoxes);
       });
@@ -3740,6 +3842,7 @@
         document.getElementById('editorPreview').innerHTML = renderPost(md, editorMode, false);
         applyStagedImages(document.getElementById('editorPreview'));
         fitLatexBoxes(document.getElementById('editorPreview'));
+        loadTikzJax(document.getElementById('editorPreview'));
       }
 
       // Live preview with debounce
@@ -4286,6 +4389,8 @@
             await deleteGitHubFile(`notes/${oldFile}`, `Remove old blog path: ${oldFile}`);
           }
 
+          const tikz = editorMode === 'latex' ? await stageCompiledTikz() : { staged: 0, pending: 0 };
+
           // 3. Update local state immediately
           b.file = newFile;
           b.title = newTitle;
@@ -4305,9 +4410,10 @@
           buildBlogFilters();
           renderBlogCards();
 
-          status.textContent = 'Saved locally — Publish to push';
+          status.textContent = 'Saved locally — Publish to push' +
+            (tikz.pending ? ` (${tikz.pending} TikZ picture${tikz.pending > 1 ? 's' : ''} still compiling: save again once done to pre-render)` : '');
           status.className = 'editor-status success';
-          setTimeout(() => closeEditor(), 800);
+          if (!tikz.pending) setTimeout(() => closeEditor(), 800);
 
         } catch (err) {
           console.error('Save failed:', err);
