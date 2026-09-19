@@ -4245,6 +4245,45 @@
         requestAnimationFrame(() => syncSourceToPreview(false));
       }
 
+      // ── Cmd/Ctrl+/ toggles comments on the selected lines (or the caret's line):
+      // "% " in LaTeX; Markdown has no line comments, so <!-- … --> wraps them. ──
+      function toggleComment() {
+        const ta = document.getElementById('editorTextarea');
+        const v = ta.value;
+        let a = ta.selectionStart, b = ta.selectionEnd;
+        // A selection ending at the very start of a line doesn't include that line.
+        if (b > a && v[b - 1] === '\n') b--;
+        const start = v.lastIndexOf('\n', a - 1) + 1;
+        const endNl = v.indexOf('\n', b);
+        const end = endNl < 0 ? v.length : endNl;
+        const block = v.slice(start, end);
+        let out;
+        if (editorMode === 'latex') {
+          const lines = block.split('\n');
+          const filled = lines.filter(l => l.trim());
+          const commented = filled.length && filled.every(l => /^\s*%/.test(l));
+          if (commented) {
+            out = lines.map(l => l.replace(/^(\s*)% ?/, '$1')).join('\n');
+          } else {
+            const indent = Math.min(...filled.map(l => /^[ \t]*/.exec(l)[0].length).concat(filled.length ? [] : [0]));
+            out = lines.map(l => l.trim() || lines.length === 1 ? l.slice(0, indent) + '% ' + l.slice(indent) : l).join('\n');
+          }
+        } else {
+          const m = /^(\s*)<!--\s?([\s\S]*?)\s?-->(\s*)$/.exec(block);
+          const lead = /^\s*/.exec(block)[0];
+          out = m ? m[1] + m[2] + m[3] : `${lead}<!-- ${block.slice(lead.length)} -->`;
+        }
+        if (out === block) return;
+        editorRangeReplace(start, end, out);
+        ta.setSelectionRange(start, start + out.length);
+      }
+      document.getElementById('editorTextarea').addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && !e.altKey && (e.code === 'Slash' || e.key === '/')) {
+          e.preventDefault();
+          toggleComment();
+        }
+      });
+
       // Cmd+S / Ctrl+S: compile in LaTeX mode, save in Markdown mode
       document.addEventListener('keydown', (e) => {
         if (editorActive && (e.metaKey || e.ctrlKey) && e.key === 's') {
