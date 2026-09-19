@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script src="assets/latex.js"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap");
 
@@ -744,6 +745,184 @@
       .blog-content tr:hover {
         background: rgba(196, 124, 90, 0.05);
       }
+      .blog-content h4 {
+        font-family: "Playfair Display", serif;
+        font-size: 1rem;
+        margin: 1.2rem 0 0.6rem;
+        color: var(--ink);
+      }
+
+      /* ── LaTeX posts (rendered by assets/latex.js) ── */
+      .blog-content {
+        counter-reset: katexEqnNo mmlEqnNo;
+      }
+      .latex-secnum {
+        margin-right: 0.6em;
+        color: var(--rust);
+        font-variant-numeric: tabular-nums;
+      }
+      .latex-center {
+        text-align: center;
+      }
+      .latex-right {
+        text-align: right;
+      }
+      .latex-float {
+        margin: 2rem 0;
+        text-align: center;
+      }
+      .latex-float figcaption {
+        margin: 0.7rem auto;
+        max-width: 42rem;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+      .latex-cap-label {
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .latex-img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 0.4rem;
+      }
+      .latex-table-wrap {
+        overflow-x: auto;
+        margin: 1.5rem 0;
+      }
+      .latex-float .latex-table-wrap {
+        margin: 0.5rem 0;
+      }
+      /* Booktabs-style tables: no grid, only the rules the source asks for. */
+      .blog-content table.latex-table {
+        width: auto;
+        margin: 0 auto;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        font-variant-numeric: tabular-nums;
+      }
+      .blog-content .latex-table th,
+      .blog-content .latex-table td {
+        border: none;
+        padding: 0.45rem 1rem;
+        text-align: left;
+        color: var(--ink);
+        background: transparent;
+      }
+      .blog-content .latex-table th {
+        font-weight: 600;
+      }
+      .blog-content .latex-table tr:hover {
+        background: transparent;
+      }
+      .latex-table .a-center { text-align: center !important; }
+      .latex-table .a-right { text-align: right !important; }
+      .latex-table .vl { border-left: 1px solid var(--ink) !important; }
+      .latex-table .vr { border-right: 1px solid var(--ink) !important; }
+      .latex-table tr.rule-top > * { border-top: 1px solid var(--ink) !important; }
+      .latex-table tr.rule-top.rule-heavy > * { border-top-width: 1.5px !important; }
+      .latex-table tr.rule-top.rule-double > * { border-top: 3px double var(--ink) !important; }
+      .latex-table tr.rule-bottom > * { border-bottom: 1px solid var(--ink) !important; }
+      .latex-table tr.rule-bottom.rule-heavy > * { border-bottom-width: 1.5px !important; }
+      .latex-table tr.rule-bottom.rule-double > * { border-bottom: 3px double var(--ink) !important; }
+      .latex-table td.cline, .latex-table th.cline {
+        border-top: 0.8px solid var(--ink) !important;
+      }
+      .latex-theorem {
+        margin: 1.4rem 0;
+      }
+      .latex-theorem.latex-thm p {
+        font-style: italic;
+        color: var(--ink);
+      }
+      .latex-thm-head {
+        font-style: normal;
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .latex-proof .latex-thm-head {
+        font-weight: normal;
+        font-style: italic;
+      }
+      .latex-thm-note {
+        font-weight: normal;
+      }
+      .latex-qed {
+        float: right;
+        margin-left: 1rem;
+        color: var(--ink);
+      }
+      .latex-abstract {
+        margin: 0 auto 2rem;
+        max-width: 38rem;
+        font-size: 0.9rem;
+      }
+      .latex-abstract-title {
+        text-align: center;
+        font-weight: 600;
+        color: var(--ink) !important;
+        margin-bottom: 0.4rem !important;
+      }
+      .latex-list dt {
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .latex-list dd {
+        margin: 0 0 0.6rem 1.5rem;
+      }
+      .latex-custom-label {
+        list-style: none;
+      }
+      .latex-item-label {
+        margin-left: -1.2rem;
+        margin-right: 0.4rem;
+      }
+      .latex-paragraph {
+        color: var(--ink);
+      }
+      .latex-sc {
+        font-variant: small-caps;
+      }
+      .latex-sf {
+        font-family: "Inter", sans-serif;
+      }
+      .latex-fbox {
+        border: 1px solid currentColor;
+        padding: 0 0.25em;
+      }
+      .latex-logo {
+        font-family: "Times New Roman", Times, serif;
+        white-space: nowrap;
+      }
+      .latex-logo .a {
+        text-transform: uppercase;
+        font-size: 0.75em;
+        vertical-align: 0.25em;
+        margin: 0 -0.15em 0 -0.36em;
+      }
+      .latex-logo .e {
+        text-transform: uppercase;
+        vertical-align: -0.5ex;
+        margin: 0 -0.125em 0 -0.1667em;
+      }
+      .latex-cite {
+        color: var(--rust);
+      }
+      .latex-fn-ref a {
+        text-decoration: none;
+        font-size: 0.75em;
+      }
+      .latex-footnotes {
+        margin-top: 2.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.85rem;
+      }
+      .latex-fn-back {
+        text-decoration: none !important;
+      }
+
       .blog-content .katex-display {
         overflow-x: auto;
         overflow-y: hidden;
@@ -1361,6 +1540,34 @@
         flex-shrink: 0;
         background: var(--sand);
       }
+      .editor-mode-switch {
+        display: inline-flex;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        overflow: hidden;
+        background: var(--cream);
+      }
+      .editor-mode-switch button {
+        border: none;
+        background: transparent;
+        padding: 0.2rem 0.8rem;
+        font: 500 0.7rem "Inter", sans-serif;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .editor-mode-switch button.active {
+        background: var(--rust);
+        color: #fff;
+      }
+      /* Saved posts are bound to their format: the switch is shown but greyed out. */
+      .editor-mode-switch.locked {
+        opacity: 0.55;
+        filter: grayscale(1);
+      }
+      .editor-mode-switch.locked button {
+        cursor: not-allowed;
+      }
       .editor-pane-label {
         font-size: 0.7rem;
         letter-spacing: 0.12em;
@@ -1893,7 +2100,11 @@
         <div class="editor-split">
           <div class="editor-pane">
             <div class="editor-pane-header">
-              <span class="editor-pane-label">Markdown · edit front matter directly</span>
+              <div class="editor-mode-switch" id="editorModeSwitch" role="group" aria-label="Editor mode">
+                <button type="button" data-mode="markdown" onclick="setEditorMode('markdown')">Markdown</button>
+                <button type="button" data-mode="latex" onclick="setEditorMode('latex')">LaTeX</button>
+              </div>
+              <span class="editor-pane-label" id="editorModeHint">edit front matter directly</span>
             </div>
             <textarea class="editor-textarea" id="editorTextarea" placeholder="---&#10;title: ...&#10;date: ...&#10;tag: ...&#10;---&#10;&#10;Your content here..."></textarea>
           </div>
@@ -2789,9 +3000,19 @@
 
       // ── Parsed HTML cache ──
       const parsedHtmlCache = new Map();
+      // A saved post's format is fixed by its extension; an unsaved one
+      // carries the mode chosen in the editor.
+      function postMode(b) {
+        if (b && b.file) return /\.tex$/i.test(b.file) ? 'latex' : 'markdown';
+        return (b && b.mode) || 'markdown';
+      }
+      function renderPost(content, mode, hideTitle) {
+        return mode === 'latex' ? parseLatex(content || '') : parseMarkdown(content || '', hideTitle);
+      }
+
       function getParsedHtml(i) {
         if (parsedHtmlCache.has(i)) return parsedHtmlCache.get(i);
-        const html = parseMarkdown(blogs[i].content, true);
+        const html = renderPost(blogs[i].content, postMode(blogs[i]), true);
         parsedHtmlCache.set(i, html);
         return html;
       }
@@ -3298,6 +3519,44 @@
 
       // ── Editor ──
       let previewDebounce = null;
+      let editorMode = 'markdown';
+      const EDITOR_MODE_KEY = 'editor_default_mode';
+
+      const EDITOR_PLACEHOLDERS = {
+        markdown: '---\ntitle: ...\ndate: ...\ntag: ...\n---\n\nYour content here...',
+        latex: '% ---\n% title: ...\n% date: ...\n% tag: ...\n% ---\n\n\\section{...}\n\nYour content here...',
+      };
+
+      function syncEditorModeUI(locked) {
+        const sw = document.getElementById('editorModeSwitch');
+        sw.classList.toggle('locked', locked);
+        sw.querySelectorAll('button').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.mode === editorMode);
+          btn.disabled = locked;
+          btn.title = locked ? 'Saved posts keep their format' : '';
+        });
+        document.getElementById('editorModeHint').textContent =
+          editorMode === 'latex' ? '% front matter at top' : 'front matter at top';
+        document.getElementById('editorTextarea').placeholder = EDITOR_PLACEHOLDERS[editorMode];
+      }
+
+      // Only an unsaved post can switch; its front matter is converted and
+      // an untouched template body is swapped for the other format's.
+      function setEditorMode(mode) {
+        const b = blogs[currentBlog];
+        if (!b || b.file || mode === editorMode) return;
+        const ta = document.getElementById('editorTextarea');
+        const { fields, body } = splitFrontMatter(ta.value);
+        const title = parseFrontMatterField(ta.value, 'title') || 'Untitled';
+        const fresh = { markdown: `# ${title}\n\n`, latex: `\\section{Introduction}\n\n` };
+        const newBody = body.trim() === fresh[editorMode].trim() || !body.trim() ? fresh[mode] : body;
+        ta.value = buildFrontMatter(fields, mode) + '\n' + newBody;
+        editorMode = mode;
+        b.mode = mode;
+        try { localStorage.setItem(EDITOR_MODE_KEY, mode); } catch (_) {}
+        syncEditorModeUI(false);
+        updatePreview();
+      }
 
       function toggleEditor() {
         if (!ghToken) {
@@ -3326,6 +3585,8 @@
 
         // Fill textarea with full content (including front matter)
         document.getElementById('editorTextarea').value = b.content || '';
+        editorMode = postMode(b);
+        syncEditorModeUI(!!b.file);
 
         // Show editor, hide read view
         document.getElementById('blogReadBody').classList.add('hidden');
@@ -3363,7 +3624,7 @@
 
       function updatePreview() {
         const md = document.getElementById('editorTextarea').value;
-        document.getElementById('editorPreview').innerHTML = parseMarkdown(md, false);
+        document.getElementById('editorPreview').innerHTML = renderPost(md, editorMode, false);
         applyStagedImages(document.getElementById('editorPreview'));
       }
 
@@ -3526,6 +3787,28 @@
         image: () => triggerImageUpload(),
       };
 
+      const LATEX_FORMAT_ACTIONS = {
+        bold:        () => editorWrap('\\textbf{', '}', 'bold'),
+        italic:      () => editorWrap('\\emph{', '}', 'italic'),
+        underline:   () => editorWrap('\\underline{', '}', 'underline'),
+        highlight:   () => editorWrap('\\hl{', '}', 'highlight'),
+        strike:      () => editorWrap('\\sout{', '}', 'strikethrough'),
+        'math-inline': () => editorWrap('$', '$', 'x'),
+        'math-block':  () => editorInsertBlock('\\begin{equation}\n  \n\\end{equation}'),
+        footnote:    () => editorWrap('\\footnote{', '}', 'note'),
+        'code-inline': () => editorWrap('\\texttt{', '}', 'code'),
+        'code-block':  () => editorInsertBlock('\\begin{lstlisting}[language=python]\n\n\\end{lstlisting}'),
+        link: () => editorInsertAtCursor('\\href{url}{text}', 10),
+        table: () => editorInsertBlock(
+          '\\begin{table}\n  \\caption{Caption}\n  \\begin{tabular}{lcc}\n    \\toprule\n' +
+          '    Header & Header & Header \\\\\n    \\midrule\n    cell & cell & cell \\\\\n' +
+          '    cell & cell & cell \\\\\n    \\bottomrule\n  \\end{tabular}\n\\end{table}'
+        ),
+        quote: () => editorInsertBlock('\\begin{quote}\n  quote\n\\end{quote}'),
+        hr: () => editorInsertBlock('\\noindent\\rule{\\linewidth}{0.4pt}'),
+        image: () => triggerImageUpload(),
+      };
+
       // ── Image upload to notes/assets/ via GitHub API ──
       function fileToBase64(file) {
         return new Promise((resolve, reject) => {
@@ -3562,7 +3845,7 @@
         const filename = makeImageFilename(file.name);
         const path = `notes/assets/${filename}`;
 
-        const placeholder = `![uploading ${filename}…]()`;
+        const placeholder = editorMode === 'latex' ? `% uploading ${filename}…` : `![uploading ${filename}…]()`;
         const ta = document.getElementById('editorTextarea');
         const insertPos = ta.selectionStart;
         editorInsertAtCursor(placeholder);
@@ -3578,7 +3861,9 @@
         try {
           const b64 = await fileToBase64(file);
           await commitBinaryFile(path, b64, `Add image: ${filename}`);
-          const ref = `![${filename}](${path})`;
+          const ref = editorMode === 'latex'
+            ? `\\begin{figure}\n  \\centering\n  \\includegraphics[width=0.8\\linewidth]{${path}}\n\\end{figure}`
+            : `![${filename}](${path})`;
           replacePlaceholder(ref);
           const newPos = insertPos + ref.length;
           ta.selectionStart = ta.selectionEnd = newPos;
@@ -3653,7 +3938,7 @@
         const action = item.dataset.action;
         if (!action) return; // parent submenu trigger — keep menu open
         closeEditorCtxMenu();
-        const fn = EDITOR_FORMAT_ACTIONS[action];
+        const fn = (editorMode === 'latex' ? LATEX_FORMAT_ACTIONS : EDITOR_FORMAT_ACTIONS)[action];
         if (fn) fn();
       });
       document.addEventListener('mousedown', (e) => {
@@ -3704,18 +3989,42 @@
       })();
 
       // ── Front matter helpers ──
+      // Markdown posts use a YAML block between --- lines. LaTeX posts use the
+      // same block commented out with %, so the .tex file still compiles.
+      function splitFrontMatter(content) {
+        let m = content.match(/^---\s*\n([\s\S]*?)\n---[ \t]*(?:\n|$)/);
+        if (!m) m = content.match(/^%[ \t]*---[ \t]*\n((?:%.*\n)*?)%[ \t]*---[ \t]*(?:\n|$)/);
+        if (!m) return { fields: [], body: content };
+        const fields = m[1].split('\n')
+          .map(l => l.replace(/^%[ \t]?/, ''))
+          .map(l => { const i = l.indexOf(':'); return i > 0 ? [l.slice(0, i).trim(), l.slice(i + 1).trim()] : null; })
+          .filter(Boolean);
+        return { fields, body: content.slice(m[0].length).replace(/^\n/, '') };
+      }
+
+      function buildFrontMatter(fields, mode) {
+        const p = mode === 'latex' ? '% ' : '';
+        return [`${p}---`, ...fields.map(([k, v]) => `${p}${k}: ${v}`.trimEnd()), `${p}---`].join('\n') + '\n';
+      }
+
       function parseFrontMatterField(content, field) {
-        const fmMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
-        if (!fmMatch) return null;
-        const line = fmMatch[1].split('\n').find(l => l.startsWith(field + ':'));
-        return line ? line.slice(field.length + 1).trim() : null;
+        const f = splitFrontMatter(content).fields.find(([k]) => k === field);
+        return f && f[1] ? f[1] : null;
       }
 
       // Port of Python extract_excerpt — matches add_blog.py logic
-      function extractExcerpt(content) {
+      function extractExcerpt(content, mode) {
         // Check front matter excerpt first
         const fmExcerpt = parseFrontMatterField(content, 'excerpt');
         if (fmExcerpt) return fmExcerpt;
+        if (mode === 'latex') {
+          // First rendered paragraph, without math.
+          const div = document.createElement('div');
+          div.innerHTML = parseLatex(content);
+          div.querySelectorAll('.katex, .latex-fn-ref').forEach(el => el.remove());
+          const p = [...div.querySelectorAll('p')].map(el => el.textContent.replace(/\s+/g, ' ').trim()).find(Boolean) || '';
+          return p.length > 100 ? p.slice(0, 100) + '...' : p;
+        }
         // Strip front matter
         const body = content.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, '');
         const lines = body.split('\n');
@@ -3797,15 +4106,15 @@
         return folder || 'Notes';
       }
 
-      async function makeUniqueBlogFilePath(tag, title, currentFile) {
+      async function makeUniqueBlogFilePath(tag, title, currentFile, ext) {
         const folder = tagToFolder(tag);
         const stem = titleToFilename(title);
-        let candidate = `${folder}/${stem}.md`;
+        let candidate = `${folder}/${stem}${ext}`;
         if (candidate === currentFile) return candidate;
 
         let suffix = 2;
         while (await getFileSha(`notes/${candidate}`)) {
-          candidate = `${folder}/${stem}-${suffix}.md`;
+          candidate = `${folder}/${stem}-${suffix}${ext}`;
           if (candidate === currentFile) return candidate;
           suffix += 1;
         }
@@ -3827,10 +4136,10 @@
           const newTitle = parseFrontMatterField(fullContent, 'title') || 'Untitled';
           const newTag = parseFrontMatterField(fullContent, 'tag') || 'Notes';
           const newDate = parseFrontMatterField(fullContent, 'date') || new Date().toISOString().split('T')[0];
-          const newExcerpt = extractExcerpt(fullContent);
+          const newExcerpt = extractExcerpt(fullContent, editorMode);
 
           const oldFile = b.file;
-          const newFile = await makeUniqueBlogFilePath(newTag, newTitle, oldFile);
+          const newFile = await makeUniqueBlogFilePath(newTag, newTitle, oldFile, editorMode === 'latex' ? '.tex' : '.md');
           const fileMoved = !!oldFile && oldFile !== newFile;
 
           // 1. Commit the markdown file
@@ -4403,10 +4712,14 @@
         // Tag = current filter, or Notes if "all"
         const tag = blogFilter !== 'all' ? blogFilter : 'Notes';
         const today = new Date().toISOString().split('T')[0];
-        const template = `---\ntitle: Untitled\ndate: ${today}\ntag: ${tag}\nexcerpt: \n---\n\n# Untitled\n\n`;
+        let mode = 'latex';
+        try { mode = localStorage.getItem(EDITOR_MODE_KEY) || 'latex'; } catch (_) {}
+        const fields = [['title', 'Untitled'], ['date', today], ['tag', tag], ['excerpt', '']];
+        const template = buildFrontMatter(fields, mode) + '\n' +
+          (mode === 'latex' ? '\\section{Introduction}\n\n' : '# Untitled\n\n');
 
         // Create a placeholder blog entry in local state
-        const placeholder = { file: null, title: 'Untitled', date: today, tag, excerpt: '', content: template };
+        const placeholder = { file: null, mode, title: 'Untitled', date: today, tag, excerpt: '', content: template };
         blogs.unshift(placeholder);
         displayBlogs = [];
         buildBlogFilters();
@@ -4435,6 +4748,8 @@
           document.getElementById('editorContainer').classList.add('active');
           document.getElementById('blogEditBtn').classList.add('active');
           document.getElementById('editorTextarea').value = template;
+          editorMode = mode;
+          syncEditorModeUI(false);
           document.getElementById('editorStatus').textContent = '';
           document.getElementById('editorStatus').className = 'editor-status';
           updatePreview();
