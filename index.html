@@ -16,8 +16,8 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.6.0"></script>
-    <script src="assets/latex-complete.js?v=6.6.0"></script>
+    <script src="assets/latex.js?v=6.7.0"></script>
+    <script src="assets/latex-complete.js?v=6.7.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -2256,7 +2256,7 @@
             <div class="editor-pane-header">
               <span class="editor-pane-label">Preview</span>
               <div class="editor-preview-actions" id="editorPreviewActions" hidden>
-                <button type="button" class="editor-compile-btn" onclick="syncSourceToPreview(true)" title="Show the caret's position in the preview">Go to caret →</button>
+                <button type="button" class="editor-compile-btn" onclick="syncSourceToPreview(true)" title="Show the caret's position in the preview (double-click the preview to go back to the source)">Go to caret →</button>
                 <button type="button" class="editor-compile-btn" id="editorCompileBtn" onclick="compileLatex()">Compile</button>
               </div>
             </div>
@@ -4026,6 +4026,64 @@
         if (flash) flashPreviewBlock(target);
         ta.focus();
       }
+
+      // ── LaTeX preview → source: double-click a word in the preview ──
+      // The last [data-line] at or before the click gives the source line; the
+      // double-clicked word is then looked up from there so the caret lands on it.
+      function sourceOffsetOfLine(text, line) {
+        let pos = 0;
+        for (let n = 1; n < line && pos >= 0; n++) pos = text.indexOf('\n', pos) + 1 || -1;
+        return pos < 0 ? text.length : pos;
+      }
+
+      function lineMarkerBefore(node) {
+        let best = null;
+        for (const el of document.querySelectorAll('#editorPreview [data-line]')) {
+          const before = el === node || el.contains(node) ||
+            (el.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING);
+          if (!before) break;
+          best = el;
+        }
+        return best;
+      }
+
+      function syncPreviewToSource(e) {
+        if (editorMode !== 'latex') return;
+        const hit = document.caretRangeFromPoint ? document.caretRangeFromPoint(e.clientX, e.clientY) : null;
+        const marker = lineMarkerBefore((hit && hit.startContainer) || e.target);
+        if (!marker) return;
+        const ta = document.getElementById('editorTextarea');
+        const text = ta.value;
+        const line = +marker.dataset.line;
+        const from = sourceOffsetOfLine(text, line);
+        // Look a few lines ahead: a rendered paragraph can span several source lines.
+        const to = sourceOffsetOfLine(text, line + 6);
+        const word = (window.getSelection().toString() || '').trim();
+        // Rendered text can differ from source (ligatures, markup): fall back to its first chars.
+        const find = (a, b) => {
+          const hay = text.slice(a, b);
+          const needle = !word ? '' : hay.includes(word) ? word
+            : word.length > 4 && hay.includes(word.slice(0, 4)) ? word.slice(0, 4) : '';
+          return needle ? { at: a + hay.indexOf(needle), len: needle.length } : null;
+        };
+        // Forward first; then the two lines above (e.g. \begin{theorem}[title] feeds the next paragraph).
+        const hit2 = find(from, to) || find(sourceOffsetOfLine(text, Math.max(1, line - 2)), from);
+        let selStart, selEnd;
+        if (hit2) {
+          selStart = hit2.at;
+          selEnd = selStart + hit2.len;
+        } else {
+          selStart = selEnd = from + /^[ \t]*/.exec(text.slice(from))[0].length;
+        }
+        window.getSelection().removeAllRanges();
+        scrollSyncLockedUntil = performance.now() + 900;
+        ta.focus({ preventScroll: true });
+        ta.setSelectionRange(selStart, selStart);
+        const r = LatexComplete.caretRect(ta), tr = ta.getBoundingClientRect();
+        ta.scrollTop += r.top - tr.top - ta.clientHeight / 3;
+        ta.setSelectionRange(selStart, selEnd);
+      }
+      document.getElementById('editorPreview').addEventListener('dblclick', syncPreviewToSource);
 
       function compileLatex() {
         updatePreview();
