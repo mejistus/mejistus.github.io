@@ -93,6 +93,13 @@
     '=': '̄', '.': '̇', u: '̆', v: '̌', H: '̋', c: '̧', r: '̊',
   };
 
+  // Source line markers: "\u0005<line>\u0005" is put at the start of every
+  // non-blank source line and ends up as data-line attributes / anchors in the
+  // HTML, which is what the editor's source ↔ preview jumps use.
+  const MARK_RE = /\u0005(\d+)\u0005/g;
+  const stripMarks = (t) => t.replace(MARK_RE, '');
+  const lineAnchor = (n) => `<span class="latex-line" data-line="${n}"></span>`;
+
   const CJK = /[　-〿぀-ヿ㐀-鿿＀-￯]/;
   const SLOT = '\u0001';
   const REF = '\u0002';
@@ -218,6 +225,7 @@
 
     let s = String(source || '').replace(/\r\n?/g, '\n');
     if (CJK.test(s)) ctx.names = NAMES.zh;
+    s = s.split('\n').map((line, i) => line.trim() ? line.replace(/^[ \t]*/, (ws) => `${ws}\u0005${i + 1}\u0005`) : line).join('\n');
 
     // 1. Verbatim-like content first, before comments or math touch it.
     s = s.replace(/\\begin\{(verbatim\*?|lstlisting|minted)\}([\s\S]*?)\\end\{\1\}/g, (m, env, body) => {
@@ -233,10 +241,11 @@
         const opt = /^\s*(\[[^\]]*\])?\s*\{([^}]*)\}/.exec(body);
         if (opt) { body = body.slice(opt[0].length); lang = opt[2]; }
       }
+      body = stripMarks(body);
       return slot(ctx, codeBlock(body.replace(/^[ \t]*\n/, '').replace(/\n[ \t]*$/, ''), lang), true);
     });
     s = s.replace(/\\(?:verb\*?|lstinline)([^a-zA-Z\s{])([\s\S]*?)\1/g, (m, d, code) =>
-      slot(ctx, '<code>' + esc(code) + '</code>', false));
+      slot(ctx, '<code>' + esc(stripMarks(code)) + '</code>', false));
     s = s.replace(/\\mintinline\{[^}]*\}\{([^}]*)\}/g, (m, code) => slot(ctx, '<code>' + esc(code) + '</code>', false));
 
     // 2. Comments (this also removes the "% ---" front matter block).
@@ -249,7 +258,7 @@
       if (/^html$/i.test(model.trim())) userColors[name.trim()] = '#' + val.trim();
       else if (model.trim() === 'rgb' && v.length === 3) userColors[name.trim()] = `rgb(${v.map(x => Math.round(x * 255)).join(',')})`;
       else if (model.trim() === 'RGB' && v.length === 3) userColors[name.trim()] = `rgb(${v.join(',')})`;
-      ctx.tikzPreamble.push(m);
+      ctx.tikzPreamble.push({ text: m, color: name.trim() });
       return '';
     });
 
@@ -273,7 +282,7 @@
         } else {
           const g = readGroup(s, j); if (g) j = g.end;
         }
-        ctx.tikzPreamble.push(s.slice(k + 1, j));
+        ctx.tikzPreamble.push({ text: stripMarks(s.slice(k + 1, j)) });
         if (cmd[1] !== 'tikzstyle' && cmd[1] !== 'tikzset') ctx.tikzPgfplots = true;
         i = j;
       }
@@ -304,7 +313,7 @@
     s = extractMath(ctx, s);
 
     // 5. Line breaks between CJK characters vanish, as with ctex.
-    s = s.replace(new RegExp('(' + CJK.source + ')[ \\t]*\\n[ \\t]*(?=' + CJK.source + ')', 'g'), '$1');
+    s = s.replace(new RegExp('(' + CJK.source + ')[ \\t]*\\n[ \\t]*(?=(?:\\u0005\\d+\\u0005)?' + CJK.source + ')', 'g'), '$1');
 
     // Scaling wrappers around tables/figures only matter on paper.
     s = unwrapBoxes(s);
@@ -358,18 +367,26 @@
   // on demand by the page) compiles to SVG in the browser.
   function extractTikz(ctx, s) {
     return s.replace(/\\begin\{(tikzpicture|tikzcd)\}([\s\S]*?)\\end\{\1\}/g, (m, env) => {
+      m = stripMarks(m);
       const packages = {};
       if (env === 'tikzcd') packages['tikz-cd'] = '';
       if (ctx.tikzPgfplots || /\\begin\{(axis|semilogxaxis|semilogyaxis|loglogaxis|polaraxis)\}|\\addplot/.test(m)) {
         packages.pgfplots = '';
       }
-      if (/\\(mathbb|mathfrak|text|operatorname|boldsymbol)\b|\\begin\{(align|pmatrix|bmatrix|cases)/.test(m + ctx.tikzPreamble.join(''))) {
+      // Only colours and macros this picture uses go into its preamble, so an
+      // unrelated \definecolor elsewhere doesn't change the hash (and thereby
+      // invalidate the pre-rendered SVG).
+      const preamble = ctx.tikzPreamble.filter(p =>
+        p.color ? new RegExp('(^|[^a-zA-Z0-9])' + p.color.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^a-zA-Z0-9]|$)').test(m)
+        : p.macro ? new RegExp('\\\\' + p.macro + '(?![a-zA-Z])').test(m)
+        : true).map(p => p.text);
+      if (/\\(mathbb|mathfrak|text|operatorname|boldsymbol)\b|\\begin\{(align|pmatrix|bmatrix|cases)/.test(m + preamble.join(''))) {
         packages.amsmath = ''; packages.amssymb = '';
       }
       const attrs = [
         ctx.tikzLibs.size ? `data-tikz-libraries="${esc([...ctx.tikzLibs].join(','))}"` : '',
         Object.keys(packages).length ? `data-tex-packages="${esc(JSON.stringify(packages))}"` : '',
-        ctx.tikzPreamble.length ? `data-add-to-preamble="${esc(ctx.tikzPreamble.join('\n'))}"` : '',
+        preamble.length ? `data-add-to-preamble="${esc(preamble.join('\n'))}"` : '',
       ].filter(Boolean).join(' ');
       const code = m.replace(/<\/(script)/gi, '<\\/$1');
       // The page looks for a pre-rendered notes/tikz/<hash>.svg first and only
@@ -436,11 +453,11 @@
         const dflt = readOptional(s, i); if (dflt) i = dflt.end;
         const body = readGroup(s, i); if (!body) continue;
         i = body.end;
-        const expansion = kind === 'DeclareMathOperator'
-          ? `\\operatorname${m[2] ? '*' : ''}{${body.content}}` : body.content;
+        const expansion = stripMarks(kind === 'DeclareMathOperator'
+          ? `\\operatorname${m[2] ? '*' : ''}{${body.content}}` : body.content);
         ctx.macros[name] = { nargs, body: expansion };
         ctx.katexMacros['\\' + name] = expansion;
-        if (kind !== 'DeclareMathOperator') ctx.tikzPreamble.push(s.slice(m.index, i));
+        if (kind !== 'DeclareMathOperator') ctx.tikzPreamble.push({ text: stripMarks(s.slice(m.index, i)), macro: name });
       }
       out += s.slice(last, m.index);
       last = i;
@@ -463,6 +480,7 @@
     // Numbered display environments: record \label → equation number.
     const envRe = new RegExp('\\\\begin\\{(' + MATH_ENVS.map(e => e.replace('*', '\\*')).join('|') + ')\\}([\\s\\S]*?)\\\\end\\{\\1\\}', 'g');
     s = s.replace(envRe, (m, env, body) => {
+      body = stripMarks(body);
       const numbered = !env.endsWith('*') && env !== 'displaymath' && env !== 'math';
       const rows = /^(multline|equation)$/.test(env) ? [body] : body.split(/\\\\/);
       let anchors = '';
@@ -493,7 +511,7 @@
         const close = s[i + 1] === '[' ? '\\]' : '\\)';
         const j = s.indexOf(close, i + 2);
         if (j >= 0) {
-          const tex = s.slice(i + 2, j).replace(/\\label\{[^}]*\}/g, '');
+          const tex = stripMarks(s.slice(i + 2, j)).replace(/\\label\{[^}]*\}/g, '');
           out += slot(ctx, renderMath(ctx, tex, s[i + 1] === '['), false);
           i = j + 1;
           continue;
@@ -510,7 +528,7 @@
           j++;
         }
         if (j < s.length) {
-          out += slot(ctx, renderMath(ctx, s.slice(i + open, j), display), false);
+          out += slot(ctx, renderMath(ctx, stripMarks(s.slice(i + open, j)), display), false);
           i = j + open - 1;
           continue;
         }
@@ -534,13 +552,26 @@
       if (!text) return;
       // A paragraph made only of block-level slots is emitted bare.
       // Layout glue between them (\hfill, \quad, ...) is dropped, as on paper.
-      const bare = text.replace(LAYOUT_GLUE, '').trim();
+      const glueless = text.replace(LAYOUT_GLUE, '');
+      const bare = stripMarks(glueless).trim();
       const onlySlots = /^(\u0001\d+\u0001\s*)+$/.test(bare) &&
         bare.match(/\u0001(\d+)\u0001/g).every(t => ctx.slots[+t.slice(1, -1)].block);
-      if (onlySlots) { out += bare; return; }
-      const html = renderInline(ctx, text).trim();
-      if (html.replace(/<(?!img|hr|br|\u0001)[^>]*>/g, '').trim()) out += '<p>' + html + '</p>';
+      if (onlySlots) { out += glueless.replace(MARK_RE, (x, n) => lineAnchor(n)).trim(); return; }
+      const first = /^\s*\u0005(\d+)\u0005/.exec(text);
+      const html = renderInline(ctx, first ? text.slice(first[0].length) : text).trim();
+      if (html.replace(/<(?!img|hr|br|\u0001)[^>]*>/g, '').trim()) {
+        out += (first ? `<p data-line="${first[1]}">` : '<p>') + html + '</p>';
+      }
     };
+
+    // The marker of the line a block starts on tags that block's element.
+    const takeLine = () => {
+      const t = /\u0005(\d+)\u0005[ \t]*$/.exec(para);
+      if (!t) return null;
+      para = para.slice(0, t.index);
+      return t[1];
+    };
+    const tagLine = (html, line) => line ? html.replace(/^<([a-zA-Z][\w-]*)/, `<$1 data-line="${line}"`) : html;
 
     const re = new RegExp(BLOCK_RE.source, 'g');
     let last = 0, m;
@@ -548,12 +579,13 @@
       para += s.slice(last, m.index);
       last = re.lastIndex;
       const tok = m[0];
+      const line = /^\\/.test(tok) ? takeLine() : null;
       if (m[1]) {
         const env = m[1].trim();
         const { bodyEnd, end } = findEnd(s, env, re.lastIndex);
         const body = s.slice(re.lastIndex, bodyEnd);
         flush();
-        out += renderEnvironment(ctx, env, body);
+        out += tagLine(renderEnvironment(ctx, env, body), line);
         last = end;
         re.lastIndex = end;
       } else if (m[2]) {
@@ -563,18 +595,20 @@
         if (!title) continue;
         last = re.lastIndex = title.end;
         if (m[2] === 'paragraph' || m[2] === 'subparagraph') {
+          if (line) para += `\u0005${line}\u0005`;
           para += slot(ctx, '<strong class="latex-paragraph">' + renderInline(ctx, title.content) + '</strong> ', false);
           continue;
         }
         flush();
-        out += renderHeading(ctx, m[2], !!m[3], title.content, s.slice(last));
+        out += tagLine(renderHeading(ctx, m[2], !!m[3], title.content, s.slice(last)), line);
       } else if (/^\\(hrule|rule)/.test(tok)) {
         flush();
-        out += '<hr class="latex-rule">';
+        out += tagLine('<hr class="latex-rule">', line);
       } else if (/^\n|^\\par/.test(tok)) {
         flush();
       }
-      // \noindent, \maketitle, ... are dropped.
+      // \noindent, \maketitle, ... are dropped (their line marker stays with the text).
+      else if (line) para += `\u0005${line}\u0005`;
     }
     para += s.slice(last);
     flush();
@@ -636,22 +670,31 @@
 
   function renderList(ctx, env, body) {
     const tag = LIST_ENVS[env];
-    const items = splitTopLevel(body, (s, k) => {
+    const chunks = splitTopLevel(body, (s, k) => {
       if (!s.startsWith('\\item', k) || /[a-zA-Z]/.test(s[k + 5] || '')) return 0;
       return 5;
-    }).slice(1);
+    });
+    // The line marker in front of each \item trails the previous chunk.
+    const lines = [];
+    for (let k = 0; k < chunks.length - 1; k++) {
+      const t = /\u0005(\d+)\u0005[ \t]*$/.exec(chunks[k]);
+      lines.push(t ? t[1] : null);
+      if (t) chunks[k] = chunks[k].slice(0, t.index);
+    }
+    const items = chunks.slice(1);
     ctx.listDepth++;
     const types = ['1', 'a', 'i', 'A'];
-    const inner = items.map(raw => {
+    const inner = items.map((raw, n) => {
+      const dl = lines[n] ? ` data-line="${lines[n]}"` : '';
       let label = null;
       const opt = readOptional(raw, 0);
       if (opt) { label = opt.content; raw = raw.slice(opt.end); }
       let html = renderBlocks(ctx, raw);
       // A single paragraph stays tight inside its list item.
-      if (/^<p>[\s\S]*<\/p>$/.test(html) && html.indexOf('<p>', 1) < 0) html = html.slice(3, -4);
-      if (tag === 'dl') return `<dt>${label != null ? renderInline(ctx, label) : ''}</dt><dd>${html}</dd>`;
-      if (label != null) return `<li class="latex-custom-label"><span class="latex-item-label">${renderInline(ctx, label)}</span>${html}</li>`;
-      return `<li>${html}</li>`;
+      if (/^<p[ >][\s\S]*<\/p>$/.test(html) && html.indexOf('<p', 1) < 0) html = html.replace(/^<p[^>]*>/, '').slice(0, -4);
+      if (tag === 'dl') return `<dt${dl}>${label != null ? renderInline(ctx, label) : ''}</dt><dd>${html}</dd>`;
+      if (label != null) return `<li${dl} class="latex-custom-label"><span class="latex-item-label">${renderInline(ctx, label)}</span>${html}</li>`;
+      return `<li${dl}>${html}</li>`;
     }).join('');
     ctx.listDepth--;
     const type = tag === 'ol' ? ` type="${types[ctx.listDepth % 4]}"` : '';
@@ -668,7 +711,11 @@
       const g = readGroup(body, k + 8);
       if (!g) break;
       out += body.slice(i, k);
-      const cap = `<figcaption><span class="latex-cap-label">${label}</span> ` + renderInline(ctx, g.content) + '</figcaption>';
+      // The caption's own source line goes on the <figcaption>.
+      const t = /\u0005(\d+)\u0005[ \t]*$/.exec(out);
+      if (t) out = out.slice(0, t.index);
+      const cap = `<figcaption${t ? ` data-line="${t[1]}"` : ''}><span class="latex-cap-label">${label}</span> ` +
+        renderInline(ctx, g.content) + '</figcaption>';
       out += '\n\n' + slot(ctx, cap, true) + '\n\n';
       i = g.end;
     }
@@ -773,13 +820,19 @@
   function renderBibliography(ctx, body) {
     const w = readGroup(body, 0); // widest-label argument
     const items = splitTopLevel(w ? body.slice(w.end) : body, (s, k) =>
-      s.startsWith('\\bibitem', k) && !/[a-zA-Z]/.test(s[k + 8] || '') ? 8 : 0).slice(1);
-    const lis = items.map(raw => {
+      s.startsWith('\\bibitem', k) && !/[a-zA-Z]/.test(s[k + 8] || '') ? 8 : 0);
+    // As with \item: the marker before each \bibitem trails the previous chunk.
+    const lines = items.map((c, k) => {
+      const t = /\u0005(\d+)\u0005[ \t]*$/.exec(c);
+      if (t) items[k] = c.slice(0, t.index);
+      return t && t[1];
+    });
+    const lis = items.slice(1).map((raw, n) => {
       const o = readOptional(raw, 0);
       const key = readGroup(raw, o ? o.end : 0);
       if (!key) return '';
       const k = key.content.trim();
-      return `<li id="${esc(ctx.uid + '-bib-' + k)}"><span class="latex-bib-num">[${ctx.bib[k]}]</span>` +
+      return `<li id="${esc(ctx.uid + '-bib-' + k)}"${lines[n] ? ` data-line="${lines[n]}"` : ''}><span class="latex-bib-num">[${ctx.bib[k]}]</span>` +
         renderInline(ctx, raw.slice(key.end).trim()) + '</li>';
     }).join('');
     return `<div class="latex-bib"><h2>${ctx.names.references}</h2><ol>${lis}</ol></div>`;
@@ -808,8 +861,8 @@
       (note ? ` <span class="latex-thm-note">(${renderInline(ctx, note)})</span>` : '') +
       (isProof ? '.' : (ctx.names === NAMES.zh ? '' : '.')) + '</span> ';
     let html = renderBlocks(ctx, body);
-    html = html.replace(/^<p>/, '<p>' + head);
-    if (!html.startsWith('<p>' + head)) html = '<p>' + head + '</p>' + html;
+    if (/^<p[ >]/.test(html)) html = html.replace(/^(<p[^>]*>)/, '$1' + head);
+    else html = '<p>' + head + '</p>' + html;
     if (isProof) {
       const qed = '<span class="latex-qed">∎</span>';
       html = html.endsWith('</p>') ? html.slice(0, -4) + qed + '</p>' : html + qed;
@@ -889,7 +942,8 @@
     const rows = [];
     let pending = [];
     rawRows.forEach(raw => {
-      let rest = raw;
+      const lm = /\u0005(\d+)\u0005/.exec(raw);
+      let rest = stripMarks(raw);
       let m;
       while ((m = RULE_RE.exec(rest))) {
         let j = m[0].length;
@@ -914,7 +968,7 @@
       const rc = /^\s*\\rowcolor\s*(?:\[([^\]]*)\])?\s*\{([^}]*)\}/.exec(rest);
       if (rc) { bg = safeColor(rc[2], rc[1]); rest = rest.slice(rc[0].length); }
       if (rest.trim()) {
-        rows.push({ cells: splitTopLevel(rest, (s, k) => (s[k] === '&' ? 1 : 0)), rules: pending, bg });
+        rows.push({ cells: splitTopLevel(rest, (s, k) => (s[k] === '&' ? 1 : 0)), rules: pending, bg, line: lm && lm[1] });
         pending = [];
       }
     });
@@ -980,7 +1034,8 @@
           `${renderInline(ctx, content)}</${tag}>`);
         col += span;
       });
-      return `<tr${topClass ? ` class="${topClass}"` : ''}${row.bg ? ` style="background-color:${row.bg}"` : ''}>${cells.join('')}</tr>`;
+      // class stays first: the bottom-rule pass below merges into it.
+      return `<tr${topClass ? ` class="${topClass}"` : ''}${row.line ? ` data-line="${row.line}"` : ''}${row.bg ? ` style="background-color:${row.bg}"` : ''}>${cells.join('')}</tr>`;
     });
 
     const bottom = ruleClass(bottomRules).replace(/rule-top/g, 'rule-bottom');
@@ -1006,6 +1061,12 @@
     let out = '';
     for (let i = 0; i < s.length; i++) {
       const c = s[i];
+      if (c === '\u0005') {
+        const j = s.indexOf('\u0005', i + 1);
+        out += lineAnchor(s.slice(i + 1, j));
+        i = j;
+        continue;
+      }
       if (c === SLOT) {
         const j = s.indexOf(SLOT, i + 1);
         out += s.slice(i, j + 1);

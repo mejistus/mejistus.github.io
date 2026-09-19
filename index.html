@@ -16,8 +16,8 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.5.0"></script>
-    <script src="assets/latex-complete.js?v=6.5.0"></script>
+    <script src="assets/latex.js?v=6.6.0"></script>
+    <script src="assets/latex-complete.js?v=6.6.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -1664,6 +1664,10 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
+      .editor-preview-actions {
+        display: flex;
+        gap: 0.4rem;
+      }
       .editor-compile-btn {
         border: 1px solid var(--border);
         border-radius: 999px;
@@ -2251,7 +2255,10 @@
           <div class="editor-pane">
             <div class="editor-pane-header">
               <span class="editor-pane-label">Preview</span>
-              <button type="button" class="editor-compile-btn" id="editorCompileBtn" onclick="updatePreview()" hidden>Compile</button>
+              <div class="editor-preview-actions" id="editorPreviewActions" hidden>
+                <button type="button" class="editor-compile-btn" onclick="syncSourceToPreview(true)" title="Show the caret's position in the preview">Go to caret →</button>
+                <button type="button" class="editor-compile-btn" id="editorCompileBtn" onclick="compileLatex()">Compile</button>
+              </div>
             </div>
             <div class="editor-preview blog-content" id="editorPreview"></div>
           </div>
@@ -3817,7 +3824,7 @@
           editorMode === 'latex' ? '% front matter at top' : 'front matter at top';
         document.getElementById('editorTextarea').placeholder = EDITOR_PLACEHOLDERS[editorMode];
         const compile = document.getElementById('editorCompileBtn');
-        compile.hidden = editorMode !== 'latex';
+        document.getElementById('editorPreviewActions').hidden = editorMode !== 'latex';
         compile.textContent = `Compile ${/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘S' : 'Ctrl+S'}`;
       }
 
@@ -3937,13 +3944,15 @@
       // Bidirectional proportional scroll sync. Uses a short time-based lock to
       // swallow the partner's echo event — robust even when requestAnimationFrame
       // is throttled (e.g., backgrounded tabs).
+      // Source ↔ preview jumps set this so their own smooth scroll isn't mirrored.
+      let scrollSyncLockedUntil = 0;
       (function () {
         const ta = document.getElementById('editorTextarea');
         const pv = document.getElementById('editorPreview');
         let lockedUntil = 0;
         const sync = (from, to) => () => {
           const now = performance.now();
-          if (now < lockedUntil) return;
+          if (now < lockedUntil || now < scrollSyncLockedUntil) return;
           const fMax = from.scrollHeight - from.clientHeight;
           const tMax = to.scrollHeight - to.clientHeight;
           if (fMax <= 0 || tMax <= 0) return;
@@ -3966,11 +3975,68 @@
         }
       });
 
+      // ── LaTeX source → preview (like Overleaf's SyncTeX) ──
+      // The renderer tags blocks with data-line and drops zero-size
+      // .latex-line anchors at each source line; the caret's line maps to the
+      // last of those at or before it.
+      function sourceLineAt(pos) {
+        const ta = document.getElementById('editorTextarea');
+        return ta.value.slice(0, pos).split('\n').length;
+      }
+
+      function previewTargetForLine(line) {
+        let best = null, bestLine = -1;
+        document.querySelectorAll('#editorPreview [data-line]').forEach(el => {
+          const n = +el.dataset.line;
+          if (n <= line && n > bestLine) { best = el; bestLine = n; }
+        });
+        return best;
+      }
+
+      function flashPreviewBlock(el) {
+        // Anchors are empty spans: light up the block they sit in.
+        let block = el;
+        if (el.classList.contains('latex-line')) {
+          // An anchor right before display math (or TikZ) stands for that, not its paragraph.
+          let next = el.nextElementSibling;
+          while (next && next.classList.contains('latex-line')) next = next.nextElementSibling;
+          if (next && next.classList.contains('latex-anchor')) next = next.nextElementSibling;
+          block = next && next.matches('.katex-display, .latex-tikz, pre')
+            ? next
+            : el.closest('p, li, dt, dd, tr, figcaption, figure, h2, h3, h4, blockquote, .latex-theorem') || el.parentElement;
+        }
+        // An empty wrapper (e.g. a <p> the browser split around a code block) → what follows it.
+        if (!block.textContent.trim() && !block.querySelector('img, svg') && block.nextElementSibling) {
+          block = block.nextElementSibling;
+        }
+        document.querySelectorAll('#editorPreview .latex-flash').forEach(x => x.classList.remove('latex-flash'));
+        void block.offsetWidth;
+        block.classList.add('latex-flash');
+      }
+
+      function syncSourceToPreview(flash) {
+        if (editorMode !== 'latex') return;
+        const ta = document.getElementById('editorTextarea');
+        const target = previewTargetForLine(sourceLineAt(ta.selectionStart));
+        if (!target) return;
+        scrollSyncLockedUntil = performance.now() + 900;
+        const pv = document.getElementById('editorPreview');
+        const top = target.getBoundingClientRect().top - pv.getBoundingClientRect().top + pv.scrollTop;
+        pv.scrollTo({ top: Math.max(0, top - pv.clientHeight / 3), behavior: 'smooth' });
+        if (flash) flashPreviewBlock(target);
+        ta.focus();
+      }
+
+      function compileLatex() {
+        updatePreview();
+        requestAnimationFrame(() => syncSourceToPreview(false));
+      }
+
       // Cmd+S / Ctrl+S: compile in LaTeX mode, save in Markdown mode
       document.addEventListener('keydown', (e) => {
         if (editorActive && (e.metaKey || e.ctrlKey) && e.key === 's') {
           e.preventDefault();
-          if (editorMode === 'latex') updatePreview();
+          if (editorMode === 'latex') compileLatex();
           else saveToGitHub();
         }
       });
