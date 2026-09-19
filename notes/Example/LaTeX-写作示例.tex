@@ -2,7 +2,7 @@
 % title: LaTeX 写作示例
 % date: 2026-09-20
 % tag: Example
-% excerpt: 本站 LaTeX 模式的完整示例：章节与交叉引用、公式、复杂表格、插图与子图、引用与参考文献、代码等日常写作场景，可直接复制作为模板。
+% excerpt: 本站 LaTeX 模式的完整示例：章节与交叉引用、公式、复杂表格、插图与子图、TikZ 绘图、引用与参考文献、代码等日常写作场景，可直接复制作为模板。
 % ---
 \definecolor{oursbg}{HTML}{F6E7DE}
 \newcommand{\E}{\mathbb{E}}
@@ -144,6 +144,53 @@
     \caption{独立编号的右图}\label{fig:right}
   \end{minipage}
 \end{figure}
+
+\section{TikZ 绘图}\label{sec:tikz}
+\verb|tikzpicture| 由真正的 \TeX{} 在浏览器中编译（TikZJax）。保存文章时，预览中已编译好的图会一并存为 SVG，读者打开时直接加载，无需等待编译。
+需要的 TikZ 库用 \verb|\usetikzlibrary| 声明；用到 \texttt{axis} 时自动加载 \texttt{pgfplots}，交换图用 \texttt{tikzcd} 环境。
+
+\usetikzlibrary{arrows.meta,positioning}
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}[node distance=1.8cm, >={Stealth[length=2.2mm]}, state/.style={draw, circle, minimum size=1cm}]
+    \node[state] (x0) {$x_0$};
+    \node[state, right=of x0] (x1) {$x_1$};
+    \node[right=of x1] (dots) {$\cdots$};
+    \node[state, right=of dots] (xT) {$x_T$};
+    \draw[->] (x0) to[bend left=35] node[above] {$q(x_1 \mid x_0)$} (x1);
+    \draw[->] (x1) to[bend left=35] (dots);
+    \draw[->] (dots) to[bend left=35] (xT);
+    \draw[->, dashed, red!70!black] (xT) to[bend left=35] node[below] {$p_\theta(x_{t-1} \mid x_t)$} (dots);
+    \draw[->, dashed, red!70!black] (dots) to[bend left=35] (x1);
+    \draw[->, dashed, red!70!black] (x1) to[bend left=35] (x0);
+  \end{tikzpicture}
+  \caption{扩散模型的前向加噪（实线）与反向去噪（虚线）过程。}\label{fig:chain}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[width=8cm, height=5cm, xlabel={$t/T$}, ylabel={$\bar\alpha_t$}, domain=0:1, samples=60,
+                 legend pos=north east, legend style={draw=none, font=\small}, axis lines=left]
+      \addplot[blue!70!black, thick] {cos(deg(x*pi/2))^2};
+      \addlegendentry{cosine}
+      \addplot[red!70!black, thick, dashed] {exp(-5*x^2)};
+      \addlegendentry{linear $\beta$}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{两种噪声调度下 $\bar\alpha_t$ 随时间的变化（pgfplots）。}\label{fig:schedule}
+\end{figure}
+
+交换图同样支持，如图~\ref{fig:cd}：
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzcd}[column sep=large, row sep=large]
+    x_0 \arrow[r, "q"] \arrow[d, "E"'] & x_T \arrow[d, "E"] \\
+    z_0 \arrow[r, "q_z"'] & z_T
+  \end{tikzcd}
+  \caption{潜空间扩散的交换图（tikz-cd）。}\label{fig:cd}
+\end{figure}
+图~\ref{fig:chain}、图~\ref{fig:schedule} 与图~\ref{fig:cd} 的编号与普通图片一致，同样可以点击跳转。
 
 \section{代码}\label{sec:code}
 \begin{lstlisting}[language=python]

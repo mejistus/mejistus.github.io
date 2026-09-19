@@ -208,6 +208,9 @@
       },
       counters: { section: 0, subsection: 0, subsubsection: 0, figure: 0, table: 0, equation: 0 },
       bib: {},
+      tikzLibs: new Set(),
+      tikzPreamble: [],
+      tikzPgfplots: false,
       currentRef: null,
       listDepth: 0,
       names: NAMES.en,
@@ -246,8 +249,36 @@
       if (/^html$/i.test(model.trim())) userColors[name.trim()] = '#' + val.trim();
       else if (model.trim() === 'rgb' && v.length === 3) userColors[name.trim()] = `rgb(${v.map(x => Math.round(x * 255)).join(',')})`;
       else if (model.trim() === 'RGB' && v.length === 3) userColors[name.trim()] = `rgb(${v.join(',')})`;
+      ctx.tikzPreamble.push(m);
       return '';
     });
+
+    // TikZ setup commands feed the preamble of every tikzpicture.
+    s = s.replace(/\\usetikzlibrary\s*\{([^}]*)\}/g, (m, libs) => {
+      libs.split(',').map(x => x.trim()).filter(Boolean).forEach(l => ctx.tikzLibs.add(l));
+      return '';
+    });
+    s = s.replace(/\\(tikzset|pgfplotsset|usepgfplotslibrary|tikzstyle)(?![a-zA-Z])/g, (m) => '\u0004' + m);
+    {
+      let out = '', i = 0, k;
+      while ((k = s.indexOf('\u0004', i)) >= 0) {
+        out += s.slice(i, k);
+        const cmd = /^\u0004\\([a-zA-Z]+)/.exec(s.slice(k));
+        let j = k + cmd[0].length;
+        if (cmd[1] === 'tikzstyle') {
+          // \tikzstyle{name}=[...]
+          const g = readGroup(s, j); if (g) j = g.end;
+          const eq = /^\s*=\s*/.exec(s.slice(j)); if (eq) j += eq[0].length;
+          const o = readOptional(s, j); if (o) j = o.end;
+        } else {
+          const g = readGroup(s, j); if (g) j = g.end;
+        }
+        ctx.tikzPreamble.push(s.slice(k + 1, j));
+        if (cmd[1] !== 'tikzstyle' && cmd[1] !== 'tikzset') ctx.tikzPgfplots = true;
+        i = j;
+      }
+      s = out + s.slice(i);
+    }
 
     // Bibliography numbers are needed before any \cite is rendered.
     const bibRe = /\\bibitem\s*(?:\[[^\]]*\])?\s*\{([^}]*)\}/g;
@@ -265,6 +296,9 @@
       s = s.slice(bodyStart, docEnd < 0 ? s.length : docEnd);
     }
     s = collectDefinitions(ctx, s);
+
+    // TikZ is compiled by real TeX (TikZJax), so it leaves before math does.
+    s = extractTikz(ctx, s);
 
     // 4. Math → KaTeX slots.
     s = extractMath(ctx, s);
@@ -320,6 +354,40 @@
     return s;
   }
 
+  // tikzpicture / tikzcd → <script type="text/tikz">, which TikZJax (loaded
+  // on demand by the page) compiles to SVG in the browser.
+  function extractTikz(ctx, s) {
+    return s.replace(/\\begin\{(tikzpicture|tikzcd)\}([\s\S]*?)\\end\{\1\}/g, (m, env) => {
+      const packages = {};
+      if (env === 'tikzcd') packages['tikz-cd'] = '';
+      if (ctx.tikzPgfplots || /\\begin\{(axis|semilogxaxis|semilogyaxis|loglogaxis|polaraxis)\}|\\addplot/.test(m)) {
+        packages.pgfplots = '';
+      }
+      if (/\\(mathbb|mathfrak|text|operatorname|boldsymbol)\b|\\begin\{(align|pmatrix|bmatrix|cases)/.test(m + ctx.tikzPreamble.join(''))) {
+        packages.amsmath = ''; packages.amssymb = '';
+      }
+      const attrs = [
+        ctx.tikzLibs.size ? `data-tikz-libraries="${esc([...ctx.tikzLibs].join(','))}"` : '',
+        Object.keys(packages).length ? `data-tex-packages="${esc(JSON.stringify(packages))}"` : '',
+        ctx.tikzPreamble.length ? `data-add-to-preamble="${esc(ctx.tikzPreamble.join('\n'))}"` : '',
+      ].filter(Boolean).join(' ');
+      const code = m.replace(/<\/(script)/gi, '<\\/$1');
+      // The page looks for a pre-rendered notes/tikz/<hash>.svg first and only
+      // hands the (inert) script to TikZJax when there is none.
+      const hash = fnv1a(attrs + '\n' + code);
+      return slot(ctx, `<div class="latex-tikz" data-tikz-hash="${hash}"><script type="text/x-tikz" ${attrs}>${code}</script></div>`, true);
+    });
+  }
+
+  function fnv1a(str) {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return h.toString(16).padStart(8, '0');
+  }
+
   function slot(ctx, html, block) {
     ctx.slots.push({ html, block });
     return SLOT + (ctx.slots.length - 1) + SLOT;
@@ -372,6 +440,7 @@
           ? `\\operatorname${m[2] ? '*' : ''}{${body.content}}` : body.content;
         ctx.macros[name] = { nargs, body: expansion };
         ctx.katexMacros['\\' + name] = expansion;
+        if (kind !== 'DeclareMathOperator') ctx.tikzPreamble.push(s.slice(m.index, i));
       }
       out += s.slice(last, m.index);
       last = i;
