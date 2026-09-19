@@ -16,8 +16,8 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.4.2"></script>
-    <script src="assets/latex-complete.js?v=6.4.2"></script>
+    <script src="assets/latex.js?v=6.5.0"></script>
+    <script src="assets/latex-complete.js?v=6.5.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -1664,6 +1664,22 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
+      .editor-compile-btn {
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--cream);
+        padding: 0.2rem 0.8rem;
+        font: 500 0.7rem "Inter", sans-serif;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        cursor: pointer;
+      }
+      /* Source changed since the last compile. */
+      .editor-compile-btn.stale {
+        border-color: var(--rust);
+        background: var(--rust);
+        color: #fff;
+      }
       .editor-mode-switch {
         display: inline-flex;
         border: 1px solid var(--border);
@@ -2235,6 +2251,7 @@
           <div class="editor-pane">
             <div class="editor-pane-header">
               <span class="editor-pane-label">Preview</span>
+              <button type="button" class="editor-compile-btn" id="editorCompileBtn" onclick="updatePreview()" hidden>Compile</button>
             </div>
             <div class="editor-preview blog-content" id="editorPreview"></div>
           </div>
@@ -3799,6 +3816,9 @@
         document.getElementById('editorModeHint').textContent =
           editorMode === 'latex' ? '% front matter at top' : 'front matter at top';
         document.getElementById('editorTextarea').placeholder = EDITOR_PLACEHOLDERS[editorMode];
+        const compile = document.getElementById('editorCompileBtn');
+        compile.hidden = editorMode !== 'latex';
+        compile.textContent = `Compile ${/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘S' : 'Ctrl+S'}`;
       }
 
       // Only an unsaved post can switch; its front matter is converted and
@@ -3895,6 +3915,7 @@
       }
 
       function updatePreview() {
+        document.getElementById('editorCompileBtn').classList.remove('stale');
         const md = document.getElementById('editorTextarea').value;
         document.getElementById('editorPreview').innerHTML = renderPost(md, editorMode, false);
         applyStagedImages(document.getElementById('editorPreview'));
@@ -3902,8 +3923,13 @@
         loadTikzJax(document.getElementById('editorPreview'));
       }
 
-      // Live preview with debounce
+      // Markdown previews live. LaTeX would render half-typed commands, so it
+      // only compiles on Cmd/Ctrl+S (or the Compile button).
       document.getElementById('editorTextarea').addEventListener('input', () => {
+        if (editorMode === 'latex') {
+          document.getElementById('editorCompileBtn').classList.add('stale');
+          return;
+        }
         clearTimeout(previewDebounce);
         previewDebounce = setTimeout(updatePreview, 300);
       });
@@ -3940,11 +3966,12 @@
         }
       });
 
-      // Cmd+S / Ctrl+S to save
+      // Cmd+S / Ctrl+S: compile in LaTeX mode, save in Markdown mode
       document.addEventListener('keydown', (e) => {
         if (editorActive && (e.metaKey || e.ctrlKey) && e.key === 's') {
           e.preventDefault();
-          saveToGitHub();
+          if (editorMode === 'latex') updatePreview();
+          else saveToGitHub();
         }
       });
 
@@ -4402,6 +4429,11 @@
 
       async function saveToGitHub() {
         if (!ghToken || currentBlog === null) return;
+
+        // Saving compiles first, so TikZ pictures match what is being saved.
+        if (editorMode === 'latex' && document.getElementById('editorCompileBtn').classList.contains('stale')) {
+          updatePreview();
+        }
 
         const saveBtn = document.getElementById('editorSaveBtn');
         const status = document.getElementById('editorStatus');
