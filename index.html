@@ -18,8 +18,9 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.8.0"></script>
-    <script src="assets/latex-complete.js?v=6.8.0"></script>
+    <script src="assets/latex.js?v=6.10.0"></script>
+    <script src="assets/latex-complete.js?v=6.10.0"></script>
+    <script src="assets/vim.js?v=6.10.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -1701,6 +1702,29 @@
         color: #b0603c;
         white-space: nowrap;
       }
+      .vim-status {
+        font-family: "SF Mono", "Fira Code", monospace;
+        font-size: 0.72rem;
+        letter-spacing: 0.04em;
+        color: var(--rust);
+        white-space: nowrap;
+      }
+      .vim-cmdline {
+        width: 16rem;
+        padding: 0.15rem 0.4rem;
+        border: 1px solid var(--border);
+        border-radius: 0.3rem;
+        background: var(--cream);
+        color: var(--ink);
+        font-family: "SF Mono", "Fira Code", monospace;
+        font-size: 0.75rem;
+        outline: none;
+      }
+      .editor-compile-btn.on {
+        border-color: var(--sage);
+        background: var(--sage);
+        color: #fff;
+      }
       .editor-preview-actions {
         display: flex;
         gap: 0.4rem;
@@ -2351,6 +2375,7 @@
                 <button type="button" data-mode="latex" onclick="setEditorMode('latex')">LaTeX</button>
               </div>
               <span class="editor-pane-label" id="editorModeHint">edit front matter directly</span>
+              <button type="button" class="editor-compile-btn" id="editorVimBtn" onclick="toggleVim()" title="Vim keybindings">Vim</button>
               <button type="button" class="editor-compile-btn" id="editorSnippetsBtn" onclick="toggleSnippetHelp(event)" hidden>Snippets ⇥</button>
               <div class="editor-snippets-help" id="editorSnippetsHelp" hidden></div>
             </div>
@@ -2374,6 +2399,8 @@
         <div class="editor-toolbar">
           <div style="display:flex;gap:0.8rem;align-items:center;">
             <button class="editor-cancel-btn" onclick="closeEditor()">Cancel</button>
+            <span class="vim-status" id="vimStatus" hidden></span>
+            <input class="vim-cmdline" id="vimCmdline" spellcheck="false" autocomplete="off" hidden />
             <span class="editor-status" id="editorStatus"></span>
           </div>
           <button class="editor-save-btn" id="editorSaveBtn" onclick="saveToGitHub()">Save</button>
@@ -3932,6 +3959,7 @@
           editorMode === 'latex' ? '% front matter at top' : 'front matter at top';
         document.getElementById('editorTextarea').placeholder = EDITOR_PLACEHOLDERS[editorMode];
         const compile = document.getElementById('editorCompileBtn');
+        editorVim.reset();
         document.getElementById('editorPreviewActions').hidden = editorMode !== 'latex';
         document.getElementById('editorSnippetsBtn').hidden = editorMode !== 'latex';
         document.getElementById('editorSnippetsHelp').hidden = true;
@@ -4406,10 +4434,38 @@
         image: () => triggerImageUpload(),
       };
 
-      LatexComplete.attach(document.getElementById('editorTextarea'), {
-        isActive: () => editorActive && editorMode === 'latex',
+      const latexCompletion = LatexComplete.attach(document.getElementById('editorTextarea'), {
+        // In Vim mode only insert mode types text, so completion stays out of the way.
+        isActive: () => editorActive && editorMode === 'latex' && ['off', 'insert'].includes(editorVim.mode()),
         replace: (start, end, text) => editorRangeReplace(start, end, text),
       });
+
+      // ── Vim mode (optional, remembered per browser) ──
+      const VIM_KEY = 'editor_vim';
+      const editorVim = TextareaVim.attach(document.getElementById('editorTextarea'), {
+        replace: (start, end, text) => editorRangeReplace(start, end, text),
+        statusEl: document.getElementById('vimStatus'),
+        cmdlineEl: document.getElementById('vimCmdline'),
+        onWrite: () => { if (editorMode === 'latex') compileLatex(); else saveToGitHub(); },
+        onWriteQuit: () => saveToGitHub(),
+        onQuit: () => closeEditor(),
+        onLeaveInsert: () => latexCompletion.dismiss(),
+      });
+      function toggleVim() {
+        const on = !editorVim.enabled();
+        try { localStorage.setItem(VIM_KEY, on ? '1' : ''); } catch (_) {}
+        applyVimSetting(on);
+        document.getElementById('editorTextarea').focus();
+      }
+      function applyVimSetting(on) {
+        editorVim.setEnabled(on);
+        document.getElementById('editorVimBtn').classList.toggle('on', on);
+      }
+      (function () {
+        let on = false;
+        try { on = !!localStorage.getItem(VIM_KEY); } catch (_) {}
+        applyVimSetting(on);
+      })();
 
       const LATEX_FORMAT_ACTIONS = {
         bold:        () => editorWrap('\\textbf{', '}', 'bold'),
