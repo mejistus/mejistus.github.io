@@ -467,6 +467,11 @@
         }
       }
     }, true);
+
+    return {
+      // Close the popup and leave any snippet (e.g. when Vim leaves insert mode).
+      dismiss() { close(); session = null; },
+    };
   }
 
   window.LatexComplete = { attach, caretRect, snippets: SNIPPETS };
