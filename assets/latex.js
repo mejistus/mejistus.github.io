@@ -28,11 +28,13 @@
       figure: 'Figure', table: 'Table', abstract: 'Abstract', proof: 'Proof',
       theorem: 'Theorem', lemma: 'Lemma', corollary: 'Corollary', proposition: 'Proposition',
       definition: 'Definition', remark: 'Remark', example: 'Example', section: 'Section', equation: 'Equation',
+      references: 'References',
     },
     zh: {
       figure: '图', table: '表', abstract: '摘要', proof: '证明',
       theorem: '定理', lemma: '引理', corollary: '推论', proposition: '命题',
       definition: '定义', remark: '注', example: '例', section: '节', equation: '式',
+      references: '参考文献',
     },
   };
 
@@ -82,7 +84,7 @@
     pagestyle: 1, thispagestyle: 1, pagenumbering: 1, setlength: 2, addtolength: 2,
     setcounter: 2, addtocounter: 2, stepcounter: 1, bibliographystyle: 1, bibliography: 1,
     graphicspath: 1, hypersetup: 1, geometry: 1, captionsetup: 1, lstset: 1, setminted: 1,
-    usetikzlibrary: 1, definecolor: 3, addbibresource: 1, printbibliography: 0, phantom: 1,
+    usetikzlibrary: 1, addbibresource: 1, printbibliography: 0, phantom: 1,
     vskip: 0, kern: 0, index: 1, nocite: 1, input: 1, include: 1, usepackage: 1,
     documentclass: 1, newenvironment: 3, renewenvironment: 3, linespread: 1, color: 1,
   };
@@ -205,6 +207,7 @@
         example: { name: 'example', counter: 'example' }, proof: { name: 'proof', counter: null },
       },
       counters: { section: 0, subsection: 0, subsubsection: 0, figure: 0, table: 0, equation: 0 },
+      bib: {},
       currentRef: null,
       listDepth: 0,
       names: NAMES.en,
@@ -236,6 +239,23 @@
     // 2. Comments (this also removes the "% ---" front matter block).
     s = s.replace(/(^|[^\\])%.*$/gm, '$1');
 
+    // \definecolor{name}{HTML|rgb|RGB}{value}
+    userColors = {};
+    s = s.replace(/\\definecolor\s*\{([^}]*)\}\s*\{([^}]*)\}\s*\{([^}]*)\}/g, (m, name, model, val) => {
+      const v = val.split(',').map(x => parseFloat(x));
+      if (/^html$/i.test(model.trim())) userColors[name.trim()] = '#' + val.trim();
+      else if (model.trim() === 'rgb' && v.length === 3) userColors[name.trim()] = `rgb(${v.map(x => Math.round(x * 255)).join(',')})`;
+      else if (model.trim() === 'RGB' && v.length === 3) userColors[name.trim()] = `rgb(${v.join(',')})`;
+      return '';
+    });
+
+    // Bibliography numbers are needed before any \cite is rendered.
+    const bibRe = /\\bibitem\s*(?:\[[^\]]*\])?\s*\{([^}]*)\}/g;
+    for (let b; (b = bibRe.exec(s));) {
+      const key = b[1].trim();
+      if (!ctx.bib[key]) ctx.bib[key] = Object.keys(ctx.bib).length + 1;
+    }
+
     // 3. Preamble: keep only the document body when there is one.
     const docStart = s.indexOf('\\begin{document}');
     if (docStart >= 0) {
@@ -251,6 +271,9 @@
 
     // 5. Line breaks between CJK characters vanish, as with ctex.
     s = s.replace(new RegExp('(' + CJK.source + ')[ \\t]*\\n[ \\t]*(?=' + CJK.source + ')', 'g'), '$1');
+
+    // Scaling wrappers around tables/figures only matter on paper.
+    s = unwrapBoxes(s);
 
     // 6. Blocks + inline.
     let html = renderBlocks(ctx, s);
@@ -276,6 +299,25 @@
       return l ? esc(l.num) : '??';
     });
     return html;
+  }
+
+  // \resizebox{w}{h}{X}, \scalebox{s}{X}, \adjustbox{opts}{X}, \rotatebox{a}{X} → X
+  function unwrapBoxes(s) {
+    const re = /\\(resizebox\*?|scalebox|adjustbox|rotatebox)(?![a-zA-Z])/g;
+    const skip = { resizebox: 2, 'resizebox*': 2, scalebox: 1, adjustbox: 1, rotatebox: 1 };
+    let m;
+    while ((m = re.exec(s))) {
+      let i = m.index + m[0].length;
+      const o = readOptional(s, i); if (o) i = o.end;
+      for (let k = 0; k < skip[m[1]]; k++) { const g = readGroup(s, i); if (!g) break; i = g.end; }
+      const body = readGroup(s, i);
+      if (!body) continue;
+      const fit = m[1].startsWith('resizebox') || m[1] === 'adjustbox';
+      s = s.slice(0, m.index) +
+        (fit ? '\\begin{latexfit}' + body.content + '\\end{latexfit}' : body.content) + s.slice(body.end);
+      re.lastIndex = m.index;
+    }
+    return s;
   }
 
   function slot(ctx, html, block) {
@@ -419,7 +461,7 @@
         text.match(/\u0001(\d+)\u0001/g).every(t => ctx.slots[+t.slice(1, -1)].block);
       if (onlySlots) { out += text; return; }
       const html = renderInline(ctx, text).trim();
-      if (html) out += '<p>' + html + '</p>';
+      if (html.replace(/<(?!img|hr|br|\u0001)[^>]*>/g, '').trim()) out += '<p>' + html + '</p>';
     };
 
     const re = new RegExp(BLOCK_RE.source, 'g');
@@ -493,6 +535,12 @@
       return '<div class="latex-abstract"><p class="latex-abstract-title">' + ctx.names.abstract + '</p>' +
         renderBlocks(ctx, body) + '</div>';
     }
+    if (env === 'thebibliography') return renderBibliography(ctx, body);
+    if (env === 'adjustbox') {
+      const g = readGroup(body, 0);
+      return '<div class="latex-fit"><div>' + renderBlocks(ctx, g ? body.slice(g.end) : body) + '</div></div>';
+    }
+    if (env === 'latexfit') return '<div class="latex-fit"><div>' + renderBlocks(ctx, body) + '</div></div>';
     if (env === 'minipage') {
       const opt = readOptional(body, 0);
       const w = readGroup(body, opt ? opt.end : 0);
@@ -565,6 +613,21 @@
     const html = renderBlocks(ctx, body);
     ctx.currentRef = prev;
     return `<figure class="latex-float latex-float-${kind}"${id ? ` id="${esc(id)}"` : ''}>${html}</figure>`;
+  }
+
+  function renderBibliography(ctx, body) {
+    const w = readGroup(body, 0); // widest-label argument
+    const items = splitTopLevel(w ? body.slice(w.end) : body, (s, k) =>
+      s.startsWith('\\bibitem', k) && !/[a-zA-Z]/.test(s[k + 8] || '') ? 8 : 0).slice(1);
+    const lis = items.map(raw => {
+      const o = readOptional(raw, 0);
+      const key = readGroup(raw, o ? o.end : 0);
+      if (!key) return '';
+      const k = key.content.trim();
+      return `<li id="${esc(ctx.uid + '-bib-' + k)}"><span class="latex-bib-num">[${ctx.bib[k]}]</span>` +
+        renderInline(ctx, raw.slice(key.end).trim()) + '</li>';
+    }).join('');
+    return `<section class="latex-bib"><h2>${ctx.names.references}</h2><ol>${lis}</ol></section>`;
   }
 
   function renderTheorem(ctx, def, env, body) {
@@ -676,8 +739,10 @@
       while ((m = RULE_RE.exec(rest))) {
         let j = m[0].length;
         const kind = m[1];
+        let trim = '';
         if (kind === 'cmidrule') {
-          const trim = /^\s*\([^)]*\)/.exec(rest.slice(j)); if (trim) j += trim[0].length;
+          const t = /^\s*\(([^)]*)\)/.exec(rest.slice(j));
+          if (t) { j += t[0].length; trim = t[1]; }
         }
         let range = null;
         if (kind === 'cline' || kind === 'cmidrule') {
@@ -686,14 +751,16 @@
         }
         if (kind === 'specialrule') { for (let a = 0; a < 3; a++) { const g = readGroup(rest, j); if (g) j = g.end; } }
         if (kind === 'addlinespace') { const o = readOptional(rest, j); if (o) j = o.end; }
-        if (!/^(addlinespace|endhead|endfirsthead|endfoot|endlastfoot|morecmidrules)$/.test(kind)) pending.push({ kind, range });
+        if (!/^(addlinespace|endhead|endfirsthead|endfoot|endlastfoot|morecmidrules)$/.test(kind)) pending.push({ kind, range, trim });
         rest = rest.slice(j);
       }
+      // \rowcolor must open the row.
+      let bg = null;
+      const rc = /^\s*\\rowcolor\s*(?:\[([^\]]*)\])?\s*\{([^}]*)\}/.exec(rest);
+      if (rc) { bg = safeColor(rc[2], rc[1]); rest = rest.slice(rc[0].length); }
       if (rest.trim()) {
-        rows.push({ cells: splitTopLevel(rest, (s, k) => (s[k] === '&' ? 1 : 0)), rules: pending });
+        rows.push({ cells: splitTopLevel(rest, (s, k) => (s[k] === '&' ? 1 : 0)), rules: pending, bg });
         pending = [];
-      } else if (!rows.length && !pending.length) {
-        // nothing
       }
     });
     const bottomRules = pending;
@@ -736,17 +803,29 @@
           content = inner ? inner.content : '';
           for (let k = 0; k < span; k++) rowspanLeft[col + k] = rowspan - 1;
         }
+        let cellBg = null;
+        content = content.replace(/\\cellcolor\s*(?:\[([^\]]*)\])?\s*\{([^}]*)\}/, (m, model, c) => {
+          cellBg = safeColor(c, model);
+          return '';
+        }).trim();
         const cls = [];
         if (colSpec && colSpec.left) cls.push('vl');
         const lastCol = cols[col + span - 1];
         if ((mc ? colSpec && colSpec.right : lastCol && lastCol.right)) cls.push('vr');
-        if (partial.some(p => col + 1 <= p.range[1] && col + span >= p.range[0])) cls.push('cline');
+        // \cmidrule(lr) is trimmed only at the ends of its range.
+        const cl = partial.find(p => col + 1 <= p.range[1] && col + span >= p.range[0]);
+        if (cl) {
+          cls.push('cline');
+          if (cl.trim && cl.trim.includes('l') && col + 1 <= cl.range[0]) cls.push('cl-l');
+          if (cl.trim && cl.trim.includes('r') && col + span >= cl.range[1]) cls.push('cl-r');
+        }
         if (align !== 'left') cls.push('a-' + align);
         cells.push(`<${tag}${span > 1 ? ` colspan="${span}"` : ''}${rowspan > 1 ? ` rowspan="${rowspan}"` : ''}` +
-          `${cls.length ? ` class="${cls.join(' ')}"` : ''}>${renderInline(ctx, content)}</${tag}>`);
+          `${cls.length ? ` class="${cls.join(' ')}"` : ''}${cellBg ? ` style="background-color:${cellBg}"` : ''}>` +
+          `${renderInline(ctx, content)}</${tag}>`);
         col += span;
       });
-      return `<tr${topClass ? ` class="${topClass}"` : ''}>${cells.join('')}</tr>`;
+      return `<tr${topClass ? ` class="${topClass}"` : ''}${row.bg ? ` style="background-color:${row.bg}"` : ''}>${cells.join('')}</tr>`;
     });
 
     const bottom = ruleClass(bottomRules).replace(/rule-top/g, 'rule-bottom');
@@ -854,7 +933,11 @@
       const [open, close] = WRAPPERS[name];
       return { html: open + renderInline(ctx, a.content) + close, end: a.end };
     }
-    if (SYMBOLS[name] != null) return { html: SYMBOLS[name], end };
+    if (SYMBOLS[name] != null) {
+      // TeX drops the spaces after a control word: "\textbackslash hline" → "\hline".
+      if (/[a-zA-Z]$/.test(name)) while (s[end] === ' ' || s[end] === '\t') end++;
+      return { html: SYMBOLS[name], end };
+    }
     if (name === 'today') {
       return { html: esc(new Date().toLocaleDateString(ctx.names === NAMES.zh ? 'zh-CN' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })), end };
     }
@@ -915,8 +998,10 @@
         const o = readOptional(s, end); if (o) end = o.end;
         const o2 = readOptional(s, end); if (o2) end = o2.end;
         const a = readGroup(s, end); if (!a) break;
-        const keys = a.content.split(',').map(k => esc(k.trim())).join(', ');
-        return { html: `<span class="latex-cite">[${keys}${o ? ', ' + renderInline(ctx, (o2 || o).content) : ''}]</span>`, end: a.end };
+        const links = a.content.split(',').map(k => k.trim()).filter(Boolean).map(k =>
+          `<a class="latex-cite-link" href="#${esc(ctx.uid + '-bib-' + k)}">${ctx.bib[k] || esc(k)}</a>`).join(', ');
+        const note = (o2 || o) && (o2 || o).content.trim() ? ', ' + renderInline(ctx, (o2 || o).content) : '';
+        return { html: `<span class="latex-cite">[${links}${note}]</span>`, end: a.end };
       }
       case 'caption': {
         const a = readArg(s, end);
@@ -972,12 +1057,14 @@
     return u.trim().replace(/\\([#%&_~$])/g, '$1');
   }
 
+  let userColors = {};
   function safeColor(c, model) {
     c = String(c || '').trim();
     if (model && /html/i.test(model) && /^[0-9a-fA-F]{6}$/.test(c)) return '#' + c;
-    const mix = /^([a-zA-Z]+)!(\d+)/.exec(c); // xcolor "red!60"
-    if (mix) return `color-mix(in srgb, ${mix[1]} ${mix[2]}%, white)`;
-    return /^[a-zA-Z]+$/.test(c) ? c : 'inherit';
+    const named = (n) => userColors[n] || (/^[a-zA-Z]+$/.test(n) ? n : null);
+    const mix = /^([a-zA-Z0-9]+)!(\d+)/.exec(c); // xcolor "red!60"
+    if (mix && named(mix[1])) return `color-mix(in srgb, ${named(mix[1])} ${mix[2]}%, white)`;
+    return named(c) || 'inherit';
   }
 
   function imageTag(path, opts) {
