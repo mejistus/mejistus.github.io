@@ -1,5 +1,12 @@
 [
   {
+    "file": "Example/LaTeX-写作示例.tex",
+    "title": "LaTeX 写作示例",
+    "date": "2026-09-20",
+    "tag": "Example",
+    "excerpt": "本站 LaTeX 模式的完整示例：章节与交叉引用、公式、复杂表格、引用与参考文献、代码等日常写作场景，可直接复制作为模板。"
+  },
+  {
     "file": "Notes/Nyquist–Shannon-sampling-theorem.md",
     "title": "Nyquist–Shannon sampling theorem",
     "date": "2026-09-19",

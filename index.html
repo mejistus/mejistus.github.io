@@ -16,7 +16,7 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <script src="assets/latex.js"></script>
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
       *,
       *::before,
@@ -791,6 +791,13 @@
         overflow-x: auto;
         margin: 1.5rem 0;
       }
+      /* \resizebox{\linewidth}: shrunk to the column width by fitLatexBoxes(). */
+      .latex-fit {
+        overflow-x: auto;
+      }
+      .latex-fit .latex-table-wrap {
+        overflow: visible;
+      }
       .latex-float .latex-table-wrap {
         margin: 0.5rem 0;
       }
@@ -826,8 +833,46 @@
       .latex-table tr.rule-bottom > * { border-bottom: 1px solid var(--ink) !important; }
       .latex-table tr.rule-bottom.rule-heavy > * { border-bottom-width: 1.5px !important; }
       .latex-table tr.rule-bottom.rule-double > * { border-bottom: 3px double var(--ink) !important; }
-      .latex-table td.cline, .latex-table th.cline {
-        border-top: 0.8px solid var(--ink) !important;
+      .blog-content .latex-table th,
+      .blog-content .latex-table td {
+        vertical-align: middle;
+      }
+      /* \cline / \cmidrule: drawn as a background line so (l)/(r) trims leave gaps. */
+      .latex-table .cline {
+        background-image: linear-gradient(var(--ink), var(--ink)) !important;
+        background-repeat: no-repeat !important;
+        background-size: 100% 0.8px !important;
+        background-position: center top !important;
+      }
+      .latex-table .cline.cl-l { background-size: calc(100% - 0.5em) 0.8px !important; background-position: right top !important; }
+      .latex-table .cline.cl-r { background-size: calc(100% - 0.5em) 0.8px !important; background-position: left top !important; }
+      .latex-table .cline.cl-l.cl-r { background-size: calc(100% - 1em) 0.8px !important; background-position: center top !important; }
+      /* hyperref-style citation: a green frame around the cited number. */
+      .latex-cite-link {
+        display: inline-block;
+        padding: 0 0.2em;
+        line-height: 1.25;
+        border: 1px solid #3aa35b;
+        border-radius: 2px;
+        color: inherit !important;
+        text-decoration: none !important;
+      }
+      .latex-cite-link:hover {
+        background: rgba(58, 163, 91, 0.12);
+      }
+      .latex-bib ol {
+        list-style: none;
+        padding-left: 0;
+        font-size: 0.88rem;
+      }
+      .latex-bib li {
+        position: relative;
+        padding-left: 2.4rem;
+      }
+      .latex-bib-num {
+        position: absolute;
+        left: 0;
+        color: var(--ink);
       }
       .latex-theorem {
         margin: 1.4rem 0;
@@ -907,7 +952,7 @@
         margin: 0 -0.125em 0 -0.1667em;
       }
       .latex-cite {
-        color: var(--rust);
+        white-space: nowrap;
       }
       .latex-fn-ref a {
         text-decoration: none;
@@ -3024,6 +3069,7 @@
         document.getElementById("blogPanelTitle").innerHTML = renderInline(b.title);
         document.getElementById("blogPanelContent").innerHTML = getParsedHtml(i);
         applyStagedImages(document.getElementById("blogPanelContent"));
+        fitLatexBoxes(document.getElementById("blogPanelContent"));
         document.getElementById("blogCounter").textContent =
           `${i + 1} / ${blogs.length}`;
         document.getElementById("blogBtnPrev").disabled = i === 0;
@@ -3183,6 +3229,23 @@
           img.src = `data:${IMAGE_MIME[ext] || 'image/png'};base64,${entry.content}`;
         });
       }
+
+      // LaTeX \resizebox{\linewidth}{!}{...}: scale the content down to the
+      // available width (not below 55%, after which it scrolls instead).
+      function fitLatexBoxes(root) {
+        requestAnimationFrame(() => {
+          root.querySelectorAll('.latex-fit').forEach(box => {
+            const inner = box.firstElementChild;
+            if (!inner) return;
+            inner.style.zoom = '';
+            const avail = box.clientWidth, need = inner.scrollWidth;
+            if (avail > 0 && need > avail) inner.style.zoom = Math.max(0.55, avail / need).toFixed(3);
+          });
+        });
+      }
+      window.addEventListener('resize', () => {
+        document.querySelectorAll('#blogPanelContent, #editorPreview').forEach(fitLatexBoxes);
+      });
 
       function updatePublishBar() {
         const bar = document.getElementById('publishBar');
@@ -3626,6 +3689,7 @@
         const md = document.getElementById('editorTextarea').value;
         document.getElementById('editorPreview').innerHTML = renderPost(md, editorMode, false);
         applyStagedImages(document.getElementById('editorPreview'));
+        fitLatexBoxes(document.getElementById('editorPreview'));
       }
 
       // Live preview with debounce
