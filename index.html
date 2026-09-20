@@ -18,12 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.27.0"></script>
-    <script src="assets/latex-complete.js?v=6.27.0"></script>
-    <script src="assets/vim.js?v=6.27.0"></script>
-    <script src="assets/lint.js?v=6.27.0"></script>
-    <script src="assets/tikz-nn.js?v=6.27.0"></script>
-    <script src="assets/bib.js?v=6.27.0"></script>
+    <script src="assets/latex.js?v=6.28.0"></script>
+    <script src="assets/latex-complete.js?v=6.28.0"></script>
+    <script src="assets/vim.js?v=6.28.0"></script>
+    <script src="assets/lint.js?v=6.28.0"></script>
+    <script src="assets/tikz-nn.js?v=6.28.0"></script>
+    <script src="assets/bib.js?v=6.28.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -849,6 +849,12 @@
         margin: 1.2rem 0;
         text-align: center;
         overflow-x: auto;
+      }
+      .latex-tikz-status {
+        margin-top: 0.4rem;
+        font-size: 0.75rem;
+        color: var(--muted);
+        letter-spacing: 0.02em;
       }
       .latex-tikz-error {
         display: inline-block;
@@ -4088,6 +4094,7 @@
             return;
           }
           // A fresh <script type="text/tikz"> is what TikZJax's observer picks up.
+          box.appendChild(Object.assign(document.createElement('div'), { className: 'latex-tikz-status' }));
           const live = document.createElement('script');
           live.type = 'text/tikz';
           [...pending.attributes].forEach(a => { if (a.name !== 'type') live.setAttribute(a.name, a.value); });
@@ -4097,6 +4104,7 @@
           pending.replaceWith(live);
           box.dataset.tikzState = 'live';
           loadTikzJaxScript();
+          updateTikzProgress();
         });
       }
       // ── TikZ compile errors ──
@@ -4131,13 +4139,31 @@
         runLint();
       }
 
+      // TikZJax compiles one picture at a time and only on a reader's first
+      // visit, so say how far along it is instead of showing bare spinners.
+      function updateTikzProgress() {
+        const boxes = [...document.querySelectorAll('.latex-tikz[data-tikz-state="live"]')];
+        const done = document.querySelectorAll('.latex-tikz[data-tikz-state="compiled"]').length;
+        const total = boxes.length + done;
+        boxes.forEach((box, i) => {
+          const label = box.querySelector('.latex-tikz-status');
+          if (!label) return;
+          label.textContent = total > 1
+            ? `Compiling with TeX… ${done + 1} of ${total}${i ? ' (queued)' : ''}`
+            : 'Compiling with TeX… (first time only)';
+        });
+      }
+
       document.addEventListener('tikzjax-load-finished', (e) => {
         const box = e.target.closest && e.target.closest('.latex-tikz');
         if (!box) return;
         box.dataset.tikzState = 'compiled';
         delete box.dataset.tikzError;
         tikzErrors.delete(box.dataset.tikzHash);
+        const label = box.querySelector('.latex-tikz-status');
+        if (label) label.remove();
         scaleTikzSvg(e.target);
+        updateTikzProgress();
       });
 
       // Stage SVGs of pictures compiled in the editor preview alongside the post.
