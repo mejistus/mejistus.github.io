@@ -18,12 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.28.0"></script>
-    <script src="assets/latex-complete.js?v=6.28.0"></script>
-    <script src="assets/vim.js?v=6.28.0"></script>
-    <script src="assets/lint.js?v=6.28.0"></script>
-    <script src="assets/tikz-nn.js?v=6.28.0"></script>
-    <script src="assets/bib.js?v=6.28.0"></script>
+    <script src="assets/latex.js?v=6.29.0"></script>
+    <script src="assets/latex-complete.js?v=6.29.0"></script>
+    <script src="assets/vim.js?v=6.29.0"></script>
+    <script src="assets/lint.js?v=6.29.0"></script>
+    <script src="assets/tikz-nn.js?v=6.29.0"></script>
+    <script src="assets/bib.js?v=6.29.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -651,6 +651,29 @@
       }
       .blog-panel .panel-body.hidden {
         display: none !important;
+      }
+
+      .heading-anchor {
+        margin-left: 0.5rem;
+        font-size: 0.7em;
+        font-weight: 400;
+        color: var(--muted);
+        text-decoration: none !important;
+        opacity: 0;
+        transition: opacity 0.15s;
+      }
+      h2:hover > .heading-anchor,
+      h3:hover > .heading-anchor,
+      h4:hover > .heading-anchor,
+      .heading-anchor:focus {
+        opacity: 1;
+      }
+      .heading-anchor:hover {
+        color: var(--rust);
+      }
+      .heading-anchor.copied {
+        opacity: 1;
+        color: var(--sage);
       }
 
       /* Contents of the post being read */
@@ -3713,14 +3736,27 @@
         const btn = document.getElementById('blogTocBtn');
         panel.hidden = true;
         const heads = [...content.querySelectorAll('h2, h3, h4')];
-        heads.forEach((h, n) => { if (!h.id) h.id = `toc-${n}`; });
+        const file = blogs[currentBlog] && blogs[currentBlog].file;
+        heads.forEach((h, n) => {
+          if (!h.id) h.id = `toc-${n}`;
+          h.dataset.sec = sectionIdOf(h, n);
+          if (!h.querySelector('.heading-anchor') && file) {
+            const a = document.createElement('a');
+            a.className = 'heading-anchor';
+            a.href = postHash(file, h.dataset.sec);
+            a.title = 'Copy a link to this section';
+            a.textContent = '#';
+            a.addEventListener('click', (e) => { e.preventDefault(); copySectionLink(h); });
+            h.appendChild(a);
+          }
+        });
         btn.style.display = heads.length >= 3 ? 'flex' : 'none';
         panel.innerHTML = heads.map(h => {
           // Keep the section number in its own column (LaTeX posts have one).
           const numEl = h.querySelector('.latex-secnum');
           const num = numEl ? numEl.textContent.trim() : '';
           const title = (numEl ? h.textContent.replace(num, '') : h.textContent).trim();
-          return `<div class="blog-toc-item ${h.tagName.toLowerCase()}" data-id="${h.id}">` +
+          return `<div class="blog-toc-item ${h.tagName.toLowerCase()}" data-id="${h.id}" data-sec="${escHtml(h.dataset.sec || '')}">` +
             (num ? `<span class="blog-toc-num">${escHtml(num)}</span>` : '') +
             `${escHtml(title)}</div>`;
         }).join('');
@@ -3729,13 +3765,26 @@
             panel.hidden = true;
             const target = document.getElementById(el.dataset.id);
             if (!target) return;
+            setPostHash(blogs[currentBlog] && blogs[currentBlog].file, el.dataset.sec);
             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            target.classList.remove('latex-flash');
-            void target.offsetWidth;
-            target.classList.add('latex-flash');
+            flashInPost(target);
           });
         });
       }
+      // Clicking the "#" next to a heading copies its link and puts it in the URL.
+      async function copySectionLink(heading) {
+        const file = blogs[currentBlog] && blogs[currentBlog].file;
+        if (!file) return;
+        const url = location.origin + location.pathname + postHash(file, heading.dataset.sec);
+        setPostHash(file, heading.dataset.sec);
+        try { await navigator.clipboard.writeText(url); } catch (_) {}
+        const note = heading.querySelector('.heading-anchor');
+        if (!note) return;
+        note.classList.add('copied');
+        note.textContent = 'link copied';
+        setTimeout(() => { note.classList.remove('copied'); note.textContent = '#'; }, 1400);
+      }
+
       function toggleToc(e) {
         e.stopPropagation();
         const panel = document.getElementById('blogToc');
@@ -3807,6 +3856,7 @@
       function closeAllPanels() {
         // Closing the panel mid-edit cancels the edit (and drops an unsaved new post).
         if (editorActive) closeEditor();
+        if (/^#post=/.test(location.hash)) history.replaceState(null, '', '#posts');
         const poemPanel = document.getElementById("poemPanel");
         const blogPanel = document.getElementById("blogPanel");
 
@@ -3836,7 +3886,7 @@
         if (b.content && !parsedHtmlCache.has(i)) getParsedHtml(i);
       }
 
-      async function openBlogPanel(i) {
+      async function openBlogPanel(i, sec) {
         currentBlog = i;
         const b = blogs[i];
         if (!b.content) {
@@ -3844,7 +3894,66 @@
         }
         renderBlog(i);
         panelOpen(document.getElementById("blogPanel"));
+        setPostHash(b.file, sec);
+        if (sec) scrollToSection(sec);
       }
+
+      // ── Links to a post, and to a section inside it ──
+      // "#post=<file>" and "#post=<file>&sec=<label-or-heading>" so a section
+      // can be shared; the hash is replaced, never pushed, so Back still leaves.
+      function postHash(file, sec) {
+        return `#post=${encodeURIComponent(file)}` + (sec ? `&sec=${encodeURIComponent(sec)}` : '');
+      }
+      function setPostHash(file, sec) {
+        if (!file) return;
+        history.replaceState(null, '', postHash(file, sec));
+      }
+      function parsePostHash() {
+        const m = /^#post=([^&]*)(?:&sec=(.*))?$/.exec(location.hash);
+        return m ? { file: decodeURIComponent(m[1]), sec: m[2] ? decodeURIComponent(m[2]) : '' } : null;
+      }
+      // A section is named by its \label when it has one, else by its position.
+      function sectionIdOf(heading, index) {
+        const m = /^tex[a-z0-9]+-(.+)$/.exec(heading.id || '');
+        return m ? m[1] : `h${index + 1}`;
+      }
+      function findSection(sec) {
+        const content = document.getElementById('blogPanelContent');
+        const heads = [...content.querySelectorAll('h2, h3, h4')];
+        const byIndex = /^h(\d+)$/.exec(sec);
+        if (byIndex) return heads[+byIndex[1] - 1];
+        return content.querySelector(`[id$="-${CSS.escape(sec)}"]`) ||
+          heads.find((h, i) => sectionIdOf(h, i) === sec);
+      }
+      function flashInPost(target) {
+        document.querySelectorAll('#blogPanelContent .latex-flash').forEach(el => el.classList.remove('latex-flash'));
+        void target.offsetWidth;
+        target.classList.add('latex-flash');
+      }
+      function scrollToSection(sec) {
+        const target = findSection(sec);
+        if (!target) return;
+        requestAnimationFrame(() => {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          flashInPost(target);
+        });
+      }
+
+      async function applyHashRoute() {
+        const route = parsePostHash();
+        if (!route) {
+          if (document.getElementById('blogPanel').classList.contains('open') && !editorActive) closeAllPanels();
+          return;
+        }
+        const i = blogs.findIndex(b => b.file === route.file);
+        if (i < 0) return;
+        if (currentBlog === i && document.getElementById('blogPanel').classList.contains('open')) {
+          if (route.sec) scrollToSection(route.sec);
+          return;
+        }
+        await openBlogPanel(i, route.sec);
+      }
+      window.addEventListener('hashchange', applyHashRoute);
 
       function navigate(dir) {
         const next = current + dir;
@@ -4427,6 +4536,7 @@
 
           buildBlogFilters();
           renderBlogCards();
+          applyHashRoute();
 
           // Preload all content in background for search
           preloadAllContent();
