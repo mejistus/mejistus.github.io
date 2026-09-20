@@ -18,12 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.32.0"></script>
-    <script src="assets/latex-complete.js?v=6.32.0"></script>
-    <script src="assets/vim.js?v=6.32.0"></script>
-    <script src="assets/lint.js?v=6.32.0"></script>
-    <script src="assets/tikz-nn.js?v=6.32.0"></script>
-    <script src="assets/bib.js?v=6.32.0"></script>
+    <script src="assets/latex.js?v=6.33.0"></script>
+    <script src="assets/latex-complete.js?v=6.33.0"></script>
+    <script src="assets/vim.js?v=6.33.0"></script>
+    <script src="assets/lint.js?v=6.33.0"></script>
+    <script src="assets/tikz-nn.js?v=6.33.0"></script>
+    <script src="assets/bib.js?v=6.33.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -3716,6 +3716,7 @@
         if (searchOpen) {
           bar.classList.add("visible");
           btn.classList.add("active");
+          prefetchPostContents({ immediate: true });
           document.getElementById("blogSearchInput").focus();
         } else {
           closeBlogSearch();
@@ -4369,10 +4370,10 @@
 
       // Same-origin fetch that sees staged edits first, so this browser shows
       // unpublished changes while every other visitor sees the live site.
-      function fetchSite(path) {
+      function fetchSite(path, init) {
         const clean = path.replace(/^\.\//, '');
         const entry = getStagedEntry(clean);
-        if (!entry) return fetch(path);
+        if (!entry) return fetch(path, init);
         if (entry.deleted) return Promise.resolve(new Response('', { status: 404 }));
         return hydrateStagedBlobs().then(() =>
           new Response(stagedContent(entry, clean), { status: 200 }));
@@ -4774,12 +4775,12 @@
       const blogContentCache = new Map();
       
       // Load blog content on demand
-      async function loadBlogContent(file) {
+      async function loadBlogContent(file, init) {
         if (blogContentCache.has(file)) {
           return blogContentCache.get(file);
         }
         try {
-          const resp = await fetchSite(`notes/${file}`);
+          const resp = await fetchSite(`notes/${file}`, init);
           if (!resp.ok) throw new Error("Failed to load");
           let content = await resp.text();
           // Convert relative image paths
@@ -4822,7 +4823,7 @@
           applyHashRoute();
 
           // Preload all content in background for search
-          preloadAllContent();
+          prefetchPostContents();
         } catch (err) {
           console.error("Blog load error:", err);
           blogs = [];
@@ -4830,12 +4831,25 @@
         }
       }
 
-      async function preloadAllContent() {
-        for (const b of blogs) {
-          if (!b.content) {
-            b.content = await loadBlogContent(b.file);
-          }
-        }
+      // Posts are fetched for search, not for the first screen: wait until the
+      // page is idle, then pull them a few at a time at low priority. Opening
+      // the search box starts it straight away.
+      let prefetchStarted = false;
+      function prefetchPostContents({ immediate = false } = {}) {
+        if (prefetchStarted) return;
+        prefetchStarted = true;
+        const run = async () => {
+          const queue = blogs.filter(b => !b.content);
+          await Promise.all(Array.from({ length: 4 }, async () => {
+            while (queue.length) {
+              const b = queue.shift();
+              if (!b.content) b.content = await loadBlogContent(b.file, { priority: 'low' });
+            }
+          }));
+        };
+        if (immediate) run();
+        else if (window.requestIdleCallback) requestIdleCallback(run, { timeout: 4000 });
+        else setTimeout(run, 2000);
       }
 
       loadBlogs();
