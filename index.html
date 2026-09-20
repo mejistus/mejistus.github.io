@@ -18,11 +18,11 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.19.2"></script>
-    <script src="assets/latex-complete.js?v=6.19.2"></script>
-    <script src="assets/vim.js?v=6.19.2"></script>
-    <script src="assets/lint.js?v=6.19.2"></script>
-    <script src="assets/tikz-nn.js?v=6.19.2"></script>
+    <script src="assets/latex.js?v=6.20.0"></script>
+    <script src="assets/latex-complete.js?v=6.20.0"></script>
+    <script src="assets/vim.js?v=6.20.0"></script>
+    <script src="assets/lint.js?v=6.20.0"></script>
+    <script src="assets/tikz-nn.js?v=6.20.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -3714,15 +3714,19 @@
         }
         updatePublishBar();
       }
-      function stageFile(path, content, message, encoding = 'utf-8') {
+      // `base` is the file's blob SHA on GitHub when the edit was staged, so
+      // publishing can tell whether someone else changed it meanwhile.
+      function stageFile(path, content, message, encoding = 'utf-8', base) {
         const data = loadStaged();
-        data.files[path] = { content, encoding };
+        const known = data.files[path];
+        data.files[path] = { content, encoding, base: known ? known.base : base };
         data.messages.push(message);
         saveStaged(data);
       }
-      function stageDelete(path, message) {
+      function stageDelete(path, message, base) {
         const data = loadStaged();
-        data.files[path] = { deleted: true };
+        const known = data.files[path];
+        data.files[path] = { deleted: true, base: known ? known.base : base };
         data.messages.push(message);
         saveStaged(data);
       }
@@ -3944,6 +3948,29 @@
         return data;
       }
 
+      // Staged edits replace whole files, so warn before overwriting a file
+      // that changed on GitHub after it was staged (e.g. edited elsewhere).
+      async function confirmNoConflicts(data, treeSha) {
+        const paths = Object.keys(data.files).filter(p => data.files[p].base !== undefined);
+        if (!paths.length) return true;
+        let remote;
+        try {
+          const tree = await ghApi(`/git/trees/${treeSha}?recursive=1`);
+          remote = new Map(tree.tree.map(e => [e.path, e.sha]));
+          if (tree.truncated) return true; // too big to compare reliably
+        } catch (_) {
+          return true; // can't check — publishing is still the user's call
+        }
+        const clashes = paths.filter(p => (remote.get(p) || null) !== (data.files[p].base || null));
+        if (!clashes.length) return true;
+        const list = clashes.slice(0, 6).map(p => '· ' + p).join('\n');
+        return confirm(
+          `These files changed on GitHub after you edited them here:\n\n${list}` +
+          (clashes.length > 6 ? `\n· …and ${clashes.length - 6} more` : '') +
+          '\n\nPublishing replaces them with your version, losing those changes.\n\nPublish anyway?'
+        );
+      }
+
       // Push every staged file as one commit via the Git Data API.
       async function publishStaged(_retry = 0) {
         if (!ghToken) { openAuthModal(); return; }
@@ -3962,6 +3989,12 @@
           const ref = await ghApi(`/git/ref/heads/${REPO_BRANCH}`);
           const parentSha = ref.object.sha;
           const parent = await ghApi(`/git/commits/${parentSha}`);
+
+          if (!_retry && !await confirmNoConflicts(data, parent.tree.sha)) {
+            info.textContent = 'Publish cancelled';
+            setTimeout(updatePublishBar, 2500);
+            return;
+          }
 
           const tree = [];
           for (const path of paths) {
@@ -5225,7 +5258,8 @@
       }
 
       async function commitBinaryFile(path, base64Content, message) {
-        stageFile(path, base64Content, message, 'base64');
+        const sha = await getFileSha(path);
+        stageFile(path, base64Content, message, 'base64', sha === 'staged' ? undefined : sha || null);
       }
 
       async function uploadAndInsertImage(file) {
@@ -5457,12 +5491,13 @@
       async function deleteGitHubFile(path, message) {
         const sha = await getFileSha(path);
         if (!sha) return false;
-        stageDelete(path, message);
+        stageDelete(path, message, sha === 'staged' ? undefined : sha);
         return true;
       }
 
       async function commitFile(path, content, message) {
-        stageFile(path, content, message);
+        const sha = await getFileSha(path);
+        stageFile(path, content, message, 'utf-8', sha === 'staged' ? undefined : sha || null);
       }
 
       // Current text of a repo file: staged version if any, else from GitHub.
