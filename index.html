@@ -18,11 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.24.0"></script>
-    <script src="assets/latex-complete.js?v=6.24.0"></script>
-    <script src="assets/vim.js?v=6.24.0"></script>
-    <script src="assets/lint.js?v=6.24.0"></script>
-    <script src="assets/tikz-nn.js?v=6.24.0"></script>
+    <script src="assets/latex.js?v=6.26.0"></script>
+    <script src="assets/latex-complete.js?v=6.26.0"></script>
+    <script src="assets/vim.js?v=6.26.0"></script>
+    <script src="assets/lint.js?v=6.26.0"></script>
+    <script src="assets/tikz-nn.js?v=6.26.0"></script>
+    <script src="assets/bib.js?v=6.26.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -1842,6 +1843,59 @@
         padding: 0.3rem 0.4rem;
         color: var(--muted);
       }
+      .editor-refs {
+        position: absolute;
+        z-index: 20;
+        top: calc(100% + 4px);
+        right: 0.8rem;
+        width: min(30rem, calc(100% - 1.6rem));
+        padding: 0.6rem 0.8rem;
+        background: var(--cream);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        font-size: 0.78rem;
+      }
+      .editor-refs p {
+        margin: 0 0 0.4rem;
+        color: var(--muted);
+      }
+      .editor-refs textarea {
+        width: 100%;
+        padding: 0.4rem 0.5rem;
+        border: 1px solid var(--border);
+        border-radius: 0.35rem;
+        background: var(--cream);
+        color: var(--ink);
+        font-family: "SF Mono", "Fira Code", monospace;
+        font-size: 0.75rem;
+        resize: vertical;
+        outline: none;
+      }
+      .editor-refs textarea:focus {
+        border-color: var(--rust);
+      }
+      .editor-refs-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.6rem;
+        margin-top: 0.45rem;
+        color: var(--muted);
+      }
+      .editor-refs-actions label {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        cursor: pointer;
+      }
+      .editor-refs-status {
+        margin-top: 0.4rem;
+        min-height: 1.1em;
+        color: var(--muted);
+      }
+      .editor-refs-status.error { color: #b3261e; }
+      .editor-refs-status.success { color: var(--sage); }
       .editor-snippets-help {
         position: absolute;
         z-index: 20;
@@ -2711,6 +2765,16 @@
               <button type="button" class="editor-compile-btn" id="editorOutlineBtn" onclick="toggleOutline(event)" title="Sections in this post">Outline</button>
               <div class="editor-outline" id="editorOutline" hidden></div>
               <button type="button" class="editor-compile-btn" id="editorVimBtn" onclick="toggleVim()" title="Vim keybindings">Vim</button>
+              <button type="button" class="editor-compile-btn" id="editorRefsBtn" onclick="toggleRefs(event)" hidden>Refs</button>
+              <div class="editor-refs" id="editorRefs" hidden>
+                <p>Paste BibTeX, a DOI, or an arXiv link or id (one per line for several).</p>
+                <textarea id="editorRefsInput" rows="4" spellcheck="false" placeholder="arxiv.org/abs/2006.11239&#10;10.1145/3422622&#10;@inproceedings{…}"></textarea>
+                <div class="editor-refs-actions">
+                  <label><input type="checkbox" id="editorRefsCite" checked /> insert \cite at the caret</label>
+                  <button type="button" class="editor-compile-btn" id="editorRefsAdd" onclick="addReferences()">Add</button>
+                </div>
+                <div class="editor-refs-status" id="editorRefsStatus"></div>
+              </div>
               <button type="button" class="editor-compile-btn" id="editorSnippetsBtn" onclick="toggleSnippetHelp(event)" hidden>Snippets ⇥</button>
               <div class="editor-snippets-help" id="editorSnippetsHelp" hidden></div>
             </div>
@@ -4524,6 +4588,8 @@
         document.getElementById('editorCompileBtn').hidden = editorMode !== 'latex';
         document.getElementById('editorSyncArrows').hidden = editorMode !== 'latex';
         document.getElementById('editorSnippetsBtn').hidden = editorMode !== 'latex';
+        document.getElementById('editorRefsBtn').hidden = editorMode !== 'latex';
+        document.getElementById('editorRefs').hidden = true;
         document.getElementById('editorSnippetsHelp').hidden = true;
         document.getElementById('editorProblems').hidden = true;
         document.getElementById('editorFind').hidden = true;
@@ -4651,6 +4717,91 @@
         const help = document.getElementById('editorSnippetsHelp');
         if (!help.hidden && !help.contains(e.target)) help.hidden = true;
       });
+
+      // ── References: BibTeX, DOIs and arXiv ids → \bibitem entries ──
+      function toggleRefs(e) {
+        e.stopPropagation();
+        const panel = document.getElementById('editorRefs');
+        panel.hidden = !panel.hidden;
+        if (!panel.hidden) {
+          document.getElementById('editorRefsStatus').textContent = '';
+          document.getElementById('editorRefsInput').focus();
+        }
+      }
+      document.addEventListener('click', (e) => {
+        const panel = document.getElementById('editorRefs');
+        if (!panel.hidden && !panel.contains(e.target)) panel.hidden = true;
+      });
+
+      async function addReferences() {
+        const input = document.getElementById('editorRefsInput');
+        const status = document.getElementById('editorRefsStatus');
+        const btn = document.getElementById('editorRefsAdd');
+        const text = input.value.trim();
+        if (!text) return;
+        btn.disabled = true;
+        status.className = 'editor-refs-status';
+        status.textContent = 'Looking up…';
+        try {
+          let entries = [];
+          if (text.includes('@')) {
+            entries = Bib.parse(text);
+          } else {
+            for (const line of text.split('\n').map(l => l.trim()).filter(Boolean)) {
+              entries = entries.concat(await Bib.lookup(line));
+            }
+          }
+          if (!entries.length) throw new Error('Nothing to add');
+          const added = insertBibitems(entries);
+          input.value = '';
+          status.className = 'editor-refs-status success';
+          status.textContent = added.added.length
+            ? `Added ${added.added.join(', ')}${added.skipped.length ? ` · already there: ${added.skipped.join(', ')}` : ''}`
+            : `Already in this post: ${added.skipped.join(', ')}`;
+          runLint();
+        } catch (err) {
+          status.className = 'editor-refs-status error';
+          status.textContent = err.message;
+        } finally {
+          btn.disabled = false;
+        }
+      }
+
+      // Adds the entries to thebibliography (creating it when missing) and
+      // optionally cites them where the caret was.
+      function insertBibitems(entries) {
+        const ta = document.getElementById('editorTextarea');
+        const caret = ta.selectionStart;
+        const have = new Set([...ta.value.matchAll(/\\bibitem\s*(?:\[[^\]]*\])?\{([^}]*)\}/g)].map(m => m[1].trim()));
+        const fresh = entries.filter(e => !have.has(Bib.key(e)));
+        const keys = entries.map(e => Bib.key(e));
+        const result = { added: fresh.map(e => Bib.key(e)), skipped: keys.filter(k => have.has(k)) };
+
+        // Where the new \bibitem lines go.
+        const endIdx = ta.value.indexOf('\\end{thebibliography}');
+        const body = fresh.map(e => '  ' + Bib.format(e)).join('\n');
+        const cite = document.getElementById('editorRefsCite').checked && keys.length
+          ? `~\\cite{${keys.join(',')}}` : '';
+
+        // Insert the citation first when it comes earlier, so offsets stay valid.
+        const bibAt = endIdx >= 0 ? endIdx : ta.value.length;
+        if (cite && caret <= bibAt) editorRangeReplace(caret, caret, cite);
+        const shift = cite && caret <= bibAt ? cite.length : 0;
+        if (fresh.length) {
+          if (endIdx >= 0) {
+            editorRangeReplace(endIdx + shift, endIdx + shift, body + '\n');
+          } else {
+            const block = `\n\\begin{thebibliography}{9}\n${body}\n\\end{thebibliography}\n`;
+            const at = ta.value.length;
+            editorRangeReplace(at, at, block);
+          }
+        }
+        if (cite && caret > bibAt) editorRangeReplace(caret, caret, cite);
+        const pos = caret + (cite && caret <= bibAt ? cite.length : 0);
+        ta.setSelectionRange(pos, pos);
+        ta.focus();
+        return result;
+      }
 
       // ── Outline: the post's sections, numbered as they will appear ──
       function outlineItems() {
