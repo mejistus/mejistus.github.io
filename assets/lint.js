@@ -121,6 +121,15 @@
       });
     }
 
+    // TikZJax runs plain TeX with Computer Modern only.
+    for (let m, re = /\\begin\{(tikzpicture|tikzcd)\}([\s\S]*?)\\end\{\1\}/g; (m = re.exec(src));) {
+      const bad = /[^\x00-\x7F]/.exec(m[2]);
+      if (bad) {
+        problems.push({ line: lineOf(src, m.index + m[0].indexOf(bad[0])), severity: 'warning',
+          message: `TikZ can't typeset "${bad[0]}": pictures are compiled by plain TeX, so labels must be ASCII` });
+      }
+    }
+
     // tabular rows vs column spec
     const tabRe = /\\begin\{(tabular\*?|tabularx|tabulary|longtable)\}/g;
     for (let m; (m = tabRe.exec(src));) {

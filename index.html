@@ -812,6 +812,19 @@
         text-align: center;
         overflow-x: auto;
       }
+      .latex-tikz-error {
+        display: inline-block;
+        max-width: 100%;
+        padding: 0.6rem 0.9rem;
+        border: 1px solid #b3261e;
+        border-radius: 0.4rem;
+        background: rgba(179, 38, 30, 0.06);
+        color: #b3261e;
+        font-family: "SF Mono", "Fira Code", monospace;
+        font-size: 0.78rem;
+        text-align: left;
+        white-space: pre-wrap;
+      }
       .latex-tikz svg {
         max-width: 100%;
         height: auto;
@@ -3662,16 +3675,52 @@
           const live = document.createElement('script');
           live.type = 'text/tikz';
           [...pending.attributes].forEach(a => { if (a.name !== 'type') live.setAttribute(a.name, a.value); });
+          // In the editor, let TeX talk so compile errors can be reported.
+          if (root.id === 'editorPreview') { live.setAttribute('data-show-console', 'true'); watchTikzConsole(); }
           live.textContent = pending.textContent;
           pending.replaceWith(live);
           box.dataset.tikzState = 'live';
           loadTikzJaxScript();
         });
       }
+      // ── TikZ compile errors ──
+      // TeX prints its log to the console (data-show-console); pictures compile
+      // one at a time, so a "!" line belongs to the picture still waiting.
+      let tikzConsoleWatched = false;
+      const tikzErrors = new Map(); // hash → message
+      function watchTikzConsole() {
+        if (tikzConsoleWatched) return;
+        tikzConsoleWatched = true;
+        ['log', 'error', 'warn'].forEach(kind => {
+          const orig = console[kind].bind(console);
+          console[kind] = (...args) => {
+            try { noteTikzLog(args.map(a => (a && a.stack) || String(a)).join(' ')); } catch (_) {}
+            orig(...args);
+          };
+        });
+      }
+      function noteTikzLog(line) {
+        const failed = /^!\s?(.+)/m.exec(line);
+        const crashed = line.includes('Could not find file input.dvi');
+        if (!failed && !crashed) return;
+        const box = document.querySelector('#editorPreview .latex-tikz[data-tikz-state="live"]');
+        if (!box) return;
+        const message = failed ? failed[1].trim() : 'TeX could not produce the picture';
+        if (box.dataset.tikzError) return;
+        // TeX stops at the first "!" error, so the picture will not appear.
+        box.dataset.tikzError = message;
+        box.dataset.tikzState = 'failed';
+        tikzErrors.set(box.dataset.tikzHash, message);
+        box.innerHTML = `<div class="latex-tikz-error">TikZ: ${escHtml(message)}</div>`;
+        runLint();
+      }
+
       document.addEventListener('tikzjax-load-finished', (e) => {
         const box = e.target.closest && e.target.closest('.latex-tikz');
         if (!box) return;
         box.dataset.tikzState = 'compiled';
+        delete box.dataset.tikzError;
+        tikzErrors.delete(box.dataset.tikzHash);
         scaleTikzSvg(e.target);
       });
 
@@ -4384,12 +4433,25 @@
         return out;
       }
 
+      // A failed picture reports at the source line of its \begin{tikzpicture}.
+      function tikzProblems() {
+        return [...document.querySelectorAll('#editorPreview .latex-tikz[data-tikz-error]')].map(box => {
+          let el = box, line = 0;
+          while (el && !line) {
+            if (el.dataset && el.dataset.line) line = +el.dataset.line;
+            el = el.previousElementSibling || el.parentElement;
+          }
+          return { line: line || 1, severity: 'error', message: `TikZ: ${box.dataset.tikzError}` };
+        });
+      }
+
       async function runLint() {
         const src = document.getElementById('editorTextarea').value;
-        problems = lintSource(src, editorMode);
+        problems = lintSource(src, editorMode).concat(tikzProblems());
         renderProblems();
         const imgs = await checkImages(referencedImages(src, editorMode));
         problems = problems.concat(imgs).sort((a, b) => a.line - b.line);
+        problems = problems.filter((p, i, all) => i === all.findIndex(q => q.line === p.line && q.message === p.message));
         renderProblems();
       }
 
