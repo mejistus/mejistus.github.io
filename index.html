@@ -18,11 +18,11 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.17.0"></script>
-    <script src="assets/latex-complete.js?v=6.17.0"></script>
-    <script src="assets/vim.js?v=6.17.0"></script>
-    <script src="assets/lint.js?v=6.17.0"></script>
-    <script src="assets/tikz-nn.js?v=6.17.0"></script>
+    <script src="assets/latex.js?v=6.18.0"></script>
+    <script src="assets/latex-complete.js?v=6.18.0"></script>
+    <script src="assets/vim.js?v=6.18.0"></script>
+    <script src="assets/lint.js?v=6.18.0"></script>
+    <script src="assets/tikz-nn.js?v=6.18.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -1895,6 +1895,58 @@
         text-transform: uppercase;
         color: var(--rust);
       }
+      .editor-find {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.6rem;
+        border-bottom: 1px solid var(--border);
+        background: var(--cream);
+        flex-shrink: 0;
+      }
+      .editor-find[hidden] {
+        display: none;
+      }
+      .editor-find input {
+        flex: 1;
+        min-width: 4rem;
+        padding: 0.2rem 0.45rem;
+        border: 1px solid var(--border);
+        border-radius: 0.3rem;
+        background: var(--cream);
+        color: var(--ink);
+        font-family: "SF Mono", "Fira Code", monospace;
+        font-size: 0.75rem;
+        outline: none;
+      }
+      .editor-find input:focus {
+        border-color: var(--rust);
+      }
+      .editor-find button {
+        flex-shrink: 0;
+        padding: 0.2rem 0.5rem;
+        border: 1px solid var(--border);
+        border-radius: 0.3rem;
+        background: transparent;
+        color: var(--muted);
+        font: 500 0.72rem "Inter", sans-serif;
+        cursor: pointer;
+      }
+      .editor-find button:hover {
+        color: var(--ink);
+      }
+      .editor-find button.on {
+        border-color: var(--rust);
+        background: var(--rust);
+        color: #fff;
+      }
+      .editor-find-count {
+        flex-shrink: 0;
+        font-size: 0.72rem;
+        color: var(--muted);
+        min-width: 3.5rem;
+        text-align: right;
+      }
       .editor-input {
         position: relative;
         flex: 1;
@@ -2547,6 +2599,19 @@
               <button type="button" class="editor-compile-btn" id="editorVimBtn" onclick="toggleVim()" title="Vim keybindings">Vim</button>
               <button type="button" class="editor-compile-btn" id="editorSnippetsBtn" onclick="toggleSnippetHelp(event)" hidden>Snippets ⇥</button>
               <div class="editor-snippets-help" id="editorSnippetsHelp" hidden></div>
+            </div>
+            <div class="editor-find" id="editorFind" hidden>
+              <input id="editorFindInput" placeholder="Find" spellcheck="false" autocomplete="off" />
+              <input id="editorReplaceInput" placeholder="Replace" spellcheck="false" autocomplete="off" />
+              <span class="editor-find-count" id="editorFindCount"></span>
+              <button type="button" onclick="findStep(-1)" title="Previous (Shift+Enter)">↑</button>
+              <button type="button" onclick="findStep(1)" title="Next (Enter)">↓</button>
+              <button type="button" onclick="replaceCurrent()" title="Replace this one">Replace</button>
+              <button type="button" onclick="replaceAll()" title="Replace all">All</button>
+              <button type="button" id="editorFindCase" onclick="toggleFindOpt('case')" title="Match case">Aa</button>
+              <button type="button" id="editorFindWord" onclick="toggleFindOpt('word')" title="Whole word">ab|</button>
+              <button type="button" id="editorFindRe" onclick="toggleFindOpt('regex')" title="Regular expression">.*</button>
+              <button type="button" onclick="closeFind()" title="Close (Esc)">✕</button>
             </div>
             <div class="editor-input">
               <!-- Highlighted copy of the source, drawn under the (transparent-text) textarea. -->
@@ -4173,6 +4238,7 @@
         document.getElementById('editorSnippetsBtn').hidden = editorMode !== 'latex';
         document.getElementById('editorSnippetsHelp').hidden = true;
         document.getElementById('editorProblems').hidden = true;
+        document.getElementById('editorFind').hidden = true;
         runLint();
         updateHighlight();
         compile.textContent = `Compile ${/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘S' : 'Ctrl+S'}`;
@@ -4296,6 +4362,111 @@
         const help = document.getElementById('editorSnippetsHelp');
         if (!help.hidden && !help.contains(e.target)) help.hidden = true;
       });
+
+      // ── Find and replace (the browser's own find can't see a textarea) ──
+      const findOpts = { case: false, word: false, regex: false };
+
+      function findRegex() {
+        const q = document.getElementById('editorFindInput').value;
+        if (!q) return null;
+        let body = findOpts.regex ? q : q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        if (findOpts.word) body = `(?<![\\p{L}\\p{N}_])${body}(?![\\p{L}\\p{N}_])`;
+        try { return new RegExp(body, 'gu' + (findOpts.case ? '' : 'i')); } catch (_) { return null; }
+      }
+      function findMatches() {
+        const re = findRegex();
+        const out = [];
+        if (!re) return out;
+        const v = document.getElementById('editorTextarea').value;
+        for (let m; (m = re.exec(v));) {
+          out.push([m.index, m.index + m[0].length]);
+          if (!m[0]) re.lastIndex++;
+        }
+        return out;
+      }
+      function findStep(dir, fromCaret) {
+        const ta = document.getElementById('editorTextarea');
+        const all = findMatches();
+        const count = document.getElementById('editorFindCount');
+        if (!all.length) {
+          count.textContent = document.getElementById('editorFindInput').value ? 'none' : '';
+          return;
+        }
+        const at = fromCaret ? ta.selectionStart : (dir > 0 ? ta.selectionStart + 1 : ta.selectionStart);
+        let i = dir > 0 ? all.findIndex(([a]) => a >= at) : -1;
+        if (dir < 0) { for (let k = all.length - 1; k >= 0; k--) if (all[k][0] < at) { i = k; break; } }
+        if (i < 0) i = dir > 0 ? 0 : all.length - 1;
+        const [a, b] = all[i];
+        // Keep the focus where it is (usually the find box).
+        const focused = document.activeElement;
+        ta.focus();
+        ta.setSelectionRange(a, b);
+        const r = LatexComplete.caretRect(ta), tr = ta.getBoundingClientRect();
+        if (r.top < tr.top || r.bottom > tr.bottom) ta.scrollTop += r.top - tr.top - ta.clientHeight / 3;
+        if (focused && focused !== ta && focused.focus) focused.focus();
+        count.textContent = `${i + 1} / ${all.length}`;
+      }
+      function replaceCurrent() {
+        const ta = document.getElementById('editorTextarea');
+        const re = findRegex();
+        if (!re) return;
+        const sel = ta.value.slice(ta.selectionStart, ta.selectionEnd);
+        const whole = new RegExp('^(?:' + re.source + ')$', re.flags.replace('g', ''));
+        if (sel && whole.test(sel)) {
+          const rep = document.getElementById('editorReplaceInput').value;
+          const out = findOpts.regex ? sel.replace(new RegExp(re.source, re.flags.replace('g', '')), rep) : rep;
+          editorRangeReplace(ta.selectionStart, ta.selectionEnd, out);
+        }
+        findStep(1, true);
+      }
+      function replaceAll() {
+        const ta = document.getElementById('editorTextarea');
+        const re = findRegex();
+        if (!re) return;
+        const rep = document.getElementById('editorReplaceInput').value;
+        const before = ta.value;
+        const after = before.replace(re, findOpts.regex ? rep : () => rep);
+        if (after === before) { findStep(1, true); return; }
+        const at = ta.selectionStart;
+        editorRangeReplace(0, before.length, after);
+        ta.setSelectionRange(Math.min(at, after.length), Math.min(at, after.length));
+        document.getElementById('editorFindCount').textContent = 'replaced';
+      }
+      const FIND_OPT_BTN = { case: 'editorFindCase', word: 'editorFindWord', regex: 'editorFindRe' };
+      function toggleFindOpt(name) {
+        findOpts[name] = !findOpts[name];
+        document.getElementById(FIND_OPT_BTN[name]).classList.toggle('on', findOpts[name]);
+        findStep(1, true);
+      }
+      function openFind() {
+        const bar = document.getElementById('editorFind');
+        const ta = document.getElementById('editorTextarea');
+        bar.hidden = false;
+        const sel = ta.value.slice(ta.selectionStart, ta.selectionEnd);
+        if (sel && !sel.includes('\n')) document.getElementById('editorFindInput').value = sel;
+        document.getElementById('editorFindInput').select();
+        document.getElementById('editorFindInput').focus();
+        findStep(1, true);
+      }
+      function closeFind() {
+        document.getElementById('editorFind').hidden = true;
+        document.getElementById('editorTextarea').focus();
+      }
+      document.getElementById('editorFindInput').addEventListener('input', () => findStep(1, true));
+      document.getElementById('editorFind').addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeFind(); }
+      });
+      ['editorFindInput', 'editorReplaceInput'].forEach(id => {
+        document.getElementById(id).addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') { e.preventDefault(); closeFind(); }
+          else if (e.key === 'Enter') { e.preventDefault(); findStep(e.shiftKey ? -1 : 1); }
+        });
+      });
+      document.addEventListener('keydown', (e) => {
+        if (!editorActive || !(e.metaKey || e.ctrlKey) || e.altKey) return;
+        if (e.code === 'KeyF' || e.key === 'f') { e.preventDefault(); openFind(); }
+        else if (e.code === 'KeyG' || e.key === 'g') { e.preventDefault(); findStep(e.shiftKey ? -1 : 1); }
+      }, true);
 
       // ── Draft autosave ──
       // The editor keeps the text being edited in this browser while it is open,
