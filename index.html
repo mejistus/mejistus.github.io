@@ -18,12 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.29.0"></script>
-    <script src="assets/latex-complete.js?v=6.29.0"></script>
-    <script src="assets/vim.js?v=6.29.0"></script>
-    <script src="assets/lint.js?v=6.29.0"></script>
-    <script src="assets/tikz-nn.js?v=6.29.0"></script>
-    <script src="assets/bib.js?v=6.29.0"></script>
+    <script src="assets/latex.js?v=6.30.0"></script>
+    <script src="assets/latex-complete.js?v=6.30.0"></script>
+    <script src="assets/vim.js?v=6.30.0"></script>
+    <script src="assets/lint.js?v=6.30.0"></script>
+    <script src="assets/tikz-nn.js?v=6.30.0"></script>
+    <script src="assets/bib.js?v=6.30.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -2627,16 +2627,122 @@
       .item-action-btn:hover { color: var(--rust); border-color: var(--rust); }
       .item-action-btn.del:hover { color: #c0392b; border-color: #c0392b; }
 
+      /* ── Phones and narrow windows ── */
+      .editor-mobile-tabs {
+        display: none;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        overflow: hidden;
+        background: var(--cream);
+      }
+      .editor-mobile-tabs button {
+        border: none;
+        background: transparent;
+        padding: 0.3rem 0.9rem;
+        font: 500 0.72rem "Inter", sans-serif;
+        color: var(--muted);
+        cursor: pointer;
+      }
+      .editor-mobile-tabs button.active {
+        background: var(--rust);
+        color: #fff;
+      }
+
       @media (max-width: 768px) {
         .editor-split {
           grid-template-columns: 1fr;
+          grid-template-rows: 1fr;
+        }
+        /* One pane at a time, chosen by the tabs in the toolbar. */
+        .editor-container[data-pane="preview"] .editor-pane-source,
+        .editor-container:not([data-pane="preview"]) .editor-pane-preview {
+          display: none;
+        }
+        .editor-mobile-tabs {
+          display: flex;
         }
         .editor-divider {
           display: none;
         }
         .editor-preview {
           border-left: none;
-          border-top: 1px solid var(--border);
+        }
+        #editorModeHint {
+          display: none;
+        }
+        .editor-pane-header {
+          gap: 0.4rem;
+          padding: 0.45rem 0.7rem;
+          overflow-x: auto;
+          white-space: nowrap;
+          scrollbar-width: none;
+        }
+        .editor-pane-header::-webkit-scrollbar {
+          display: none;
+        }
+        .editor-compile-btn,
+        .editor-mode-switch button {
+          padding: 0.25rem 0.6rem;
+          font-size: 0.68rem;
+        }
+        .editor-toolbar {
+          padding: 0.5rem 0.8rem;
+          gap: 0.5rem;
+        }
+        .editor-find {
+          flex-wrap: wrap;
+        }
+        .editor-find input {
+          min-width: 6rem;
+        }
+        .editor-outline, .editor-refs, .editor-snippets-help, .editor-problems, .blog-toc {
+          width: calc(100vw - 1.6rem);
+          right: 0.4rem;
+          left: auto;
+        }
+        nav {
+          padding: 0.75rem 1rem;
+          gap: 0.75rem;
+        }
+        .nav-logo {
+          white-space: nowrap;
+          font-size: 1.05rem;
+        }
+        /* The links scroll sideways instead of spilling off the screen. */
+        .nav-links {
+          gap: 1.1rem;
+          overflow-x: auto;
+          scrollbar-width: none;
+          padding-bottom: 2px;
+        }
+        .nav-links::-webkit-scrollbar {
+          display: none;
+        }
+        .nav-links a {
+          white-space: nowrap;
+        }
+        .blog-panel .panel-title {
+          font-size: 1.2rem;
+          line-height: 1.35;
+          white-space: normal;
+          overflow-x: visible;
+        }
+        .panel-header-actions {
+          gap: 0.3rem;
+          margin-left: 0.5rem;
+        }
+        .panel-header-actions .editor-btn,
+        .panel-header-actions .panel-close {
+          width: 34px;
+          height: 34px;
+        }
+        .publish-bar {
+          font-size: 0.78rem;
+          padding: 0.5rem 0.5rem 0.5rem 0.9rem;
+          gap: 0.5rem;
+        }
+        .publish-bar button {
+          padding: 0.35rem 0.7rem;
         }
       }
 
@@ -2784,7 +2890,7 @@
               <button type="button" onclick="syncPreviewTopToSource()" title="Go to the source of what the preview shows">‹</button>
             </div>
           </div>
-          <div class="editor-pane">
+          <div class="editor-pane editor-pane-source">
             <div class="editor-pane-header">
               <div class="editor-mode-switch" id="editorModeSwitch" role="group" aria-label="Editor mode">
                 <button type="button" data-mode="markdown" onclick="setEditorMode('markdown')">Markdown</button>
@@ -2827,7 +2933,7 @@
               <textarea class="editor-textarea" id="editorTextarea" spellcheck="false" placeholder="---&#10;title: ...&#10;date: ...&#10;tag: ...&#10;---&#10;&#10;Your content here..."></textarea>
             </div>
           </div>
-          <div class="editor-pane">
+          <div class="editor-pane editor-pane-preview">
             <div class="editor-pane-header">
               <span class="editor-pane-label">Preview</span>
               <div class="editor-problems" id="editorProblems" hidden></div>
@@ -2842,6 +2948,10 @@
         <div class="editor-toolbar">
           <div style="display:flex;gap:0.8rem;align-items:center;">
             <button class="editor-cancel-btn" onclick="closeEditor()">Cancel</button>
+            <div class="editor-mobile-tabs" id="editorMobileTabs">
+              <button type="button" data-pane="source" class="active" onclick="setEditorPane('source')">Source</button>
+              <button type="button" data-pane="preview" onclick="setEditorPane('preview')">Preview</button>
+            </div>
             <span class="vim-status" id="vimStatus" hidden></span>
             <input class="vim-cmdline" id="vimCmdline" spellcheck="false" autocomplete="off" hidden />
             <span class="editor-status" id="editorStatus"></span>
@@ -4710,9 +4820,14 @@
       function syncEditorModeUI(locked) {
         const sw = document.getElementById('editorModeSwitch');
         sw.classList.toggle('locked', locked);
+        const short = window.matchMedia('(max-width: 768px)').matches;
         sw.querySelectorAll('button').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.mode === editorMode);
           btn.disabled = locked;
+          // Short labels keep the switch inside a phone's header row.
+          btn.textContent = short
+            ? (btn.dataset.mode === 'latex' ? 'TeX' : 'MD')
+            : (btn.dataset.mode === 'latex' ? 'LaTeX' : 'Markdown');
           btn.title = locked ? 'Saved posts keep their format' : '';
         });
         document.getElementById('editorModeHint').textContent =
@@ -5524,9 +5639,20 @@
         if (best) goToLine(+best.dataset.line);
       }
 
+      // On a phone the panes are tabs, so compiling brings the result forward.
+      function setEditorPane(name) {
+        document.getElementById('editorContainer').dataset.pane = name;
+        document.querySelectorAll('#editorMobileTabs button').forEach(b =>
+          b.classList.toggle('active', b.dataset.pane === name));
+        if (name === 'source') { updateHighlight(); renderGutter(); }
+        else fitLatexBoxes(document.getElementById('editorPreview'));
+      }
+      const onPhone = () => window.matchMedia('(max-width: 768px)').matches;
+
       function compileLatex() {
         updatePreview();
         runLint();
+        if (onPhone()) setEditorPane('preview');
         requestAnimationFrame(() => syncSourceToPreview(false));
       }
 
