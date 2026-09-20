@@ -18,12 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.30.0"></script>
-    <script src="assets/latex-complete.js?v=6.30.0"></script>
-    <script src="assets/vim.js?v=6.30.0"></script>
-    <script src="assets/lint.js?v=6.30.0"></script>
-    <script src="assets/tikz-nn.js?v=6.30.0"></script>
-    <script src="assets/bib.js?v=6.30.0"></script>
+    <script src="assets/latex.js?v=6.31.0"></script>
+    <script src="assets/latex-complete.js?v=6.31.0"></script>
+    <script src="assets/vim.js?v=6.31.0"></script>
+    <script src="assets/lint.js?v=6.31.0"></script>
+    <script src="assets/tikz-nn.js?v=6.31.0"></script>
+    <script src="assets/bib.js?v=6.31.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -47,6 +47,43 @@
         --ink: #2d2d2d;
         --muted: #8a8278;
         --border: #e8e0d6;
+        /* Floating surfaces, alert colours and editor token colours. */
+        --surface: #ffffff;
+        --nav-bg: rgba(253, 250, 246, 0.88);
+        --paper: #fdfaf6; /* behind TikZ drawings, which are ink on paper */
+        --danger: var(--danger);
+        --warn: var(--warn);
+        --tok-comment: var(--tok-comment);
+        --tok-command: var(--warn);
+        --tok-env: var(--tok-env);
+        --tok-math: var(--tok-math);
+        --tok-regex: var(--tok-regex);
+        --tok-punct: var(--tok-punct);
+        --tok-verbatim: var(--tok-verbatim);
+        color-scheme: light;
+      }
+      /* Dark theme; applied by the toggle, which also follows the system. */
+      :root[data-theme="dark"] {
+        --sand: #23211f;
+        --cream: #191817;
+        --sage: #8fae91;
+        --rust: #d08a63;
+        --ink: #ece7e0;
+        --muted: #a49c92;
+        --border: #38342f;
+        --surface: #222020;
+        --nav-bg: rgba(25, 24, 23, 0.9);
+        --paper: #f4efe8;
+        --danger: #e4796f;
+        --warn: #dd9a72;
+        --tok-comment: #7c756c;
+        --tok-command: #dd9a72;
+        --tok-env: #8fbf95;
+        --tok-math: #85b0dc;
+        --tok-regex: #b49ada;
+        --tok-punct: #8a8279;
+        --tok-verbatim: #b9b0a5;
+        color-scheme: dark;
       }
 
       html {
@@ -70,7 +107,7 @@
         top: 0;
         width: 100%;
         z-index: 100;
-        background: rgba(253, 250, 246, 0.88);
+        background: var(--nav-bg);
         backdrop-filter: blur(10px);
         border-bottom: 1px solid var(--border);
         padding: 1rem 2rem;
@@ -88,6 +125,18 @@
       }
       .nav-logo.authed {
         color: var(--sage);
+      }
+      .theme-toggle {
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        font-size: 1rem;
+        line-height: 1;
+        padding: 0;
+        cursor: pointer;
+      }
+      .theme-toggle:hover {
+        color: var(--rust);
       }
       .nav-links {
         display: flex;
@@ -883,10 +932,10 @@
         display: inline-block;
         max-width: 100%;
         padding: 0.6rem 0.9rem;
-        border: 1px solid #b3261e;
+        border: 1px solid var(--danger);
         border-radius: 0.4rem;
         background: rgba(179, 38, 30, 0.06);
-        color: #b3261e;
+        color: var(--danger);
         font-family: "SF Mono", "Fira Code", monospace;
         font-size: 0.78rem;
         text-align: left;
@@ -896,6 +945,24 @@
         max-width: 100%;
         height: auto;
         overflow: visible;
+      }
+      /* Author-chosen backgrounds (\rowcolor, \cellcolor, \hl) are light, so
+         their text turns dark to stay readable in the dark theme. */
+      :root[data-theme="dark"] .latex-table [style*="background"],
+      :root[data-theme="dark"] .latex-table tr[style*="background"] > *,
+      :root[data-theme="dark"] .latex-colorbox,
+      :root[data-theme="dark"] .blog-content mark {
+        color: #1d1b19;
+      }
+      :root[data-theme="dark"] .blog-content mark {
+        background: #e8d98a;
+      }
+
+      /* TikZ draws black ink, so in the dark theme it keeps a light sheet. */
+      :root[data-theme="dark"] .latex-tikz svg {
+        background: var(--paper);
+        padding: 0.6rem 0.8rem;
+        border-radius: 0.4rem;
       }
       .latex-anchor {
         display: block;
@@ -1923,7 +1990,7 @@
         min-height: 1.1em;
         color: var(--muted);
       }
-      .editor-refs-status.error { color: #b3261e; }
+      .editor-refs-status.error { color: var(--danger); }
       .editor-refs-status.success { color: var(--sage); }
       .editor-snippets-help {
         position: absolute;
@@ -1954,7 +2021,7 @@
       }
       .editor-snippets-help td:first-child {
         font-family: "SF Mono", "Fira Code", monospace;
-        color: #b0603c;
+        color: var(--warn);
         white-space: nowrap;
       }
       .vim-status {
@@ -2011,20 +2078,20 @@
         color: var(--muted);
         white-space: nowrap;
       }
-      .editor-problem.error .editor-problem-mark { color: #b3261e; }
-      .editor-problem.warning .editor-problem-mark { color: #b0603c; }
+      .editor-problem.error .editor-problem-mark { color: var(--danger); }
+      .editor-problem.warning .editor-problem-mark { color: var(--warn); }
       .editor-problem-none {
         padding: 0.3rem 0.4rem;
         color: var(--muted);
       }
       .editor-compile-btn.has-errors {
-        border-color: #b3261e;
-        background: #b3261e;
+        border-color: var(--danger);
+        background: var(--danger);
         color: #fff;
       }
       .editor-compile-btn.has-warnings {
-        border-color: #b0603c;
-        color: #b0603c;
+        border-color: var(--warn);
+        color: var(--warn);
       }
       .editor-preview-actions {
         display: flex;
@@ -2219,8 +2286,8 @@
         opacity: 1;
         font-weight: 600;
       }
-      .editor-gutter-line.error { color: #b3261e; }
-      .editor-gutter-line.warning { color: #b0603c; }
+      .editor-gutter-line.error { color: var(--danger); }
+      .editor-gutter-line.warning { color: var(--warn); }
       .editor-gutter-line.error::before,
       .editor-gutter-line.warning::before {
         content: "";
@@ -2240,26 +2307,26 @@
         white-space: inherit;
       }
       /* LaTeX */
-      .editor-highlight .token.comment { color: #a59c90; font-style: italic; }
-      .editor-highlight .token.function { color: #b0603c; }
-      .editor-highlight .token.keyword { color: #4f7f57; font-weight: 600; }
+      .editor-highlight .token.comment { color: var(--tok-comment); font-style: italic; }
+      .editor-highlight .token.function { color: var(--warn); }
+      .editor-highlight .token.keyword { color: var(--tok-env); font-weight: 600; }
       .editor-highlight .token.headline { color: var(--ink); font-weight: 700; }
-      .editor-highlight .token.equation { color: #3b6591; }
-      .editor-highlight .token.equation .token.regex { color: #6a4c93; }
-      .editor-highlight .token.cdata { color: #6b645b; }
-      .editor-highlight .token.url { color: #4f7f57; text-decoration: underline; }
-      .editor-highlight .token.punctuation { color: #9c8f80; }
+      .editor-highlight .token.equation { color: var(--tok-math); }
+      .editor-highlight .token.equation .token.regex { color: var(--tok-regex); }
+      .editor-highlight .token.cdata { color: var(--tok-verbatim); }
+      .editor-highlight .token.url { color: var(--tok-env); text-decoration: underline; }
+      .editor-highlight .token.punctuation { color: var(--tok-punct); }
       /* Markdown */
       .editor-highlight .token.front-matter-block,
-      .editor-highlight .token.front-matter { color: #a59c90; }
-      .editor-highlight .token.title { color: #b0603c; font-weight: 700; }
+      .editor-highlight .token.front-matter { color: var(--tok-comment); }
+      .editor-highlight .token.title { color: var(--warn); font-weight: 700; }
       .editor-highlight .token.bold { font-weight: 700; }
       .editor-highlight .token.italic { font-style: italic; }
       .editor-highlight .token.code-snippet,
-      .editor-highlight .token.code { color: #6b645b; }
+      .editor-highlight .token.code { color: var(--tok-verbatim); }
       .editor-highlight .token.blockquote,
       .editor-highlight .token.hr,
-      .editor-highlight .token.list { color: #4f7f57; }
+      .editor-highlight .token.list { color: var(--tok-env); }
       .editor-textarea::placeholder {
         color: var(--muted);
       }
@@ -2327,7 +2394,7 @@
         position: fixed;
         z-index: 10000;
         min-width: 150px;
-        background: #fff;
+        background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 9px;
         box-shadow:
@@ -2384,7 +2451,7 @@
         top: -5px;
         left: calc(100% + 4px);
         min-width: 130px;
-        background: #fff;
+        background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 9px;
         box-shadow:
@@ -2420,7 +2487,7 @@
         padding: 0.6rem 0.7rem 0.6rem 1.1rem;
         border-radius: 999px;
         border: 1px solid var(--border);
-        background: var(--cream, #fff);
+        background: var(--surface);
         box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14);
         font-size: 0.85rem;
         transition: transform 0.3s ease;
@@ -2434,7 +2501,7 @@
         text-overflow: ellipsis;
       }
       .publish-bar-info.error {
-        color: #b3261e;
+        color: var(--danger);
       }
       .publish-bar button {
         flex-shrink: 0;
@@ -2449,7 +2516,7 @@
       .publish-bar button.primary {
         background: var(--ink, #222);
         border-color: var(--ink, #222);
-        color: var(--cream, #fff);
+        color: var(--cream);
       }
       .publish-bar button:disabled {
         opacity: 0.5;
@@ -2474,7 +2541,7 @@
         to   { opacity: 1; }
       }
       .section-editor-card {
-        background: #fff;
+        background: var(--surface);
         border-radius: 12px;
         box-shadow: 0 24px 60px rgba(40, 30, 20, 0.30);
         width: min(720px, 100%);
@@ -2523,7 +2590,7 @@
         font-family: "Inter", sans-serif;
         font-size: 0.88rem;
         color: var(--ink);
-        background: #fff;
+        background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 6px;
         padding: 0.5rem 0.7rem;
@@ -2616,7 +2683,7 @@
         height: 26px;
         border-radius: 50%;
         border: 1px solid var(--border);
-        background: #fff;
+        background: var(--surface);
         color: var(--muted);
         display: flex;
         align-items: center;
@@ -2768,6 +2835,16 @@
       }
     </style>
   </head>
+  <script>
+    // Before first paint: a stored choice wins, otherwise follow the system.
+    (function () {
+      let saved = null;
+      try { saved = localStorage.getItem('theme'); } catch (_) {}
+      const dark = saved ? saved === 'dark'
+        : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (dark) document.documentElement.dataset.theme = 'dark';
+    })();
+  </script>
   <body>
     <!-- AUTH MODAL -->
     <div class="auth-overlay" id="authOverlay">
@@ -3008,6 +3085,7 @@
     <nav>
       <a href="#hero" class="nav-logo" id="navLogo" onclick="handleAuthClick(event)">Xu Chen</a>
       <ul class="nav-links">
+        <li><button type="button" class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Light or dark">◐</button></li>
         <li><a href="#about">About</a></li>
         <li><a href="#posts">Blog</a></li>
         <li><a href="#poetry">Poetry</a></li>
@@ -3838,6 +3916,36 @@
         document.getElementById("btnNext").disabled = i === poems.length - 1;
         document.querySelector(".panel-body").scrollTop = 0;
       };
+
+      // ── Light and dark ──
+      const THEME_KEY = 'theme';
+      function currentTheme() {
+        return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+      }
+      function applyTheme(mode) {
+        if (mode === 'dark') document.documentElement.dataset.theme = 'dark';
+        else delete document.documentElement.dataset.theme;
+        const btn = document.getElementById('themeToggle');
+        if (btn) {
+          btn.textContent = mode === 'dark' ? '☾' : '◐';
+          btn.title = mode === 'dark' ? 'Switch to light' : 'Switch to dark';
+        }
+        // TikZ sheets change size with the theme, so scaled boxes re-measure.
+        // (Guarded: this also runs before the editor's own state exists.)
+        try { if (editorActive) fitLatexBoxes(document.getElementById('editorPreview')); } catch (_) {}
+      }
+      function toggleTheme() {
+        const next = currentTheme() === 'dark' ? 'light' : 'dark';
+        try { localStorage.setItem(THEME_KEY, next); } catch (_) {}
+        applyTheme(next);
+      }
+      applyTheme(currentTheme());
+      // Without a stored choice, follow the system as it changes.
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        let saved = null;
+        try { saved = localStorage.getItem(THEME_KEY); } catch (_) {}
+        if (!saved) applyTheme(e.matches ? 'dark' : 'light');
+      });
 
       // ── Contents of the post being read ──
       function buildToc() {

@@ -149,6 +149,22 @@ try {
   check('syntax highlighting runs', ed.highlighted > 50, `got ${ed.highlighted}`);
   check('example post lints clean', ed.problems.length === 0, ed.problems.join(' | '));
 
+  // Light and dark.
+  const theme = await page.evaluate(() => {
+    const body = () => getComputedStyle(document.body).backgroundColor;
+    const light = body();
+    document.documentElement.dataset.theme = 'dark';
+    const dark = body();
+    const shaded = document.querySelector('#blogPanelContent tr[style*="background"] > *');
+    const shadedText = shaded ? getComputedStyle(shaded).color : '';
+    delete document.documentElement.dataset.theme;
+    return { light, dark, shadedText, toggle: !!document.getElementById('themeToggle') };
+  });
+  check('dark theme repaints the page', theme.dark !== theme.light, `${theme.light} vs ${theme.dark}`);
+  check('the theme toggle is in the navigation', theme.toggle);
+  check('author-shaded table rows stay readable in dark',
+    !theme.shadedText || /rgb\(2?\d, /.test(theme.shadedText), theme.shadedText);
+
   check('no console or page errors', errors.length === 0, errors.slice(0, 3).join(' | '));
 } finally {
   await browser.close();
