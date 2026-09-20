@@ -41,6 +41,7 @@
     ['quote', '\\begin{quote}\n  ${1}\n\\end{quote}\n${0}', 'block quote'],
     ['cen', '\\begin{center}\n  ${1}\n\\end{center}\n${0}', 'centred'],
     ['mini', '\\begin{minipage}{${1:0.45}\\linewidth}\n  ${2}\n\\end{minipage}${0}', 'minipage'],
+    ['alg', '\\begin{algorithm}[H]\n  \\caption{${1}}\\label{alg:${2}}\n  \\begin{algorithmic}[1]\n    \\Require ${3}\n    \\Ensure ${4}\n    \\For{$t = 1$ to $T$}\n      \\State ${5}\n      \\If{${6}}\n        \\State ${7}\n      \\EndIf\n    \\EndFor\n    \\State \\Return ${8}\n  \\end{algorithmic}\n\\end{algorithm}\n${0}', 'algorithm (pseudocode)'],
     ['tikz', '\\begin{tikzpicture}\n  ${1}\n\\end{tikzpicture}\n${0}', 'TikZ picture'],
     ['plot', '\\begin{tikzpicture}\n  \\begin{axis}[width=8cm, height=5cm, xlabel={${1}}, ylabel={${2}}]\n    \\addplot[${3:blue, thick}] {${4}};\n  \\end{axis}\n\\end{tikzpicture}\n${0}', 'pgfplots plot'],
     ['nn', '\\begin{tikzpicture}[nn]\n  \\node[nndata] (in) {Input\\\\$224\\times224\\times3$};\n  \\node[nnconv, right=of in] (c1) {Conv $3\\times3$\\\\64};\n  \\node[nnnorm, right=of c1] (n1) {BN + ReLU};\n  \\node[nnpool, right=of n1] (p1) {Max pool\\\\$/2$};\n  \\node[nnfc, right=of p1] (fc) {FC\\\\1000};\n  \\node[nnout, right=of fc] (out) {Softmax};\n  \\draw[nnflow] (in) -- (c1);\n  \\draw[nnflow] (c1) -- (n1);\n  \\draw[nnflow] (n1) -- (p1);\n  \\draw[nnflow] (p1) -- (fc);\n  \\draw[nnflow] (fc) -- (out);\n  \\node[nngroup, fit=(c1)(n1)(p1)] (stage) {};\n  \\node[nngrouplabel, above=1mm of stage] {Stage 1};\n${0}\\end{tikzpicture}', 'CNN pipeline (nn styles)'],
@@ -176,6 +177,8 @@
     ['proposition', '¦', 'proposition'], ['remark', '¦', 'remark'], ['example', '¦', 'example'], ['proof', '¦', 'proof ∎'],
     ['quote', '¦', 'block quote'], ['center', '¦', 'centred'], ['abstract', '¦', 'abstract'],
     ['lstlisting', '¦', 'code block', '[language=python]'], ['verbatim', '¦', 'verbatim text'],
+    ['algorithmic', '\\Require ¦\n\\State \n\\State \\Return ', 'pseudocode body', '[1]'],
+    ['algorithm', '\\caption{¦}\\label{alg:}\n\\begin{algorithmic}[1]\n  \\State \n\\end{algorithmic}', 'algorithm float', '[H]'],
     ['tikzpicture', '\\draw ¦;', 'TikZ picture'], ['axis', '\\addplot[¦] {};', 'pgfplots axis', '[xlabel={}, ylabel={}]'],
     ['tikzcd', '¦ \\arrow[r] & ', 'commutative diagram'], ['thebibliography', '\\bibitem{¦} ', 'references', '{9}'],
   ];
