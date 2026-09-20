@@ -1613,10 +1613,45 @@
         display: flex;
       }
       .editor-split {
+        position: relative;
         flex: 1;
         display: grid;
         grid-template-columns: 1fr 1fr;
         overflow: hidden;
+      }
+      .editor-sync-arrows {
+        position: absolute;
+        z-index: 15;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .editor-sync-arrows[hidden] {
+        display: none;
+      }
+      .editor-sync-arrows button {
+        width: 15px;
+        height: 30px;
+        padding: 0;
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        background: var(--cream);
+        color: var(--muted);
+        font-size: 0.8rem;
+        line-height: 1;
+        cursor: pointer;
+        opacity: 0.55;
+        transition: opacity 0.15s, color 0.15s;
+      }
+      .editor-sync-arrows:hover button {
+        opacity: 1;
+      }
+      .editor-sync-arrows button:hover {
+        color: var(--rust);
+        border-color: var(--rust);
       }
       .editor-pane {
         display: flex;
@@ -2418,6 +2453,11 @@
       <!-- Editor mode -->
       <div class="editor-container" id="editorContainer">
         <div class="editor-split">
+          <!-- Overleaf-style sync arrows, sitting on the divider between the panes. -->
+          <div class="editor-sync-arrows" id="editorSyncArrows" hidden>
+            <button type="button" onclick="syncSourceToPreview(true)" title="Go to the caret's position in the preview">›</button>
+            <button type="button" onclick="syncPreviewTopToSource()" title="Go to the source of what the preview shows">‹</button>
+          </div>
           <div class="editor-pane">
             <div class="editor-pane-header">
               <div class="editor-mode-switch" id="editorModeSwitch" role="group" aria-label="Editor mode">
@@ -2441,7 +2481,6 @@
               <div class="editor-problems" id="editorProblems" hidden></div>
               <div class="editor-preview-actions" id="editorPreviewActions">
                 <button type="button" class="editor-compile-btn" id="editorProblemsBtn" onclick="toggleProblems(event)" hidden>Problems</button>
-                <button type="button" class="editor-compile-btn" id="editorCaretBtn" onclick="syncSourceToPreview(true)" title="Show the caret's position in the preview (double-click the preview to go back to the source)">Go to caret →</button>
                 <button type="button" class="editor-compile-btn" id="editorCompileBtn" onclick="compileLatex()">Compile</button>
               </div>
             </div>
@@ -4013,9 +4052,8 @@
         const compile = document.getElementById('editorCompileBtn');
         editorVim.reset();
         // The Problems list applies to both modes; the rest is LaTeX-only.
-        ['editorCaretBtn', 'editorCompileBtn'].forEach(id => {
-          document.getElementById(id).hidden = editorMode !== 'latex';
-        });
+        document.getElementById('editorCompileBtn').hidden = editorMode !== 'latex';
+        document.getElementById('editorSyncArrows').hidden = editorMode !== 'latex';
         document.getElementById('editorSnippetsBtn').hidden = editorMode !== 'latex';
         document.getElementById('editorSnippetsHelp').hidden = true;
         document.getElementById('editorProblems').hidden = true;
@@ -4395,6 +4433,20 @@
         const panel = document.getElementById('editorProblems');
         if (!panel.hidden && !panel.contains(e.target)) panel.hidden = true;
       });
+
+      // The "‹" arrow: whatever the preview shows at the top maps back to the source.
+      function syncPreviewTopToSource() {
+        if (editorMode !== 'latex') return;
+        const pv = document.getElementById('editorPreview');
+        const top = pv.getBoundingClientRect().top;
+        let best = null;
+        pv.querySelectorAll('[data-line]').forEach(el => {
+          const r = el.getBoundingClientRect();
+          if (r.bottom < top) best = best || null;
+          if (!best && r.bottom >= top) best = el;
+        });
+        if (best) goToLine(+best.dataset.line);
+      }
 
       function compileLatex() {
         updatePreview();
