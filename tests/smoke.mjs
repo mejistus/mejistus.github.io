@@ -62,6 +62,26 @@ async function checkTikzImages() {
     stored.filter(h => !used.has(h)).join(', '));
 }
 
+// Reference import: BibTeX in, \bibitem out.
+async function checkBib() {
+  globalThis.window = globalThis;
+  await import('../assets/bib.js');
+  const [entry] = window.Bib.parse(
+    '@inproceedings{ho2020denoising, title={Denoising Diffusion Probabilistic Models},' +
+    ' author={Ho, Jonathan and Jain, Ajay and Abbeel, Pieter}, booktitle={NeurIPS}, year={2020}}');
+  check('BibTeX parses', entry && entry.fields.year === '2020');
+  check('bibitem is formatted', window.Bib.format(entry) ===
+    '\\bibitem{ho2020denoising} J. Ho, A. Jain, P. Abbeel. Denoising Diffusion Probabilistic Models. In \\emph{NeurIPS}, 2020.',
+    window.Bib.format(entry));
+  const [arxiv] = window.Bib.parse('@misc{https://doi.org/10.48550/arxiv.2006.11239, doi={10.48550/ARXIV.2006.11239},' +
+    ' author={Ho, Jonathan}, title={Denoising Diffusion Probabilistic Models}, publisher={arXiv}, year={2020}}');
+  check('arXiv entries get a readable key', window.Bib.key(arxiv) === 'ho2020denoising', window.Bib.key(arxiv));
+  check('arXiv entries cite the preprint id', window.Bib.format(arxiv).includes('arXiv:2006.11239'));
+  check('DOIs and arXiv links are recognised',
+    window.Bib.isLookup('https://arxiv.org/abs/2006.11239') && window.Bib.isLookup('10.1145/3422622') &&
+    !window.Bib.isLookup('@article{x, title={y}}'));
+}
+
 const { server, port } = await serve();
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
@@ -71,6 +91,7 @@ page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
 
 try {
   await checkTikzImages();
+  await checkBib();
 
   await page.goto(`http://localhost:${port}/`);
   await page.waitForFunction(() => typeof blogs !== 'undefined' && blogs.length > 0, null, { timeout: 20000 });
