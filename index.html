@@ -18,12 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.35.2"></script>
-    <script src="assets/latex-complete.js?v=6.35.2"></script>
-    <script src="assets/vim.js?v=6.35.2"></script>
-    <script src="assets/lint.js?v=6.35.2"></script>
-    <script src="assets/tikz-nn.js?v=6.35.2"></script>
-    <script src="assets/bib.js?v=6.35.2"></script>
+    <script src="assets/latex.js?v=6.36.0"></script>
+    <script src="assets/latex-complete.js?v=6.36.0"></script>
+    <script src="assets/vim.js?v=6.36.0"></script>
+    <script src="assets/lint.js?v=6.36.0"></script>
+    <script src="assets/tikz-nn.js?v=6.36.0"></script>
+    <script src="assets/bib.js?v=6.36.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -2347,7 +2347,7 @@
         height: 100%;
         background: transparent;
         color: transparent;
-        caret-color: var(--ink);
+        caret-color: var(--rust);
         resize: none;
         outline: none;
         overflow-y: auto;
@@ -2356,8 +2356,20 @@
         background: rgba(196, 124, 90, 0.25);
         color: transparent;
       }
+      /* Band behind the line the caret is on, so it is easy to find again. */
+      .editor-active-line {
+        position: absolute;
+        left: 3.1rem;
+        right: 0;
+        height: 24px;
+        background: rgba(196, 124, 90, 0.10);
+        border-left: 2px solid var(--rust);
+        pointer-events: none;
+        display: none;
+      }
       .editor-highlight {
         position: absolute;
+        z-index: 1;
         inset: 0;
         overflow: hidden;
         pointer-events: none;
@@ -2395,6 +2407,11 @@
       .editor-gutter-line.warning {
         opacity: 1;
         font-weight: 600;
+      }
+      .editor-gutter-line.current {
+        color: var(--rust);
+        font-weight: 700;
+        opacity: 1;
       }
       .editor-gutter-line.error { color: var(--danger); }
       .editor-gutter-line.warning { color: var(--warn); }
@@ -3117,6 +3134,7 @@
             <div class="editor-input">
               <!-- Highlighted copy of the source, drawn under the (transparent-text) textarea. -->
               <div class="editor-gutter" id="editorGutter" aria-hidden="true"></div>
+              <div class="editor-active-line" id="editorActiveLine" aria-hidden="true"></div>
               <pre class="editor-highlight" id="editorHighlight" aria-hidden="true"><code></code></pre>
               <textarea class="editor-textarea" id="editorTextarea" spellcheck="false" placeholder="---&#10;title: ...&#10;date: ...&#10;tag: ...&#10;---&#10;&#10;Your content here..."></textarea>
             </div>
@@ -5725,6 +5743,7 @@
           pre.firstElementChild.innerHTML = (grammar ? Prism.highlight(src, grammar, lang) : escHtml(src)) + '\n';
           syncHighlightLayout();
           renderGutter();
+          updateActiveLine();
         });
       }
       // One pass over the highlight layer maps each source line to its y offset,
@@ -5762,6 +5781,31 @@
         const el = e.target.closest('.editor-gutter-line');
         if (el) goToLine(+el.dataset.line);
       });
+
+      // The caret's line gets a band and a marked line number; both follow the
+      // caret, the scroll position and any re-render.
+      let activeLineFrame = 0;
+      function updateActiveLine() {
+        cancelAnimationFrame(activeLineFrame);
+        activeLineFrame = requestAnimationFrame(() => {
+          const ta = document.getElementById('editorTextarea');
+          const band = document.getElementById('editorActiveLine');
+          if (!editorActive || document.activeElement !== ta) { band.style.display = 'none'; return; }
+          const r = LatexComplete.caretRect(ta);
+          const box = document.querySelector('.editor-input').getBoundingClientRect();
+          band.style.display = 'block';
+          band.style.top = `${Math.round(r.top - box.top)}px`;
+          const line = ta.value.slice(0, ta.selectionStart).split('\n').length;
+          document.querySelectorAll('.editor-gutter-line.current').forEach(el => el.classList.remove('current'));
+          const num = document.querySelector(`.editor-gutter-line[data-line="${line}"]`);
+          if (num) num.classList.add('current');
+        });
+      }
+      document.addEventListener('selectionchange', () => {
+        if (document.activeElement === document.getElementById('editorTextarea')) updateActiveLine();
+      });
+      ['focus', 'blur', 'input', 'scroll', 'click', 'keyup'].forEach(ev =>
+        document.getElementById('editorTextarea').addEventListener(ev, updateActiveLine));
 
       function syncHighlightLayout() {
         const ta = document.getElementById('editorTextarea');
@@ -6044,6 +6088,7 @@
       function compileLatex() {
         updatePreview();
         runLint();
+        updateActiveLine();
         if (onPhone()) setEditorPane('preview');
         requestAnimationFrame(() => syncSourceToPreview(false));
       }
