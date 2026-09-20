@@ -18,12 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.26.0"></script>
-    <script src="assets/latex-complete.js?v=6.26.0"></script>
-    <script src="assets/vim.js?v=6.26.0"></script>
-    <script src="assets/lint.js?v=6.26.0"></script>
-    <script src="assets/tikz-nn.js?v=6.26.0"></script>
-    <script src="assets/bib.js?v=6.26.0"></script>
+    <script src="assets/latex.js?v=6.27.0"></script>
+    <script src="assets/latex-complete.js?v=6.27.0"></script>
+    <script src="assets/vim.js?v=6.27.0"></script>
+    <script src="assets/lint.js?v=6.27.0"></script>
+    <script src="assets/tikz-nn.js?v=6.27.0"></script>
+    <script src="assets/bib.js?v=6.27.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -5639,11 +5639,42 @@
         stageFile(path, base64Content, message, 'base64', sha === 'staged' ? undefined : sha || null);
       }
 
+      // Photos go into the repository and over the wire to every reader, so
+      // scale them down and re-encode as WebP — unless that turns out larger,
+      // or the format would suffer (SVG is vector, GIF may be animated).
+      const IMAGE_MAX_WIDTH = 1600;
+      const IMAGE_QUALITY = 0.82;
+
+      async function compressImage(file) {
+        if (/svg|gif/i.test(file.type)) return null;
+        try {
+          const bitmap = await createImageBitmap(file);
+          const scale = Math.min(1, IMAGE_MAX_WIDTH / bitmap.width);
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(bitmap.width * scale);
+          canvas.height = Math.round(bitmap.height * scale);
+          canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+          bitmap.close && bitmap.close();
+          const blob = await new Promise(r => canvas.toBlob(r, 'image/webp', IMAGE_QUALITY));
+          if (!blob || blob.type !== 'image/webp' || blob.size >= file.size) return null;
+          return { blob, width: canvas.width, height: canvas.height };
+        } catch (_) {
+          return null;
+        }
+      }
+
+      const sizeText = (n) => (n > 512000 ? (n / 1048576).toFixed(1) + ' MB' : Math.round(n / 1024) + ' KB');
+
       async function uploadAndInsertImage(file) {
         if (!file || !file.type || !file.type.startsWith('image/')) return;
         if (!ghToken) { openAuthModal(); return; }
 
         const status = document.getElementById('editorStatus');
+        const original = file;
+        status.textContent = 'Preparing image…';
+        status.className = 'editor-status';
+        const smaller = await compressImage(file);
+        if (smaller) file = new File([smaller.blob], original.name.replace(/\.\w+$/, '') + '.webp', { type: 'image/webp' });
         const filename = makeImageFilename(file.name);
         const path = `notes/assets/${filename}`;
 
@@ -5669,9 +5700,12 @@
           replacePlaceholder(ref);
           const newPos = insertPos + ref.length;
           ta.selectionStart = ta.selectionEnd = newPos;
-          status.textContent = 'Image added';
+          const note = smaller
+            ? `Image added (${sizeText(original.size)} → ${sizeText(file.size)}, ${smaller.width}px wide)`
+            : 'Image added';
+          status.textContent = note;
           status.className = 'editor-status success';
-          setTimeout(() => { if (status.textContent === 'Image added') status.textContent = ''; }, 1500);
+          setTimeout(() => { if (status.textContent === note) status.textContent = ''; }, 2500);
         } catch (err) {
           console.error('Image upload failed:', err);
           replacePlaceholder('');
