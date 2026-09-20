@@ -363,6 +363,44 @@
     return s;
   }
 
+  // TikZ libraries a picture needs, guessed from what it uses, so posts don't
+  // have to remember \usetikzlibrary.
+  const TIKZ_LIBS = [
+    [/(?:above|below|left|right)\s*=\s*(?:[^,\]\n]*\s+)?of\s|node distance|(?:above|below) (?:left|right)=/, 'positioning'],
+    [/-\{|\}-|Stealth|Latex\[|\bTo\[|Circle\]|Bar\]|Square\]|arrows\.meta/, 'arrows.meta'],
+    [/\(\$|\$\)|let\s+\\p|\\pgfextra|\bcalc\b/, 'calc'],
+    [/\bfit\s*=/, 'fit'],
+    [/on background layer|background rectangle|framed\]|show background/, 'backgrounds'],
+    [/\b(?:ellipse|diamond|trapezium|regular polygon|star|cylinder|semicircle|kite|dart)\b/, 'shapes.geometric'],
+    [/rounded rectangle|cross out|strike out|forbidden sign|\bchamfered rectangle\b/, 'shapes.misc'],
+    [/\bcloud\b|\bstarburst\b|\bsignal\b|\btape\b|\bmagnifying glass\b/, 'shapes.symbols'],
+    [/rectangle split/, 'shapes.multipart'],
+    [/single arrow|double arrow|arrow box/, 'shapes.arrows'],
+    [/\bcallout\b/, 'shapes.callouts'],
+    [/\bstart chain\b|\bon chain\b|\bjoin\s*=|\bchain\b/, 'chains'],
+    [/\\matrix|matrix of (?:nodes|math nodes)/, 'matrix'],
+    [/decoration\s*=\s*\{?\s*(?:brace|mirror|bracket)|\bdecorate\b/, 'decorations.pathreplacing'],
+    [/decoration\s*=\s*\{?\s*(?:snake|coil|zigzag|bumps|random steps|wave)/, 'decorations.pathmorphing'],
+    [/decoration\s*=\s*\{?\s*(?:markings|text along path|text effects)/, 'decorations.markings'],
+    [/pattern\s*=/, 'patterns'],
+    [/name path|name intersections/, 'intersections'],
+    [/canvas is |plane origin|\bz\s*=\s*\{/, '3d'],
+    [/drop shadow|copy shadow|circular drop shadow/, 'shadows'],
+    [/spy using|spy scope/, 'spy'],
+    [/\bedge node\b|\bto\s*\[[^\]]*"/, 'quotes'],
+    [/\\tikzmath|\bevaluate\s*=/, 'math'],
+    [/\bmindmap\b|\bconcept\b/, 'mindmap'],
+    [/\bfolder\b|\bgrow via three points\b/, 'trees'],
+    [/\bbarchart\b|\bdatavisualization\b/, 'datavisualization'],
+    [/\bpin\b|\blabel distance\b|\bcoordinate label\b/, 'positioning'],
+  ];
+
+  function tikzLibrariesFor(code) {
+    const found = new Set();
+    TIKZ_LIBS.forEach(([re, lib]) => { if (re.test(code)) found.add(lib); });
+    return found;
+  }
+
   // tikzpicture / tikzcd → <script type="text/tikz">, which TikZJax (loaded
   // on demand by the page) compiles to SVG in the browser.
   function extractTikz(ctx, s) {
@@ -383,12 +421,18 @@
       if (/\\(mathbb|mathfrak|text|operatorname|boldsymbol)\b|\\begin\{(align|pmatrix|bmatrix|cases)/.test(m + preamble.join(''))) {
         packages.amsmath = ''; packages.amssymb = '';
       }
+      const libs = new Set([...ctx.tikzLibs, ...tikzLibrariesFor(m)]);
+      // Neural-network styles ship with the site; pull them in when used.
+      if (/\\usennstyles|\bnn(?:conv|pool|fc|act|norm|attn|embed|out|data|loss|sum|flow|skip|back|label|group|grouplabel|brace|box|featmap|fm)\b|\[\s*nn\s*[,\]]/.test(m) && window.TIKZ_NN_PREAMBLE) {
+        preamble.unshift(window.TIKZ_NN_PREAMBLE);
+        ['positioning', 'arrows.meta', 'calc', 'fit', 'backgrounds', 'shapes.geometric', 'decorations.pathreplacing'].forEach(l => libs.add(l));
+      }
       const attrs = [
-        ctx.tikzLibs.size ? `data-tikz-libraries="${esc([...ctx.tikzLibs].join(','))}"` : '',
+        libs.size ? `data-tikz-libraries="${esc([...libs].sort().join(','))}"` : '',
         Object.keys(packages).length ? `data-tex-packages="${esc(JSON.stringify(packages))}"` : '',
         preamble.length ? `data-add-to-preamble="${esc(preamble.join('\n'))}"` : '',
       ].filter(Boolean).join(' ');
-      const code = m.replace(/<\/(script)/gi, '<\\/$1');
+      const code = m.replace(/\\usennstyles\b/g, '').replace(/<\/(script)/gi, '<\\/$1');
       // The page looks for a pre-rendered notes/tikz/<hash>.svg first and only
       // hands the (inert) script to TikZJax when there is none.
       const hash = fnv1a(attrs + '\n' + code);
