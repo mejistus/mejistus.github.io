@@ -18,11 +18,11 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.16.0"></script>
-    <script src="assets/latex-complete.js?v=6.16.0"></script>
-    <script src="assets/vim.js?v=6.16.0"></script>
-    <script src="assets/lint.js?v=6.16.0"></script>
-    <script src="assets/tikz-nn.js?v=6.16.0"></script>
+    <script src="assets/latex.js?v=6.17.0"></script>
+    <script src="assets/latex-complete.js?v=6.17.0"></script>
+    <script src="assets/vim.js?v=6.17.0"></script>
+    <script src="assets/lint.js?v=6.17.0"></script>
+    <script src="assets/tikz-nn.js?v=6.17.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -4236,6 +4236,7 @@
 
         // Initial preview
         updatePreview();
+        offerDraft();
       }
 
       // Drop the in-memory placeholder of a new post that was never saved.
@@ -4253,6 +4254,7 @@
       }
 
       function closeEditor() {
+        clearDraft();
         isNewPost = false;
         editorActive = false;
         document.getElementById('blogReadBody').classList.remove('hidden');
@@ -4294,6 +4296,58 @@
         const help = document.getElementById('editorSnippetsHelp');
         if (!help.hidden && !help.contains(e.target)) help.hidden = true;
       });
+
+      // ── Draft autosave ──
+      // The editor keeps the text being edited in this browser while it is open,
+      // so closing the tab or a crash doesn't lose it. Saving or cancelling
+      // clears it; reopening the same post offers to restore.
+      const DRAFT_KEY = 'editor_draft';
+      let draftTimer = 0;
+
+      function draftId() {
+        const b = blogs[currentBlog];
+        return b ? (b.file || 'new-post') : null;
+      }
+      function saveDraft() {
+        const id = draftId();
+        if (!id || !editorActive) return;
+        // Nothing to recover when the text still matches the saved post.
+        const current = document.getElementById('editorTextarea').value;
+        if (current === (blogs[currentBlog] && blogs[currentBlog].content)) { clearDraft(); return; }
+        try {
+          localStorage.setItem(DRAFT_KEY, JSON.stringify({
+            id, mode: editorMode, at: Date.now(),
+            content: current,
+          }));
+        } catch (_) {}
+      }
+      function clearDraft() {
+        clearTimeout(draftTimer);
+        try { localStorage.removeItem(DRAFT_KEY); } catch (_) {}
+      }
+      function readDraft() {
+        try { return JSON.parse(localStorage.getItem(DRAFT_KEY)); } catch (_) { return null; }
+      }
+      function offerDraft() {
+        const d = readDraft();
+        const ta = document.getElementById('editorTextarea');
+        if (!d || d.id !== draftId()) return;
+        if (d.content === ta.value) { clearDraft(); return; }
+        const when = new Date(d.at).toLocaleString();
+        if (confirm(`This browser has an unsaved draft of this post from ${when}.\n\nRestore it? (Cancel keeps the published version.)`)) {
+          ta.value = d.content;
+          editorMode = d.mode || editorMode;
+          syncEditorModeUI(!!blogs[currentBlog].file);
+          if (editorMode !== 'latex') updatePreview();
+        } else {
+          clearDraft();
+        }
+      }
+      document.getElementById('editorTextarea').addEventListener('input', () => {
+        clearTimeout(draftTimer);
+        draftTimer = setTimeout(saveDraft, 800);
+      });
+      window.addEventListener('beforeunload', saveDraft);
 
       // ── Draggable split between source and preview (remembered per browser) ──
       const SPLIT_KEY = 'editor_split';
@@ -5253,6 +5307,8 @@
           b.content = fullContent;
           isNewPost = false;
 
+          clearDraft();
+
           // Invalidate caches
           parsedHtmlCache.clear();
           if (oldFile) blogContentCache.delete(oldFile);
@@ -5823,6 +5879,7 @@
           document.getElementById('editorTextarea').value = template;
           editorMode = mode;
           syncEditorModeUI(false);
+          offerDraft();
           document.getElementById('editorStatus').textContent = '';
           document.getElementById('editorStatus').className = 'editor-status';
           updatePreview();
