@@ -18,65 +18,69 @@
 
   // [trigger, body, description] — typed at the start of a word, then Tab.
   const SNIPPETS = [
-    ['fig', '\\begin{figure}[htbp]\n  \\centering\n  \\includegraphics[width=${1:0.8}\\linewidth]{${2:notes/assets/}}\n  \\caption{$3}\\label{fig:$4}\n\\end{figure}\n$0', 'figure'],
-    ['subfig', '\\begin{figure}[htbp]\n  \\centering\n  \\begin{subfigure}[b]{0.45\\linewidth}\n    \\includegraphics[width=\\linewidth]{$1}\n    \\caption{$2}\\label{fig:$3}\n  \\end{subfigure}\n  \\hfill\n  \\begin{subfigure}[b]{0.45\\linewidth}\n    \\includegraphics[width=\\linewidth]{$4}\n    \\caption{$5}\\label{fig:$6}\n  \\end{subfigure}\n  \\caption{$7}\\label{fig:$8}\n\\end{figure}\n$0', 'two sub-figures'],
-    ['tab', '\\begin{table}[htbp]\n  \\centering\n  \\caption{$1}\\label{tab:$2}\n  \\begin{tabular}{${3:lcc}}\n    \\toprule\n    ${4:Method} & ${5:A} & ${6:B} \\\\\n    \\midrule\n    $7 \\\\\n    \\bottomrule\n  \\end{tabular}\n\\end{table}\n$0', 'booktabs table'],
-    ['tabres', '\\begin{table}[htbp]\n  \\centering\n  \\caption{$1}\\label{tab:$2}\n  \\resizebox{\\linewidth}{!}{%\n  \\begin{tabular}{lcccccc c}\n    \\toprule\n    \\multirow{2}{*}{Method} & \\multicolumn{3}{c}{${3:Bench A}} & \\multicolumn{3}{c}{${4:Bench B}} & \\multirow{2}{*}{Avg.} \\\\\n    \\cmidrule(lr){2-4} \\cmidrule(lr){5-7}\n     & Real & Fake & Avg. & Real & Fake & Avg. & \\\\\n    \\midrule\n    ${5:Baseline}~\\cite{$6} & $7 \\\\\n    \\rowcolor{gray!12}\n    Ours & $8 \\\\\n    \\bottomrule\n  \\end{tabular}}\n\\end{table}\n$0', 'results table (multirow / multicolumn)'],
-    ['eq', '\\begin{equation}\\label{eq:$1}\n  $2\n\\end{equation}\n$0', 'numbered equation'],
-    ['eqs', '\\begin{equation*}\n  $1\n\\end{equation*}\n$0', 'unnumbered equation'],
-    ['ali', '\\begin{align}\n  $1 &= $2 \\\\\n  &= $3\n\\end{align}\n$0', 'aligned equations'],
-    ['dm', '\\[\n  $1\n\\]\n$0', 'display math'],
-    ['mk', '$$1$$0', 'inline math'],
-    ['item', '\\begin{itemize}\n  \\item $1\n\\end{itemize}\n$0', 'bullet list'],
-    ['enum', '\\begin{enumerate}\n  \\item $1\n\\end{enumerate}\n$0', 'numbered list'],
-    ['desc', '\\begin{description}\n  \\item[$1] $2\n\\end{description}\n$0', 'labelled list'],
-    ['sec', '\\section{$1}\\label{sec:$2}\n$0', 'section'],
-    ['ssec', '\\subsection{$1}\\label{sec:$2}\n$0', 'subsection'],
-    ['sssec', '\\subsubsection{$1}\n$0', 'subsubsection'],
-    ['thm', '\\begin{theorem}[$1]\\label{thm:$2}\n  $3\n\\end{theorem}\n$0', 'theorem'],
-    ['lem', '\\begin{lemma}\\label{lem:$1}\n  $2\n\\end{lemma}\n$0', 'lemma'],
-    ['defn', '\\begin{definition}[$1]\n  $2\n\\end{definition}\n$0', 'definition'],
-    ['prf', '\\begin{proof}\n  $1\n\\end{proof}\n$0', 'proof'],
-    ['lst', '\\begin{lstlisting}[language=${1:python}]\n$2\n\\end{lstlisting}\n$0', 'code block'],
-    ['quote', '\\begin{quote}\n  $1\n\\end{quote}\n$0', 'block quote'],
-    ['cen', '\\begin{center}\n  $1\n\\end{center}\n$0', 'centred'],
-    ['mini', '\\begin{minipage}{${1:0.45}\\linewidth}\n  $2\n\\end{minipage}$0', 'minipage'],
-    ['tikz', '\\begin{tikzpicture}\n  $1\n\\end{tikzpicture}\n$0', 'TikZ picture'],
-    ['plot', '\\begin{tikzpicture}\n  \\begin{axis}[width=8cm, height=5cm, xlabel={$1}, ylabel={$2}]\n    \\addplot[${3:blue, thick}] {$4};\n  \\end{axis}\n\\end{tikzpicture}\n$0', 'pgfplots plot'],
-    ['cd', '\\begin{tikzcd}\n  ${1:A} \\arrow[r, "${2:f}"] & ${3:B}\n\\end{tikzcd}\n$0', 'commutative diagram'],
-    ['bib', '\\begin{thebibliography}{9}\n  \\bibitem{$1} $2\n\\end{thebibliography}\n$0', 'references'],
-    ['bi', '\\bibitem{$1} $0', 'bibliography entry'],
-    ['fr', '\\frac{$1}{$2}$0', 'fraction'],
-    ['bf', '\\textbf{$1}$0', 'bold'],
-    ['it', '\\emph{$1}$0', 'emphasis'],
-    ['tt', '\\texttt{$1}$0', 'monospace'],
-    ['ul', '\\underline{$1}$0', 'underline'],
-    ['fn', '\\footnote{$1}$0', 'footnote'],
-    ['href', '\\href{$1}{$2}$0', 'link'],
-    ['eqr', '\\eqref{eq:$1}$0', 'equation reference'],
-    ['figr', '图~\\ref{fig:$1}$0', 'figure reference'],
-    ['tabr', '表~\\ref{tab:$1}$0', 'table reference'],
-    ['mc', '\\multicolumn{${1:2}}{${2:c}}{$3}$0', 'span columns'],
-    ['mr', '\\multirow{${1:2}}{*}{$2}$0', 'span rows'],
-    ['rc', '\\rowcolor{${1:gray!12}}$0', 'row shading'],
-    ['bb', '\\mathbb{$1}$0', 'blackboard bold'],
-    ['cal', '\\mathcal{$1}$0', 'calligraphic'],
+    ['fig', '\\begin{figure}[htbp]\n  \\centering\n  \\includegraphics[width=${1:0.8}\\linewidth]{${2:notes/assets/}}\n  \\caption{${3}}\\label{fig:${4}}\n\\end{figure}\n${0}', 'figure'],
+    ['subfig', '\\begin{figure}[htbp]\n  \\centering\n  \\begin{subfigure}[b]{0.45\\linewidth}\n    \\includegraphics[width=\\linewidth]{${1}}\n    \\caption{${2}}\\label{fig:${3}}\n  \\end{subfigure}\n  \\hfill\n  \\begin{subfigure}[b]{0.45\\linewidth}\n    \\includegraphics[width=\\linewidth]{${4}}\n    \\caption{${5}}\\label{fig:${6}}\n  \\end{subfigure}\n  \\caption{${7}}\\label{fig:${8}}\n\\end{figure}\n${0}', 'two sub-figures'],
+    ['tab', '\\begin{table}[htbp]\n  \\centering\n  \\caption{${1}}\\label{tab:${2}}\n  \\begin{tabular}{${3:lcc}}\n    \\toprule\n    ${4:Method} & ${5:A} & ${6:B} \\\\\n    \\midrule\n    ${7} \\\\\n    \\bottomrule\n  \\end{tabular}\n\\end{table}\n${0}', 'booktabs table'],
+    ['tabres', '\\begin{table}[htbp]\n  \\centering\n  \\caption{${1}}\\label{tab:${2}}\n  \\resizebox{\\linewidth}{!}{%\n  \\begin{tabular}{lcccccc c}\n    \\toprule\n    \\multirow{2}{*}{Method} & \\multicolumn{3}{c}{${3:Bench A}} & \\multicolumn{3}{c}{${4:Bench B}} & \\multirow{2}{*}{Avg.} \\\\\n    \\cmidrule(lr){2-4} \\cmidrule(lr){5-7}\n     & Real & Fake & Avg. & Real & Fake & Avg. & \\\\\n    \\midrule\n    ${5:Baseline}~\\cite{${6}} & ${7} \\\\\n    \\rowcolor{gray!12}\n    Ours & ${8} \\\\\n    \\bottomrule\n  \\end{tabular}}\n\\end{table}\n${0}', 'results table (multirow / multicolumn)'],
+    ['eq', '\\begin{equation}\\label{eq:${1}}\n  ${2}\n\\end{equation}\n${0}', 'numbered equation'],
+    ['eqs', '\\begin{equation*}\n  ${1}\n\\end{equation*}\n${0}', 'unnumbered equation'],
+    ['ali', '\\begin{align}\n  ${1} &= ${2} \\\\\n  &= ${3}\n\\end{align}\n${0}', 'aligned equations'],
+    ['dm', '\\[\n  ${1}\n\\]\n${0}', 'display math'],
+    ['mk', '$${1}$${0}', 'inline math'],
+    ['item', '\\begin{itemize}\n  \\item ${1}\n\\end{itemize}\n${0}', 'bullet list'],
+    ['enum', '\\begin{enumerate}\n  \\item ${1}\n\\end{enumerate}\n${0}', 'numbered list'],
+    ['desc', '\\begin{description}\n  \\item[${1}] ${2}\n\\end{description}\n${0}', 'labelled list'],
+    ['sec', '\\section{${1}}\\label{sec:${2}}\n${0}', 'section'],
+    ['ssec', '\\subsection{${1}}\\label{sec:${2}}\n${0}', 'subsection'],
+    ['sssec', '\\subsubsection{${1}}\n${0}', 'subsubsection'],
+    ['thm', '\\begin{theorem}[${1}]\\label{thm:${2}}\n  ${3}\n\\end{theorem}\n${0}', 'theorem'],
+    ['lem', '\\begin{lemma}\\label{lem:${1}}\n  ${2}\n\\end{lemma}\n${0}', 'lemma'],
+    ['defn', '\\begin{definition}[${1}]\n  ${2}\n\\end{definition}\n${0}', 'definition'],
+    ['prf', '\\begin{proof}\n  ${1}\n\\end{proof}\n${0}', 'proof'],
+    ['lst', '\\begin{lstlisting}[language=${1:python}]\n${2}\n\\end{lstlisting}\n${0}', 'code block'],
+    ['quote', '\\begin{quote}\n  ${1}\n\\end{quote}\n${0}', 'block quote'],
+    ['cen', '\\begin{center}\n  ${1}\n\\end{center}\n${0}', 'centred'],
+    ['mini', '\\begin{minipage}{${1:0.45}\\linewidth}\n  ${2}\n\\end{minipage}${0}', 'minipage'],
+    ['tikz', '\\begin{tikzpicture}\n  ${1}\n\\end{tikzpicture}\n${0}', 'TikZ picture'],
+    ['plot', '\\begin{tikzpicture}\n  \\begin{axis}[width=8cm, height=5cm, xlabel={${1}}, ylabel={${2}}]\n    \\addplot[${3:blue, thick}] {${4}};\n  \\end{axis}\n\\end{tikzpicture}\n${0}', 'pgfplots plot'],
+    ['nn', '\\begin{tikzpicture}[nn]\n  \\node[nndata] (in) {Input\\\\$224\\times224\\times3$};\n  \\node[nnconv, right=of in] (c1) {Conv $3\\times3$\\\\64};\n  \\node[nnnorm, right=of c1] (n1) {BN + ReLU};\n  \\node[nnpool, right=of n1] (p1) {Max pool\\\\$/2$};\n  \\node[nnfc, right=of p1] (fc) {FC\\\\1000};\n  \\node[nnout, right=of fc] (out) {Softmax};\n  \\draw[nnflow] (in) -- (c1);\n  \\draw[nnflow] (c1) -- (n1);\n  \\draw[nnflow] (n1) -- (p1);\n  \\draw[nnflow] (p1) -- (fc);\n  \\draw[nnflow] (fc) -- (out);\n  \\node[nngroup, fit=(c1)(n1)(p1)] (stage) {};\n  \\node[nngrouplabel, above=1mm of stage] {Stage 1};\n${0}\\end{tikzpicture}', 'CNN pipeline (nn styles)'],
+    ['nnres', '\\begin{tikzpicture}[nn]\n  \\node[nndata] (x) {$x$};\n  \\node[nnconv, right=of x] (c1) {Conv $3\\times3$};\n  \\node[nnnorm, right=of c1] (n1) {BN, ReLU};\n  \\node[nnconv, right=of n1] (c2) {Conv $3\\times3$};\n  \\node[nnsum, right=of c2] (sum) {$+$};\n  \\node[nnact, right=of sum] (relu) {ReLU};\n  \\draw[nnflow] (x) -- (c1);\n  \\draw[nnflow] (c1) -- (n1);\n  \\draw[nnflow] (n1) -- (c2);\n  \\draw[nnflow] (c2) -- (sum);\n  \\draw[nnflow] (sum) -- (relu);\n  \\draw[nnskip] (x.north) |- ++(0,9mm) -| node[nnlabel, pos=0.25, above] {identity} (sum.north);\n${0}\\end{tikzpicture}', 'residual block'],
+    ['nntrans', '\\begin{tikzpicture}[nn]\n  \\node[nnembed] (emb) {Token +\\\\position};\n  \\node[nnattn, above=of emb] (attn) {Multi-head\\\\self-attention};\n  \\node[nnsum, above=of attn] (a1) {$+$};\n  \\node[nnnorm, above=of a1] (ln1) {LayerNorm};\n  \\node[nnfc, above=of ln1] (ffn) {Feed-forward};\n  \\node[nnsum, above=of ffn] (a2) {$+$};\n  \\node[nnnorm, above=of a2] (ln2) {LayerNorm};\n  \\draw[nnflow] (emb) -- (attn);\n  \\draw[nnflow] (attn) -- (a1);\n  \\draw[nnflow] (a1) -- (ln1);\n  \\draw[nnflow] (ln1) -- (ffn);\n  \\draw[nnflow] (ffn) -- (a2);\n  \\draw[nnflow] (a2) -- (ln2);\n  \\draw[nnskip] (emb.east) -| ++(12mm,0) |- (a1.east);\n  \\draw[nnskip] (ln1.west) -| ++(-12mm,0) |- (a2.west);\n  \\node[nngroup, fit=(attn)(ln2)] (blk) {};\n  \\node[nngrouplabel, right=1mm of blk] {$\\times N$};\n${0}\\end{tikzpicture}', 'transformer encoder block'],
+    ['nn3d', '\\begin{tikzpicture}[nn]\n  \\pic (a) at (0,0) {nnfeatmap={w=1, h=2.4, d=0.5, fill=nnconvc, label=$64$}};\n  \\pic (b) at (2.4,0.3) {nnfeatmap={w=0.8, h=1.8, d=0.7, fill=nnpoolc, label=$128$}};\n  \\pic (c) at (4.6,0.6) {nnfeatmap={w=0.6, h=1.2, d=0.9, fill=nnfcc, label=$256$}};\n  \\draw[nnflow] (1.6,1.2) -- (2.3,1.2);\n  \\draw[nnflow] (3.9,1.2) -- (4.5,1.2);\n${0}\\end{tikzpicture}', '3-D feature maps'],
+    ['cd', '\\begin{tikzcd}\n  ${1:A} \\arrow[r, "${2:f}"] & ${3:B}\n\\end{tikzcd}\n${0}', 'commutative diagram'],
+    ['bib', '\\begin{thebibliography}{9}\n  \\bibitem{${1}} ${2}\n\\end{thebibliography}\n${0}', 'references'],
+    ['bi', '\\bibitem{${1}} ${0}', 'bibliography entry'],
+    ['fr', '\\frac{${1}}{${2}}${0}', 'fraction'],
+    ['bf', '\\textbf{${1}}${0}', 'bold'],
+    ['it', '\\emph{${1}}${0}', 'emphasis'],
+    ['tt', '\\texttt{${1}}${0}', 'monospace'],
+    ['ul', '\\underline{${1}}${0}', 'underline'],
+    ['fn', '\\footnote{${1}}${0}', 'footnote'],
+    ['href', '\\href{${1}}{${2}}${0}', 'link'],
+    ['eqr', '\\eqref{eq:${1}}${0}', 'equation reference'],
+    ['figr', '图~\\ref{fig:${1}}${0}', 'figure reference'],
+    ['tabr', '表~\\ref{tab:${1}}${0}', 'table reference'],
+    ['mc', '\\multicolumn{${1:2}}{${2:c}}{${3}}${0}', 'span columns'],
+    ['mr', '\\multirow{${1:2}}{*}{${2}}${0}', 'span rows'],
+    ['rc', '\\rowcolor{${1:gray!12}}${0}', 'row shading'],
+    ['bb', '\\mathbb{${1}}${0}', 'blackboard bold'],
+    ['cal', '\\mathcal{${1}}${0}', 'calligraphic'],
   ];
 
   // Literal "$" coming from completion data (never a tab stop).
   const DOLLAR = '\u0006';
 
-  // "$1", "${1:default}", "$0" → plain text plus tab stops (offsets into it).
-  // A "$" not followed by a digit or "{digit" is literal (so "$$1$" is inline math).
+  // "${1}", "${1:default}", "${0}" → plain text plus tab stops (offsets into it).
+  // Everything else is literal, so LaTeX math like "$224\times3$" is safe.
   function parseSnippet(body) {
     let text = '';
     const stops = [];
     for (let i = 0; i < body.length; i++) {
       if (body[i] === DOLLAR) { text += '$'; continue; }
-      const m = /^\$(?:(\d)|\{(\d):([^}]*)\})/.exec(body.slice(i));
+      const m = /^\$\{(\d)(?::([^}]*))?\}/.exec(body.slice(i));
       if (m) {
-        const n = +(m[1] || m[2]);
-        const def = m[3] || '';
+        const n = +m[1];
+        const def = m[2] || '';
         stops.push({ n, start: text.length, end: text.length + def.length });
         text += def;
         i += m[0].length - 1;
@@ -94,10 +98,10 @@
   function toSnippet(insert) {
     if (!insert.includes(CARET)) return insert.replace(/\$/g, DOLLAR) + '$0';
     let n = 1;
-    let body = insert.replace(/\$/g, DOLLAR).replace(CARET, '$1');
-    const tail = body.slice(body.indexOf('$1') + 2)
-      .replace(/\{((?:fig|tab|eq|sec|thm|lem):)?\}/g, (m, pre) => `{${pre || ''}$${++n}}`);
-    return body.slice(0, body.indexOf('$1') + 2) + tail + '$0';
+    let body = insert.replace(/\$/g, DOLLAR).replace(CARET, '${1}');
+    const tail = body.slice(body.indexOf('${1}') + 4)
+      .replace(/\{((?:fig|tab|eq|sec|thm|lem):)?\}/g, (m, pre) => `{${pre || ''}\${${++n}}}`);
+    return body.slice(0, body.indexOf('${1}') + 4) + tail + '\${0}';
   }
 
   // [name, snippet (after the backslash), hint]
@@ -341,10 +345,10 @@
     // expand() adds the current line's indentation to every inserted line.
     function envSnippet(name, body, args) {
       let n = 1;
-      const withStops = body.replace(/\$/g, DOLLAR).replace(CARET, '$1')
-        .replace(/\{((?:fig|tab|eq|sec|thm|lem):)?\}/g, (m, pre) => `{${pre || ''}$${++n}}`);
+      const withStops = body.replace(/\$/g, DOLLAR).replace(CARET, '${1}')
+        .replace(/\{((?:fig|tab|eq|sec|thm|lem):)?\}/g, (m, pre) => `{${pre || ''}\${${++n}}}`);
       const inner = withStops.split('\n').map(l => '  ' + l).join('\n');
-      return `\\begin{${name}}${args || ''}\n${inner}\n\\end{${name}}$0`;
+      return `\\begin{${name}}${args || ''}\n${inner}\n\\end{${name}}\${0}`;
     }
 
     function update() {
