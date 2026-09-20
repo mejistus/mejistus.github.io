@@ -18,12 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.35.1"></script>
-    <script src="assets/latex-complete.js?v=6.35.1"></script>
-    <script src="assets/vim.js?v=6.35.1"></script>
-    <script src="assets/lint.js?v=6.35.1"></script>
-    <script src="assets/tikz-nn.js?v=6.35.1"></script>
-    <script src="assets/bib.js?v=6.35.1"></script>
+    <script src="assets/latex.js?v=6.35.2"></script>
+    <script src="assets/latex-complete.js?v=6.35.2"></script>
+    <script src="assets/vim.js?v=6.35.2"></script>
+    <script src="assets/lint.js?v=6.35.2"></script>
+    <script src="assets/tikz-nn.js?v=6.35.2"></script>
+    <script src="assets/bib.js?v=6.35.2"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -1981,11 +1981,9 @@
       .editor-pane-header {
         position: relative;
       }
-      .editor-tools-menu {
-        position: absolute;
+      .editor-menu {
+        position: fixed;
         z-index: 25;
-        top: calc(100% + 4px);
-        left: 0.8rem;
         min-width: 14rem;
         padding: 0.3rem;
         background: var(--surface);
@@ -1993,7 +1991,7 @@
         border-radius: 0.5rem;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
       }
-      .editor-tools-menu button {
+      .editor-menu button {
         display: flex;
         justify-content: space-between;
         align-items: baseline;
@@ -2008,23 +2006,21 @@
         text-align: left;
         cursor: pointer;
       }
-      .editor-tools-menu button[hidden] {
+      .editor-menu button[hidden] {
         display: none;
       }
-      .editor-tools-menu button:hover {
+      .editor-menu button:hover {
         background: rgba(196, 124, 90, 0.12);
       }
-      .editor-tools-hint {
+      .editor-menu-hint {
         color: var(--muted);
         font-size: 0.7rem;
         font-weight: 400;
         white-space: nowrap;
       }
       .editor-outline {
-        position: absolute;
+        position: fixed;
         z-index: 20;
-        top: calc(100% + 4px);
-        left: 0.8rem;
         width: min(24rem, calc(100% - 1.6rem));
         max-height: 60vh;
         overflow-y: auto;
@@ -2058,10 +2054,8 @@
         color: var(--muted);
       }
       .editor-refs {
-        position: absolute;
+        position: fixed;
         z-index: 20;
-        top: calc(100% + 4px);
-        right: 0.8rem;
         width: min(30rem, calc(100% - 1.6rem));
         padding: 0.6rem 0.8rem;
         background: var(--cream);
@@ -2111,10 +2105,8 @@
       .editor-refs-status.error { color: var(--danger); }
       .editor-refs-status.success { color: var(--sage); }
       .editor-snippets-help {
-        position: absolute;
+        position: fixed;
         z-index: 20;
-        top: calc(100% + 4px);
-        right: 0.8rem;
         width: min(26rem, calc(100% - 1.6rem));
         max-height: 60vh;
         overflow-y: auto;
@@ -3089,13 +3081,13 @@
                 <button type="button" data-mode="latex" onclick="setEditorMode('latex')">LaTeX</button>
               </div>
               <!-- One menu instead of a row of buttons. -->
-              <button type="button" class="editor-compile-btn" id="editorToolsBtn" onclick="toggleTools(event)">Tools ▾</button>
-              <div class="editor-tools-menu" id="editorToolsMenu" hidden>
-                <button type="button" onclick="toggleOutline(event)">Outline<span class="editor-tools-hint">sections</span></button>
-                <button type="button" id="editorRefsItem" onclick="toggleRefs(event)">References<span class="editor-tools-hint">BibTeX · DOI · arXiv</span></button>
-                <button type="button" id="editorSnippetsItem" onclick="toggleSnippetHelp(event)">Snippets<span class="editor-tools-hint">trigger + Tab</span></button>
-                <button type="button" onclick="openFind()">Find &amp; replace<span class="editor-tools-hint">⌘F</span></button>
-                <button type="button" onclick="toggleVim()">Vim keys<span class="editor-tools-hint" id="editorVimState">off</span></button>
+              <button type="button" class="editor-compile-btn" id="editorMenuBtn" onclick="toggleMenu(event)">Menu ▾</button>
+              <div class="editor-menu" id="editorMenu" hidden>
+                <button type="button" onclick="toggleOutline(event)">Outline<span class="editor-menu-hint">sections</span></button>
+                <button type="button" id="editorRefsItem" onclick="toggleRefs(event)">References<span class="editor-menu-hint">BibTeX · DOI · arXiv</span></button>
+                <button type="button" id="editorSnippetsItem" onclick="toggleSnippetHelp(event)">Snippets<span class="editor-menu-hint">trigger + Tab</span></button>
+                <button type="button" onclick="openFind()">Find &amp; replace<span class="editor-menu-hint">⌘F</span></button>
+                <button type="button" onclick="toggleVim()">Vim keys<span class="editor-menu-hint" id="editorVimState">off</span></button>
               </div>
               <div class="editor-outline" id="editorOutline" hidden></div>
               <div class="editor-refs" id="editorRefs" hidden>
@@ -5323,6 +5315,7 @@
             '</table>';
         }
         help.hidden = !help.hidden;
+        if (!help.hidden) placeUnder(help, document.getElementById('editorMenuBtn'));
       }
       document.addEventListener('click', (e) => {
         const help = document.getElementById('editorSnippetsHelp');
@@ -5336,6 +5329,7 @@
         const panel = document.getElementById('editorRefs');
         panel.hidden = !panel.hidden;
         if (!panel.hidden) {
+          placeUnder(panel, document.getElementById('editorMenuBtn'));
           document.getElementById('editorRefsStatus').textContent = '';
           document.getElementById('editorRefsInput').focus();
         }
@@ -5452,23 +5446,36 @@
         return items;
       }
 
-      function toggleTools(e) {
+      // Popovers open under whatever was clicked, not pinned to the pane edge.
+      function placeUnder(panel, anchor) {
+        const r = anchor.getBoundingClientRect();
+        panel.style.position = 'fixed';
+        panel.style.top = `${r.bottom + 6}px`;
+        panel.style.right = 'auto';
+        const width = panel.offsetWidth || 260;
+        panel.style.left = `${Math.min(Math.max(8, r.left), window.innerWidth - width - 8)}px`;
+      }
+
+      function toggleMenu(e) {
         e.stopPropagation();
-        const menu = document.getElementById('editorToolsMenu');
+        const menu = document.getElementById('editorMenu');
         const wasOpen = !menu.hidden;
         closeEditorPanels();
         menu.hidden = wasOpen;
-        document.getElementById('editorVimState').textContent = editorVim.enabled() ? 'on' : 'off';
+        if (!menu.hidden) {
+          document.getElementById('editorVimState').textContent = editorVim.enabled() ? 'on' : 'off';
+          placeUnder(menu, document.getElementById('editorMenuBtn'));
+        }
       }
       // Only one of the editor's panels is open at a time.
       function closeEditorPanels(except) {
-        ['editorToolsMenu', 'editorOutline', 'editorRefs', 'editorSnippetsHelp', 'editorProblems'].forEach(id => {
+        ['editorMenu', 'editorOutline', 'editorRefs', 'editorSnippetsHelp', 'editorProblems'].forEach(id => {
           const el = document.getElementById(id);
           if (el && id !== except) el.hidden = true;
         });
       }
       document.addEventListener('click', (e) => {
-        const menu = document.getElementById('editorToolsMenu');
+        const menu = document.getElementById('editorMenu');
         if (menu && !menu.hidden && !menu.contains(e.target)) menu.hidden = true;
       });
 
@@ -5482,10 +5489,12 @@
           ? items.map(it => `<div class="editor-outline-item lvl${it.level}" data-line="${it.line}">` +
               `<span class="editor-outline-num">${escHtml(it.num)}</span><span>${escHtml(it.title)}</span></div>`).join('')
           : '<div class="editor-outline-empty">No sections yet.</div>';
+        placeUnder(panel, document.getElementById('editorMenuBtn'));
         panel.querySelectorAll('.editor-outline-item').forEach(el => {
           el.addEventListener('click', () => { panel.hidden = true; goToLine(+el.dataset.line); });
         });
         panel.hidden = false;
+        placeUnder(panel, document.getElementById('editorMenuBtn'));
       }
       document.addEventListener('click', (e) => {
         const panel = document.getElementById('editorOutline');
@@ -6221,14 +6230,14 @@
         const on = !editorVim.enabled();
         try { localStorage.setItem(VIM_KEY, on ? '1' : ''); } catch (_) {}
         applyVimSetting(on);
-        document.getElementById('editorToolsMenu').hidden = true;
+        document.getElementById('editorMenu').hidden = true;
         document.getElementById('editorTextarea').focus();
       }
       function applyVimSetting(on) {
         editorVim.setEnabled(on);
         const state = document.getElementById('editorVimState');
         if (state) state.textContent = on ? 'on' : 'off';
-        document.getElementById('editorToolsBtn').classList.toggle('on', on);
+        document.getElementById('editorMenuBtn').classList.toggle('on', on);
       }
       (function () {
         let on = false;
