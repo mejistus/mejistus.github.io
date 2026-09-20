@@ -18,11 +18,11 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.13.0"></script>
-    <script src="assets/latex-complete.js?v=6.13.0"></script>
-    <script src="assets/vim.js?v=6.13.0"></script>
-    <script src="assets/lint.js?v=6.13.0"></script>
-    <script src="assets/tikz-nn.js?v=6.13.0"></script>
+    <script src="assets/latex.js?v=6.15.0"></script>
+    <script src="assets/latex-complete.js?v=6.15.0"></script>
+    <script src="assets/vim.js?v=6.15.0"></script>
+    <script src="assets/lint.js?v=6.15.0"></script>
+    <script src="assets/tikz-nn.js?v=6.15.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -1892,7 +1892,7 @@
       .editor-highlight {
         box-sizing: border-box;
         margin: 0;
-        padding: 1.2rem;
+        padding: 1.2rem 1.2rem 1.2rem 3.6rem;
         border: none;
         font-family: "SF Mono", "Fira Code", "Consolas", monospace;
         font-size: 0.85rem;
@@ -1907,6 +1907,7 @@
       }
       .editor-textarea {
         position: relative;
+        z-index: 2;
         display: block;
         width: 100%;
         height: 100%;
@@ -1928,6 +1929,51 @@
         pointer-events: none;
         color: var(--ink);
         background: transparent;
+      }
+      /* Line numbers, aligned to the wrapped lines of the highlight layer. */
+      .editor-gutter {
+        position: absolute;
+        z-index: 3;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3.1rem;
+        overflow: hidden;
+        border-right: 1px solid var(--border);
+        background: var(--sand);
+        font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+        font-size: 0.72rem;
+        line-height: 24px;
+        color: var(--muted);
+        user-select: none;
+      }
+      .editor-gutter-line {
+        position: absolute;
+        right: 0.5rem;
+        cursor: pointer;
+        opacity: 0.75;
+      }
+      .editor-gutter-line:hover {
+        color: var(--ink);
+        opacity: 1;
+      }
+      .editor-gutter-line.error,
+      .editor-gutter-line.warning {
+        opacity: 1;
+        font-weight: 600;
+      }
+      .editor-gutter-line.error { color: #b3261e; }
+      .editor-gutter-line.warning { color: #b0603c; }
+      .editor-gutter-line.error::before,
+      .editor-gutter-line.warning::before {
+        content: "";
+        position: absolute;
+        left: -0.7rem;
+        top: 0.55em;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: currentColor;
       }
       .editor-highlight code {
         font: inherit;
@@ -2485,6 +2531,7 @@
             </div>
             <div class="editor-input">
               <!-- Highlighted copy of the source, drawn under the (transparent-text) textarea. -->
+              <div class="editor-gutter" id="editorGutter" aria-hidden="true"></div>
               <pre class="editor-highlight" id="editorHighlight" aria-hidden="true"><code></code></pre>
               <textarea class="editor-textarea" id="editorTextarea" spellcheck="false" placeholder="---&#10;title: ...&#10;date: ...&#10;tag: ...&#10;---&#10;&#10;Your content here..."></textarea>
             </div>
@@ -4243,8 +4290,45 @@
           // Trailing newline so a final empty line still takes up height.
           pre.firstElementChild.innerHTML = (grammar ? Prism.highlight(src, grammar, lang) : escHtml(src)) + '\n';
           syncHighlightLayout();
+          renderGutter();
         });
       }
+      // One pass over the highlight layer maps each source line to its y offset,
+      // so numbers line up even where a long line wraps.
+      function renderGutter() {
+        const gutter = document.getElementById('editorGutter');
+        const pre = document.getElementById('editorHighlight');
+        const ta = document.getElementById('editorTextarea');
+        if (!editorActive) return;
+        const starts = [0];
+        const v = ta.value;
+        for (let i = v.indexOf('\n'); i >= 0; i = v.indexOf('\n', i + 1)) starts.push(i + 1);
+        const marks = new Map();
+        problems.forEach(p => {
+          if (p.severity === 'error' || !marks.has(p.line)) marks.set(p.line, p.severity);
+        });
+        const walker = document.createTreeWalker(pre, NodeFilter.SHOW_TEXT);
+        const preTop = pre.getBoundingClientRect().top - pre.scrollTop;
+        const range = document.createRange();
+        let node = walker.nextNode(), acc = 0, html = '';
+        for (let i = 0; i < starts.length; i++) {
+          const off = starts[i];
+          while (node && acc + node.data.length <= off) { acc += node.data.length; node = walker.nextNode(); }
+          if (!node) break;
+          range.setStart(node, Math.min(off - acc, node.data.length));
+          range.setEnd(node, Math.min(off - acc + 1, node.data.length));
+          const top = Math.round(range.getBoundingClientRect().top - preTop);
+          const mark = marks.get(i + 1);
+          html += `<div class="editor-gutter-line${mark ? ' ' + mark : ''}" style="top:${top}px" data-line="${i + 1}">${i + 1}</div>`;
+        }
+        gutter.innerHTML = html;
+        gutter.scrollTop = ta.scrollTop;
+      }
+      document.getElementById('editorGutter').addEventListener('click', (e) => {
+        const el = e.target.closest('.editor-gutter-line');
+        if (el) goToLine(+el.dataset.line);
+      });
+
       function syncHighlightLayout() {
         const ta = document.getElementById('editorTextarea');
         const pre = document.getElementById('editorHighlight');
@@ -4253,6 +4337,7 @@
         pre.style.paddingRight = `calc(1.2rem + ${scrollbar}px)`;
         pre.scrollTop = ta.scrollTop;
         pre.scrollLeft = ta.scrollLeft;
+        document.getElementById('editorGutter').scrollTop = ta.scrollTop;
       }
       document.getElementById('editorTextarea').addEventListener('scroll', syncHighlightLayout, { passive: true });
       document.getElementById('editorTextarea').addEventListener('input', updateHighlight);
@@ -4456,6 +4541,7 @@
       }
 
       function renderProblems() {
+        renderGutter();
         const btn = document.getElementById('editorProblemsBtn');
         const panel = document.getElementById('editorProblems');
         const errors = problems.filter(p => p.severity === 'error').length;
