@@ -18,11 +18,11 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.20.1"></script>
-    <script src="assets/latex-complete.js?v=6.20.1"></script>
-    <script src="assets/vim.js?v=6.20.1"></script>
-    <script src="assets/lint.js?v=6.20.1"></script>
-    <script src="assets/tikz-nn.js?v=6.20.1"></script>
+    <script src="assets/latex.js?v=6.21.0"></script>
+    <script src="assets/latex-complete.js?v=6.21.0"></script>
+    <script src="assets/vim.js?v=6.21.0"></script>
+    <script src="assets/lint.js?v=6.21.0"></script>
+    <script src="assets/tikz-nn.js?v=6.21.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -3698,7 +3698,47 @@
       // ══════════════════════════════════════════════════
       const STAGE_KEY = 'site_staged_changes';
 
-      // { files: { path: { content, encoding: 'utf-8'|'base64' } | { deleted: true } }, messages: [] }
+      // Binary staging (images) lives in IndexedDB: localStorage holds ~5 MB in
+      // total, which a couple of photos exhaust. The index of what is staged
+      // stays in localStorage, and the bytes are mirrored in memory so the rest
+      // of the code can keep reading them synchronously.
+      const IDB_NAME = 'site-staged-blobs';
+      const stagedBlobs = new Map(); // path → base64
+      let idbReady = null;
+
+      function idbOpen() {
+        return new Promise((resolve, reject) => {
+          const req = indexedDB.open(IDB_NAME, 1);
+          req.onupgradeneeded = () => req.result.createObjectStore('blobs');
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      }
+      function idbRun(mode, fn) {
+        return idbOpen().then(db => new Promise((resolve, reject) => {
+          const tx = db.transaction('blobs', mode);
+          const req = fn(tx.objectStore('blobs'));
+          tx.oncomplete = () => resolve(req && req.result);
+          tx.onerror = () => reject(tx.error);
+        }));
+      }
+      // Load staged bytes once, so applyStagedImages() and friends stay sync.
+      function hydrateStagedBlobs() {
+        if (idbReady) return idbReady;
+        idbReady = (!window.indexedDB ? Promise.resolve() : idbOpen().then(db => new Promise((resolve, reject) => {
+          const tx = db.transaction('blobs', 'readonly');
+          const store = tx.objectStore('blobs');
+          const keys = store.getAllKeys(), values = store.getAll();
+          tx.oncomplete = () => {
+            keys.result.forEach((k, i) => stagedBlobs.set(k, values.result[i]));
+            resolve();
+          };
+          tx.onerror = () => reject(tx.error);
+        }))).catch(() => {});
+        return idbReady;
+      }
+
+      // { files: { path: { content?, inDb?, encoding: 'utf-8'|'base64' } | { deleted: true } }, messages: [] }
       function loadStaged() {
         try {
           const data = JSON.parse(localStorage.getItem(STAGE_KEY));
@@ -3719,9 +3759,24 @@
       function stageFile(path, content, message, encoding = 'utf-8', base) {
         const data = loadStaged();
         const known = data.files[path];
-        data.files[path] = { content, encoding, base: known ? known.base : base };
+        const entry = { encoding, base: known ? known.base : base };
+        if (encoding === 'base64' && window.indexedDB) {
+          // Bytes go to IndexedDB; the index keeps only their size.
+          entry.inDb = true;
+          entry.bytes = Math.round(content.length * 0.75);
+          stagedBlobs.set(path, content);
+          idbRun('readwrite', store => store.put(content, path)).catch(() => {});
+        } else {
+          entry.content = content;
+        }
+        data.files[path] = entry;
         data.messages.push(message);
         saveStaged(data);
+      }
+
+      // Content of a staged file, wherever it lives.
+      function stagedContent(entry, path) {
+        return entry.inDb ? stagedBlobs.get(path) : entry.content;
       }
       function stageDelete(path, message, base) {
         const data = loadStaged();
@@ -3737,21 +3792,28 @@
       // Same-origin fetch that sees staged edits first, so this browser shows
       // unpublished changes while every other visitor sees the live site.
       function fetchSite(path) {
-        const entry = getStagedEntry(path.replace(/^\.\//, ''));
+        const clean = path.replace(/^\.\//, '');
+        const entry = getStagedEntry(clean);
         if (!entry) return fetch(path);
         if (entry.deleted) return Promise.resolve(new Response('', { status: 404 }));
-        return Promise.resolve(new Response(entry.content, { status: 200 }));
+        return hydrateStagedBlobs().then(() =>
+          new Response(stagedContent(entry, clean), { status: 200 }));
       }
 
       // Staged images are not on the server yet — show them from base64.
       const IMAGE_MIME = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml' };
       function applyStagedImages(root) {
         const files = loadStaged().files;
-        root.querySelectorAll('img').forEach(img => {
-          const entry = files[img.getAttribute('src')];
-          if (!entry || entry.encoding !== 'base64') return;
-          const ext = img.getAttribute('src').split('.').pop().toLowerCase();
-          img.src = `data:${IMAGE_MIME[ext] || 'image/png'};base64,${entry.content}`;
+        hydrateStagedBlobs().then(() => {
+          root.querySelectorAll('img').forEach(img => {
+            const src = img.getAttribute('src');
+            const entry = files[src];
+            if (!entry || entry.encoding !== 'base64') return;
+            const data = stagedContent(entry, src);
+            if (!data) return;
+            const ext = src.split('.').pop().toLowerCase();
+            img.src = `data:${IMAGE_MIME[ext] || 'image/png'};base64,${data}`;
+          });
         });
       }
 
@@ -3925,13 +3987,18 @@
         const n = Object.keys(loadStaged().files).length;
         bar.classList.toggle('visible', n > 0);
         info.className = 'publish-bar-info';
-        info.textContent = `${n} unpublished file${n === 1 ? '' : 's'}`;
+        const bytes = Object.values(loadStaged().files).reduce((a, f) => a + (f.bytes || 0), 0);
+        info.textContent = `${n} unpublished file${n === 1 ? '' : 's'}` +
+          (bytes > 250000 ? ` · ${(bytes / 1048576).toFixed(1)} MB of images` : '');
       }
 
       function discardStaged() {
         if (!confirm('Discard all unpublished changes? This cannot be undone.')) return;
         localStorage.removeItem(STAGE_KEY);
-        location.reload();
+        stagedBlobs.clear();
+        const done = () => location.reload();
+        if (window.indexedDB) idbRun('readwrite', store => store.clear()).then(done, done);
+        else done();
       }
 
       async function ghApi(path, options = {}) {
@@ -4002,9 +4069,10 @@
             if (f.deleted) {
               tree.push({ path, mode: '100644', type: 'blob', sha: null });
             } else {
+              await hydrateStagedBlobs();
               const blob = await ghApi('/git/blobs', {
                 method: 'POST',
-                body: JSON.stringify({ content: f.content, encoding: f.encoding }),
+                body: JSON.stringify({ content: stagedContent(f, path), encoding: f.encoding }),
               });
               tree.push({ path, mode: '100644', type: 'blob', sha: blob.sha });
             }
@@ -4045,7 +4113,12 @@
           // Only clear what we published; edits made meanwhile stay staged.
           const now = loadStaged();
           paths.forEach(p => {
-            if (JSON.stringify(now.files[p]) === JSON.stringify(data.files[p])) delete now.files[p];
+            if (JSON.stringify(now.files[p]) !== JSON.stringify(data.files[p])) return;
+            if (now.files[p].inDb) {
+              stagedBlobs.delete(p);
+              idbRun('readwrite', store => store.delete(p)).catch(() => {});
+            }
+            delete now.files[p];
           });
           now.messages = Object.keys(now.files).length ? now.messages.slice(data.messages.length) : [];
           saveStaged(now);
@@ -4065,6 +4138,7 @@
       }
 
       updatePublishBar();
+      hydrateStagedBlobs();
 
       // Fetch poems
       fetchSite("poems/poems.json")
