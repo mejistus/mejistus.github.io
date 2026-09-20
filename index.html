@@ -18,11 +18,11 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.21.0"></script>
-    <script src="assets/latex-complete.js?v=6.21.0"></script>
-    <script src="assets/vim.js?v=6.21.0"></script>
-    <script src="assets/lint.js?v=6.21.0"></script>
-    <script src="assets/tikz-nn.js?v=6.21.0"></script>
+    <script src="assets/latex.js?v=6.22.0"></script>
+    <script src="assets/latex-complete.js?v=6.22.0"></script>
+    <script src="assets/vim.js?v=6.22.0"></script>
+    <script src="assets/lint.js?v=6.22.0"></script>
+    <script src="assets/tikz-nn.js?v=6.22.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -934,6 +934,40 @@
         position: absolute;
         left: 0;
         color: var(--ink);
+      }
+      /* Pseudocode (algorithmicx) */
+      .latex-alg {
+        margin: 0.6rem 0;
+        padding: 0.6rem 0.2rem;
+        border-top: 1.5px solid var(--ink);
+        border-bottom: 1.5px solid var(--ink);
+        font-size: 0.88rem;
+        line-height: 1.75;
+        text-align: left;
+      }
+      .latex-alg-line {
+        display: flex;
+        gap: 0.6rem;
+        color: var(--ink);
+      }
+      .latex-alg-num {
+        flex-shrink: 0;
+        width: 1.6em;
+        text-align: right;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+        font-size: 0.85em;
+      }
+      .latex-alg-kw {
+        font-weight: 600;
+      }
+      .latex-alg-comment {
+        color: var(--muted);
+        font-style: italic;
+      }
+      .latex-float-algorithm figcaption {
+        margin: 0 auto 0.4rem;
+        text-align: left;
       }
       .latex-theorem {
         margin: 1.4rem 0;

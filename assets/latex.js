@@ -19,6 +19,7 @@
   const FLOAT_ENVS = {
     figure: 'figure', 'figure*': 'figure', wrapfigure: 'figure',
     table: 'table', 'table*': 'table',
+    algorithm: 'algorithm', 'algorithm*': 'algorithm',
   };
   const LIST_ENVS = { itemize: 'ul', enumerate: 'ol', description: 'dl' };
   const QUOTE_ENVS = ['quote', 'quotation', 'verse'];
@@ -28,13 +29,13 @@
       figure: 'Figure', table: 'Table', abstract: 'Abstract', proof: 'Proof',
       theorem: 'Theorem', lemma: 'Lemma', corollary: 'Corollary', proposition: 'Proposition',
       definition: 'Definition', remark: 'Remark', example: 'Example', section: 'Section', equation: 'Equation',
-      references: 'References',
+      references: 'References', algorithm: 'Algorithm',
     },
     zh: {
       figure: '图', table: '表', abstract: '摘要', proof: '证明',
       theorem: '定理', lemma: '引理', corollary: '推论', proposition: '命题',
       definition: '定义', remark: '注', example: '例', section: '节', equation: '式',
-      references: '参考文献',
+      references: '参考文献', algorithm: '算法',
     },
   };
 
@@ -213,7 +214,7 @@
         definition: { name: 'definition', counter: 'definition' }, remark: { name: 'remark', counter: 'remark' },
         example: { name: 'example', counter: 'example' }, proof: { name: 'proof', counter: null },
       },
-      counters: { section: 0, subsection: 0, subsubsection: 0, figure: 0, table: 0, equation: 0 },
+      counters: { section: 0, subsection: 0, subsubsection: 0, figure: 0, table: 0, equation: 0, algorithm: 0 },
       bib: {},
       tikzLibs: new Set(),
       tikzPreamble: [],
@@ -698,6 +699,10 @@
         renderBlocks(ctx, body) + '</div>';
     }
     if (env === 'thebibliography') return renderBibliography(ctx, body);
+    if (env === 'algorithmic' || env === 'algorithmic*') {
+      const opt = readOptional(body, 0);
+      return renderAlgorithmic(ctx, opt ? body.slice(opt.end) : body, !!opt);
+    }
     if (env === 'adjustbox') {
       const g = readGroup(body, 0);
       return '<div class="latex-fit"><div>' + renderBlocks(ctx, g ? body.slice(g.end) : body) + '</div></div>';
@@ -862,6 +867,90 @@
     if (rel) return Math.round(parseFloat(rel[1] || '1') * 1000) / 10 + '%';
     const abs = /^\s*([\d.]+)\s*(cm|mm|in|pt|em|px)\s*$/.exec(w);
     return abs ? abs[1] + abs[2] : '';
+  }
+
+  // algorithmicx / algpseudocode: \State, \If{…}, \For{…}, \Function{…}{…} …
+  // Rendered as indented, optionally numbered lines with bold keywords.
+  const ALG_OPEN = {
+    If: ['if', 'then', 1], ElsIf: ['else if', 'then', 0], For: ['for', 'do', 1],
+    ForAll: ['for all', 'do', 1], While: ['while', 'do', 1], Until: ['until', '', -1],
+    Function: ['function', '', 1], Procedure: ['procedure', '', 1],
+  };
+  const ALG_PLAIN = {
+    Else: ['else', 0], Loop: ['loop', 1], Repeat: ['repeat', 1],
+    EndIf: ['end if', -1], EndFor: ['end for', -1], EndWhile: ['end while', -1],
+    EndLoop: ['end loop', -1], EndFunction: ['end function', -1], EndProcedure: ['end procedure', -1],
+  };
+  const ALG_LABELLED = {
+    Require: 'Require', Ensure: 'Ensure', Input: 'Input', Output: 'Output', Initialize: 'Initialize',
+  };
+
+  function renderAlgorithmic(ctx, body, numbered) {
+    const kw = (t) => `<span class="latex-alg-kw">${t}</span>`;
+    const lines = [];
+    let indent = 0, i = 0;
+    const push = (html, opts = {}) => lines.push({ indent: Math.max(0, indent), html, numbered: opts.plain !== true });
+
+    while (i < body.length) {
+      const m = /^\\([A-Za-z]+)\*?/.exec(body.slice(i));
+      if (!m) { i++; continue; }
+      const name = m[1];
+      i += m[0].length;
+      const arg = () => { const g = readGroup(body, i); if (g) { i = g.end; return renderInline(ctx, g.content); } return ''; };
+      const rest = () => {
+        // text up to the next algorithmic command on its own
+        const next = /\\(State|Statex|If|ElsIf|Else|EndIf|For|ForAll|EndFor|While|EndWhile|Repeat|Until|Loop|EndLoop|Function|EndFunction|Procedure|EndProcedure|Require|Ensure|Input|Output|Initialize|Return|Comment)\b/.exec(body.slice(i));
+        const chunk = body.slice(i, next ? i + next.index : body.length);
+        i = next ? i + next.index : body.length;
+        return renderInline(ctx, chunk.trim());
+      };
+      if (name === 'State' || name === 'Statex') {
+        // "\State \Return x" is one line, so an empty \State adds nothing.
+        const text = rest();
+        if (text) push(text, { plain: name === 'Statex' });
+      } else if (ALG_LABELLED[name]) {
+        push(`${kw(ALG_LABELLED[name] + ':')} ${rest()}`, { plain: true });
+      } else if (ALG_OPEN[name]) {
+        const [open, close, delta] = ALG_OPEN[name];
+        // \ElsIf and \Until sit one level out, like \Else.
+        if (delta < 0 || name === 'ElsIf') indent -= 1;
+        if (name === 'Function' || name === 'Procedure') {
+          const fn = arg(), args = arg();
+          push(`${kw(open)} ${fn}(${args})`);
+        } else {
+          const cond = arg();
+          push(`${kw(open)} ${cond}${close ? ' ' + kw(close) : ''}${rest()}`);
+        }
+        if (name === 'ElsIf') indent += 1;
+        if (delta > 0) indent += delta;
+      } else if (ALG_PLAIN[name]) {
+        const [text, delta] = ALG_PLAIN[name];
+        if (delta < 0) indent += delta;
+        if (name === 'Else') { indent -= 1; push(kw(text)); indent += 1; }
+        else push(kw(text) + rest());
+        if (delta > 0) indent += delta;
+      } else if (name === 'Return') {
+        push(`${kw('return')} ${rest()}`);
+      } else if (name === 'Comment') {
+        const c = arg();
+        const last = lines[lines.length - 1];
+        const note = `<span class="latex-alg-comment">▷ ${c}</span>`;
+        if (last) last.html += ' ' + note; else push(note);
+      } else if (name === 'Call') {
+        const fn = arg(), args = arg();
+        const last = lines[lines.length - 1];
+        const call = `${fn}(${args})`;
+        if (last) last.html += call; else push(call);
+      } else if (name === 'algstore' || name === 'algrestore' || name === 'algsetup') {
+        readGroup(body, i);
+      }
+    }
+
+    const items = lines.map((l, n) =>
+      `<div class="latex-alg-line" style="padding-left:${l.indent * 1.4}em">` +
+      (numbered ? `<span class="latex-alg-num">${l.numbered ? lines.slice(0, n + 1).filter(x => x.numbered).length : ''}</span>` : '') +
+      `<span>${l.html}</span></div>`).join('');
+    return `<div class="latex-alg${numbered ? ' numbered' : ''}">${items}</div>`;
   }
 
   function renderBibliography(ctx, body) {
