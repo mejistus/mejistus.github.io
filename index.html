@@ -18,11 +18,11 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.23.0"></script>
-    <script src="assets/latex-complete.js?v=6.23.0"></script>
-    <script src="assets/vim.js?v=6.23.0"></script>
-    <script src="assets/lint.js?v=6.23.0"></script>
-    <script src="assets/tikz-nn.js?v=6.23.0"></script>
+    <script src="assets/latex.js?v=6.24.0"></script>
+    <script src="assets/latex-complete.js?v=6.24.0"></script>
+    <script src="assets/vim.js?v=6.24.0"></script>
+    <script src="assets/lint.js?v=6.24.0"></script>
+    <script src="assets/tikz-nn.js?v=6.24.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -651,6 +651,43 @@
       .blog-panel .panel-body.hidden {
         display: none !important;
       }
+
+      /* Contents of the post being read */
+      .panel-header-actions {
+        position: relative;
+      }
+      .blog-toc {
+        position: absolute;
+        z-index: 30;
+        top: calc(100% + 0.4rem);
+        right: 1.5rem;
+        width: min(22rem, calc(100vw - 3rem));
+        max-height: 60vh;
+        overflow-y: auto;
+        padding: 0.4rem;
+        background: var(--cream);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+        font-size: 0.85rem;
+      }
+      .blog-toc-item {
+        padding: 0.3rem 0.5rem;
+        border-radius: 0.35rem;
+        cursor: pointer;
+        color: var(--ink);
+      }
+      .blog-toc-item:hover {
+        background: rgba(196, 124, 90, 0.12);
+      }
+      .blog-toc-num {
+        display: inline-block;
+        min-width: 2.2em;
+        color: var(--rust);
+        font-variant-numeric: tabular-nums;
+      }
+      .blog-toc-item.h3 { padding-left: 1.5rem; color: var(--muted); font-size: 0.8rem; }
+      .blog-toc-item.h4 { padding-left: 2.5rem; color: var(--muted); font-size: 0.78rem; }
 
       /* Blog content styles */
       .blog-content {
@@ -2637,6 +2674,10 @@
           <h2 class="panel-title" id="blogPanelTitle"></h2>
         </div>
         <div class="panel-header-actions">
+          <button class="editor-btn" id="blogTocBtn" onclick="toggleToc(event)" title="Contents" style="display:none;">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>
+          </button>
+          <div class="blog-toc" id="blogToc" hidden></div>
           <button class="editor-btn" id="blogEditBtn" onclick="toggleEditor()" title="Edit this post" style="display:none;">
             <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
@@ -3595,6 +3636,46 @@
         document.querySelector(".panel-body").scrollTop = 0;
       };
 
+      // ── Contents of the post being read ──
+      function buildToc() {
+        const content = document.getElementById('blogPanelContent');
+        const panel = document.getElementById('blogToc');
+        const btn = document.getElementById('blogTocBtn');
+        panel.hidden = true;
+        const heads = [...content.querySelectorAll('h2, h3, h4')];
+        heads.forEach((h, n) => { if (!h.id) h.id = `toc-${n}`; });
+        btn.style.display = heads.length >= 3 ? 'flex' : 'none';
+        panel.innerHTML = heads.map(h => {
+          // Keep the section number in its own column (LaTeX posts have one).
+          const numEl = h.querySelector('.latex-secnum');
+          const num = numEl ? numEl.textContent.trim() : '';
+          const title = (numEl ? h.textContent.replace(num, '') : h.textContent).trim();
+          return `<div class="blog-toc-item ${h.tagName.toLowerCase()}" data-id="${h.id}">` +
+            (num ? `<span class="blog-toc-num">${escHtml(num)}</span>` : '') +
+            `${escHtml(title)}</div>`;
+        }).join('');
+        panel.querySelectorAll('.blog-toc-item').forEach(el => {
+          el.addEventListener('click', () => {
+            panel.hidden = true;
+            const target = document.getElementById(el.dataset.id);
+            if (!target) return;
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            target.classList.remove('latex-flash');
+            void target.offsetWidth;
+            target.classList.add('latex-flash');
+          });
+        });
+      }
+      function toggleToc(e) {
+        e.stopPropagation();
+        const panel = document.getElementById('blogToc');
+        panel.hidden = !panel.hidden;
+      }
+      document.addEventListener('click', (e) => {
+        const panel = document.getElementById('blogToc');
+        if (panel && !panel.hidden && !panel.contains(e.target)) panel.hidden = true;
+      });
+
       // ── Parsed HTML cache ──
       const parsedHtmlCache = new Map();
       // A saved post's format is fixed by its extension; an unsaved one
@@ -3623,6 +3704,7 @@
         applyStagedImages(document.getElementById("blogPanelContent"));
         fitLatexBoxes(document.getElementById("blogPanelContent"));
         loadTikzJax(document.getElementById("blogPanelContent"));
+        buildToc();
         document.getElementById("blogCounter").textContent =
           `${i + 1} / ${blogs.length}`;
         document.getElementById("blogBtnPrev").disabled = i === 0;
