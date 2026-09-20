@@ -18,11 +18,11 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.22.0"></script>
-    <script src="assets/latex-complete.js?v=6.22.0"></script>
-    <script src="assets/vim.js?v=6.22.0"></script>
-    <script src="assets/lint.js?v=6.22.0"></script>
-    <script src="assets/tikz-nn.js?v=6.22.0"></script>
+    <script src="assets/latex.js?v=6.23.0"></script>
+    <script src="assets/latex-complete.js?v=6.23.0"></script>
+    <script src="assets/vim.js?v=6.23.0"></script>
+    <script src="assets/lint.js?v=6.23.0"></script>
+    <script src="assets/tikz-nn.js?v=6.23.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -4051,17 +4051,19 @@
 
       // Staged edits replace whole files, so warn before overwriting a file
       // that changed on GitHub after it was staged (e.g. edited elsewhere).
-      async function confirmNoConflicts(data, treeSha) {
-        const paths = Object.keys(data.files).filter(p => data.files[p].base !== undefined);
-        if (!paths.length) return true;
-        let remote;
+      async function readRemoteTree(treeSha) {
         try {
           const tree = await ghApi(`/git/trees/${treeSha}?recursive=1`);
-          remote = new Map(tree.tree.map(e => [e.path, e.sha]));
-          if (tree.truncated) return true; // too big to compare reliably
+          if (tree.truncated) return null; // too big to reason about
+          return new Map(tree.tree.map(e => [e.path, e.sha]));
         } catch (_) {
-          return true; // can't check — publishing is still the user's call
+          return null;
         }
+      }
+
+      async function confirmNoConflicts(data, remote) {
+        const paths = Object.keys(data.files).filter(p => data.files[p].base !== undefined);
+        if (!paths.length || !remote) return true;
         const clashes = paths.filter(p => (remote.get(p) || null) !== (data.files[p].base || null));
         if (!clashes.length) return true;
         const list = clashes.slice(0, 6).map(p => '· ' + p).join('\n');
@@ -4070,6 +4072,21 @@
           (clashes.length > 6 ? `\n· …and ${clashes.length - 6} more` : '') +
           '\n\nPublishing replaces them with your version, losing those changes.\n\nPublish anyway?'
         );
+      }
+
+      // Pre-rendered TikZ SVGs whose picture no longer exists (edited, deleted,
+      // or rendered by an older version) are removed with the next publish.
+      function orphanTikzFiles(remoteTree) {
+        if (!blogs.length || !blogs.every(b => b.content)) return []; // can't tell yet
+        const used = new Set();
+        blogs.forEach(b => {
+          if (!/\.tex$/i.test(b.file || '')) return;
+          const html = parseLatex(b.content);
+          (html.match(/data-tikz-hash="(\w+)"/g) || []).forEach(t => used.add(t.slice(16, -1)));
+        });
+        const staged = loadStaged().files;
+        return [...remoteTree.keys()].filter(p =>
+          /^notes\/tikz\/[0-9a-f]+\.svg$/.test(p) && !used.has(p.slice(11, -4)) && !staged[p]);
       }
 
       // Push every staged file as one commit via the Git Data API.
@@ -4091,13 +4108,15 @@
           const parentSha = ref.object.sha;
           const parent = await ghApi(`/git/commits/${parentSha}`);
 
-          if (!_retry && !await confirmNoConflicts(data, parent.tree.sha)) {
+          const remoteTree = await readRemoteTree(parent.tree.sha);
+          if (!_retry && !await confirmNoConflicts(data, remoteTree)) {
             info.textContent = 'Publish cancelled';
             setTimeout(updatePublishBar, 2500);
             return;
           }
+          const orphans = remoteTree ? orphanTikzFiles(remoteTree) : [];
 
-          const tree = [];
+          const tree = orphans.map(path => ({ path, mode: '100644', type: 'blob', sha: null }));
           for (const path of paths) {
             const f = data.files[path];
             if (f.deleted) {
@@ -4117,9 +4136,10 @@
           });
 
           const msgs = [...new Set(data.messages)];
+          if (orphans.length) msgs.push(`Remove ${orphans.length} unused TikZ image${orphans.length === 1 ? '' : 's'}`);
           const message = msgs.length === 1
             ? msgs[0]
-            : `Site edits (${paths.length} files)\n\n` + msgs.map(m => `- ${m}`).join('\n');
+            : `Site edits (${paths.length + orphans.length} files)\n\n` + msgs.map(m => `- ${m}`).join('\n');
           const commit = await ghApi('/git/commits', {
             method: 'POST',
             body: JSON.stringify({ message, tree: newTree.sha, parents: [parentSha] }),
@@ -4158,7 +4178,8 @@
           saveStaged(now);
           if (!Object.keys(now.files).length) {
             const bar = document.getElementById('publishBar');
-            info.textContent = 'Published ✓ — the site updates in a minute or two';
+            info.textContent = 'Published ✓ — the site updates in a minute or two' +
+              (orphans.length ? ` (${orphans.length} unused image${orphans.length === 1 ? '' : 's'} removed)` : '');
             bar.classList.add('visible');
             setTimeout(updatePublishBar, 3500);
           }
