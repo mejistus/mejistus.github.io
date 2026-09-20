@@ -18,11 +18,11 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.15.0"></script>
-    <script src="assets/latex-complete.js?v=6.15.0"></script>
-    <script src="assets/vim.js?v=6.15.0"></script>
-    <script src="assets/lint.js?v=6.15.0"></script>
-    <script src="assets/tikz-nn.js?v=6.15.0"></script>
+    <script src="assets/latex.js?v=6.16.0"></script>
+    <script src="assets/latex-complete.js?v=6.16.0"></script>
+    <script src="assets/vim.js?v=6.16.0"></script>
+    <script src="assets/lint.js?v=6.16.0"></script>
+    <script src="assets/tikz-nn.js?v=6.16.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -1630,12 +1630,25 @@
         position: relative;
         flex: 1;
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: var(--editor-split, 50%) 1fr;
         overflow: hidden;
+      }
+      .editor-divider {
+        position: absolute;
+        z-index: 15;
+        top: 0;
+        bottom: 0;
+        left: var(--editor-split, 50%);
+        width: 9px;
+        transform: translateX(-50%);
+        cursor: col-resize;
+        touch-action: none;
+      }
+      .editor-divider:hover, .editor-divider.dragging {
+        background: rgba(196, 124, 90, 0.18);
       }
       .editor-sync-arrows {
         position: absolute;
-        z-index: 15;
         left: 50%;
         top: 50%;
         transform: translate(-50%, -50%);
@@ -1647,6 +1660,7 @@
         display: none;
       }
       .editor-sync-arrows button {
+        cursor: pointer;
         width: 15px;
         height: 30px;
         padding: 0;
@@ -2374,6 +2388,9 @@
         .editor-split {
           grid-template-columns: 1fr;
         }
+        .editor-divider {
+          display: none;
+        }
         .editor-preview {
           border-left: none;
           border-top: 1px solid var(--border);
@@ -2513,10 +2530,12 @@
       <!-- Editor mode -->
       <div class="editor-container" id="editorContainer">
         <div class="editor-split">
-          <!-- Overleaf-style sync arrows, sitting on the divider between the panes. -->
-          <div class="editor-sync-arrows" id="editorSyncArrows" hidden>
-            <button type="button" onclick="syncSourceToPreview(true)" title="Go to the caret's position in the preview">›</button>
-            <button type="button" onclick="syncPreviewTopToSource()" title="Go to the source of what the preview shows">‹</button>
+          <!-- Draggable divider; the Overleaf-style sync arrows ride on it. -->
+          <div class="editor-divider" id="editorDivider" title="Drag to resize · double-click to reset">
+            <div class="editor-sync-arrows" id="editorSyncArrows" hidden>
+              <button type="button" onclick="syncSourceToPreview(true)" title="Go to the caret's position in the preview">›</button>
+              <button type="button" onclick="syncPreviewTopToSource()" title="Go to the source of what the preview shows">‹</button>
+            </div>
           </div>
           <div class="editor-pane">
             <div class="editor-pane-header">
@@ -4276,6 +4295,42 @@
         if (!help.hidden && !help.contains(e.target)) help.hidden = true;
       });
 
+      // ── Draggable split between source and preview (remembered per browser) ──
+      const SPLIT_KEY = 'editor_split';
+      function setSplit(ratio) {
+        const pct = Math.min(80, Math.max(20, ratio * 100));
+        document.getElementById('editorContainer').style.setProperty('--editor-split', pct.toFixed(2) + '%');
+        try { localStorage.setItem(SPLIT_KEY, String(pct)); } catch (_) {}
+      }
+      (function () {
+        let saved = null;
+        try { saved = localStorage.getItem(SPLIT_KEY); } catch (_) {}
+        if (saved) setSplit(parseFloat(saved) / 100);
+        const divider = document.getElementById('editorDivider');
+        divider.addEventListener('pointerdown', (e) => {
+          if (e.target.closest('button')) return;
+          e.preventDefault();
+          divider.setPointerCapture(e.pointerId);
+          divider.classList.add('dragging');
+        });
+        divider.addEventListener('pointermove', (e) => {
+          if (!divider.classList.contains('dragging')) return;
+          const r = document.querySelector('.editor-split').getBoundingClientRect();
+          setSplit((e.clientX - r.left) / r.width);
+        });
+        const stop = (e) => {
+          if (!divider.classList.contains('dragging')) return;
+          divider.classList.remove('dragging');
+          try { divider.releasePointerCapture(e.pointerId); } catch (_) {}
+          // Wrapping changed with the width.
+          updateHighlight();
+          fitLatexBoxes(document.getElementById('editorPreview'));
+        };
+        divider.addEventListener('pointerup', stop);
+        divider.addEventListener('pointercancel', stop);
+        divider.addEventListener('dblclick', () => { setSplit(0.5); updateHighlight(); });
+      })();
+
       // ── Syntax highlighting: Prism renders the source into a <pre> laid out
       // exactly like the textarea above it, whose own text is transparent. ──
       let highlightFrame = 0;
@@ -4341,7 +4396,7 @@
       }
       document.getElementById('editorTextarea').addEventListener('scroll', syncHighlightLayout, { passive: true });
       document.getElementById('editorTextarea').addEventListener('input', updateHighlight);
-      new ResizeObserver(syncHighlightLayout).observe(document.getElementById('editorTextarea'));
+      new ResizeObserver(() => { syncHighlightLayout(); renderGutter(); }).observe(document.getElementById('editorTextarea'));
 
       // Markdown previews live. LaTeX would render half-typed commands, so it
       // only compiles on Cmd/Ctrl+S (or the Compile button).
