@@ -149,6 +149,26 @@ try {
   check('syntax highlighting runs', ed.highlighted > 50, `got ${ed.highlighted}`);
   check('example post lints clean', ed.problems.length === 0, ed.problems.join(' | '));
 
+  // Reading extras.
+  const extras = await page.evaluate(() => ({
+    copy: document.querySelectorAll('#blogPanelContent .code-copy').length,
+    zoomable: document.querySelectorAll('#blogPanelContent .zoomable').length,
+    label: document.getElementById('blogPanelLabel').textContent,
+  }));
+  check('code blocks offer a copy button', extras.copy > 0);
+  check('figures can be zoomed', extras.zoomable > 3, `got ${extras.zoomable}`);
+  check('the post shows a reading time', /min read/.test(extras.label), extras.label);
+
+  // Search looks at prose, not markup.
+  const search = await page.evaluate(() => ({
+    markup: blogSearch('textbf').length + blogSearch('begin').length,
+    prose: blogSearch('diffusion').length,
+    snippet: (blogSearch('diffusion'), [...searchSnippets.values()].find(x => x && x.includes('<mark>')) || ''),
+  }));
+  check('markup words do not match', search.markup === 0, `${search.markup} hits`);
+  check('prose words still match', search.prose > 0);
+  check('results carry a highlighted snippet', search.snippet.includes('<mark>'));
+
   // Light and dark.
   const theme = await page.evaluate(() => {
     const body = () => getComputedStyle(document.body).backgroundColor;
