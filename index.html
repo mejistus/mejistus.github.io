@@ -18,12 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.33.0"></script>
-    <script src="assets/latex-complete.js?v=6.33.0"></script>
-    <script src="assets/vim.js?v=6.33.0"></script>
-    <script src="assets/lint.js?v=6.33.0"></script>
-    <script src="assets/tikz-nn.js?v=6.33.0"></script>
-    <script src="assets/bib.js?v=6.33.0"></script>
+    <script src="assets/latex.js?v=6.34.0"></script>
+    <script src="assets/latex-complete.js?v=6.34.0"></script>
+    <script src="assets/vim.js?v=6.34.0"></script>
+    <script src="assets/lint.js?v=6.34.0"></script>
+    <script src="assets/tikz-nn.js?v=6.34.0"></script>
+    <script src="assets/bib.js?v=6.34.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -739,6 +739,69 @@
       .heading-anchor.copied {
         opacity: 1;
         color: var(--sage);
+      }
+
+      .blog-content pre {
+        position: relative;
+      }
+      .code-copy {
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+        padding: 0.15rem 0.5rem;
+        border: 1px solid var(--border);
+        border-radius: 0.3rem;
+        background: var(--surface);
+        color: var(--muted);
+        font: 500 0.7rem "Inter", sans-serif;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.15s;
+      }
+      .blog-content pre:hover .code-copy,
+      .code-copy:focus {
+        opacity: 1;
+      }
+      .code-copy:hover {
+        color: var(--rust);
+        border-color: var(--rust);
+      }
+      .zoomable {
+        cursor: zoom-in;
+      }
+      .zoom-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 4000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        background: rgba(20, 18, 16, 0.86);
+        opacity: 0;
+        transition: opacity 0.2s;
+        cursor: zoom-out;
+      }
+      .zoom-overlay.open {
+        opacity: 1;
+      }
+      .zoom-overlay > * {
+        max-width: 96vw;
+        max-height: 92vh;
+        width: auto;
+        height: auto;
+        border-radius: 0.4rem;
+        background: var(--paper);
+        padding: 0.5rem;
+      }
+      /* Drawings carry a fixed pt size, so zooming scales them to the screen. */
+      .zoom-overlay > svg {
+        width: min(92vw, 1100px);
+        height: auto;
+      }
+      .zoom-overlay > img {
+        min-width: min(60vw, 700px);
+        object-fit: contain;
       }
 
       /* Contents of the post being read */
@@ -4013,6 +4076,73 @@
         if (!saved) applyTheme(e.matches ? 'dark' : 'light');
       });
 
+      // ── Reading extras: copy buttons, zoomable figures, reading time ──
+      // Chinese runs at roughly 350 characters a minute, English at 220 words.
+      function readingTime(b) {
+        const text = searchableText(b) || b.excerpt || '';
+        const cjk = (text.match(/[\u3400-\u9fff\u3040-\u30ff]/g) || []).length;
+        const words = (text.replace(/[\u3400-\u9fff\u3040-\u30ff]/g, ' ').match(/[A-Za-z0-9’'-]+/g) || []).length;
+        if (!cjk && !words) return null;
+        return { minutes: Math.max(1, Math.round(cjk / 350 + words / 220)), cjk, words };
+      }
+
+      function enhanceReading(root, b) {
+        const stat = readingTime(b);
+        const label = document.getElementById('blogPanelLabel');
+        if (stat && label) label.textContent += ` · ${stat.minutes} min read`;
+
+        root.querySelectorAll('pre').forEach(pre => {
+          if (pre.querySelector('.code-copy')) return;
+          const btn = document.createElement('button');
+          btn.className = 'code-copy';
+          btn.type = 'button';
+          btn.textContent = 'copy';
+          btn.addEventListener('click', async () => {
+            const code = pre.querySelector('code') || pre;
+            try { await navigator.clipboard.writeText(code.textContent); btn.textContent = 'copied'; }
+            catch (_) { btn.textContent = 'press ⌘C'; }
+            setTimeout(() => { btn.textContent = 'copy'; }, 1400);
+          });
+          pre.appendChild(btn);
+        });
+
+        makeZoomable(root);
+      }
+
+      // TikZ pictures arrive after the post is rendered, so this also runs
+      // when one lands.
+      function makeZoomable(scope) {
+        if (!scope || !scope.querySelectorAll) return;
+        if (!scope.closest || !scope.closest('#blogPanelContent')) {
+          if (scope.id !== 'blogPanelContent') return;
+        }
+        scope.querySelectorAll('img, svg').forEach(el => {
+          if (el.dataset.zoom) return;
+          el.dataset.zoom = '1';
+          el.classList.add('zoomable');
+          el.addEventListener('click', () => openZoom(el));
+        });
+      }
+
+      function openZoom(el) {
+        const overlay = document.createElement('div');
+        overlay.className = 'zoom-overlay';
+        const copy = el.cloneNode(true);
+        copy.classList.remove('zoomable');
+        copy.removeAttribute('style');
+        overlay.appendChild(copy);
+        document.body.appendChild(overlay);
+        requestAnimationFrame(() => overlay.classList.add('open'));
+        const close = () => {
+          overlay.classList.remove('open');
+          document.removeEventListener('keydown', onKey);
+          setTimeout(() => overlay.remove(), 200);
+        };
+        const onKey = (e) => { if (e.key === 'Escape') close(); };
+        overlay.addEventListener('click', close);
+        document.addEventListener('keydown', onKey);
+      }
+
       // ── Contents of the post being read ──
       function buildToc() {
         const content = document.getElementById('blogPanelContent');
@@ -4108,6 +4238,7 @@
         fitLatexBoxes(document.getElementById("blogPanelContent"));
         loadTikzJax(document.getElementById("blogPanelContent"));
         buildToc();
+        enhanceReading(document.getElementById("blogPanelContent"), b);
         document.getElementById("blogCounter").textContent =
           `${i + 1} / ${blogs.length}`;
         document.getElementById("blogBtnPrev").disabled = i === 0;
@@ -4484,6 +4615,7 @@
             box.innerHTML = svg;
             scaleTikzSvg(box.querySelector('svg'));
             box.dataset.tikzState = 'static';
+            makeZoomable(box);
             return;
           }
           // A fresh <script type="text/tikz"> is what TikZJax's observer picks up.
@@ -4556,6 +4688,7 @@
         const label = box.querySelector('.latex-tikz-status');
         if (label) label.remove();
         scaleTikzSvg(e.target);
+        makeZoomable(box);
         updateTikzProgress();
       });
 
