@@ -18,12 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.36.0"></script>
-    <script src="assets/latex-complete.js?v=6.36.0"></script>
-    <script src="assets/vim.js?v=6.36.0"></script>
-    <script src="assets/lint.js?v=6.36.0"></script>
-    <script src="assets/tikz-nn.js?v=6.36.0"></script>
-    <script src="assets/bib.js?v=6.36.0"></script>
+    <script src="assets/latex.js?v=6.36.1"></script>
+    <script src="assets/latex-complete.js?v=6.36.1"></script>
+    <script src="assets/vim.js?v=6.36.1"></script>
+    <script src="assets/lint.js?v=6.36.1"></script>
+    <script src="assets/tikz-nn.js?v=6.36.1"></script>
+    <script src="assets/bib.js?v=6.36.1"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -2328,7 +2328,10 @@
         margin: 0;
         padding: 1.2rem 1.2rem 1.2rem 3.6rem;
         border: none;
-        font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+        /* Both layers must resolve the same font for every script, or the
+           coloured copy and the real text drift apart. */
+        font-family: "SF Mono", "Fira Code", "Consolas", "PingFang SC",
+          "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", monospace;
         font-size: 0.85rem;
         /* Whole pixels: textarea and <pre> round fractional line boxes
            differently, which drifts the layers apart over long files. */
@@ -2357,6 +2360,13 @@
         color: transparent;
       }
       /* Band behind the line the caret is on, so it is easy to find again. */
+      @keyframes editor-line-flash {
+        from { background: rgba(196, 124, 90, 0.38); }
+        to { background: rgba(196, 124, 90, 0.10); }
+      }
+      .editor-active-line.flash {
+        animation: editor-line-flash 1.1s ease-out;
+      }
       .editor-active-line {
         position: absolute;
         left: 3.1rem;
@@ -5784,6 +5794,21 @@
 
       // The caret's line gets a band and a marked line number; both follow the
       // caret, the scroll position and any re-render.
+      // The rectangle of a character as the highlight layer lays it out; the
+      // band uses this so it always sits on the text the reader sees.
+      function rectInHighlight(offset) {
+        const pre = document.getElementById('editorHighlight');
+        const walker = document.createTreeWalker(pre, NodeFilter.SHOW_TEXT);
+        let node = walker.nextNode(), acc = 0;
+        while (node && acc + node.data.length <= offset) { acc += node.data.length; node = walker.nextNode(); }
+        if (!node) return null;
+        const at = Math.min(offset - acc, node.data.length - 1);
+        const range = document.createRange();
+        range.setStart(node, Math.max(0, at));
+        range.setEnd(node, Math.max(0, at) + 1);
+        return range.getBoundingClientRect();
+      }
+
       let activeLineFrame = 0;
       function updateActiveLine() {
         cancelAnimationFrame(activeLineFrame);
@@ -5791,10 +5816,13 @@
           const ta = document.getElementById('editorTextarea');
           const band = document.getElementById('editorActiveLine');
           if (!editorActive || document.activeElement !== ta) { band.style.display = 'none'; return; }
-          const r = LatexComplete.caretRect(ta);
+          const r = rectInHighlight(ta.selectionStart) || LatexComplete.caretRect(ta);
           const box = document.querySelector('.editor-input').getBoundingClientRect();
+          const lh = parseFloat(getComputedStyle(ta).lineHeight) || 24;
           band.style.display = 'block';
-          band.style.top = `${Math.round(r.top - box.top)}px`;
+          band.style.height = `${Math.round(lh)}px`;
+          // Centred on the glyphs, so a pixel of engine drift doesn't show.
+          band.style.top = `${Math.round(r.top + r.height / 2 - lh / 2 - box.top)}px`;
           const line = ta.value.slice(0, ta.selectionStart).split('\n').length;
           document.querySelectorAll('.editor-gutter-line.current').forEach(el => el.classList.remove('current'));
           const num = document.querySelector(`.editor-gutter-line[data-line="${line}"]`);
@@ -5973,6 +6001,8 @@
         const r = LatexComplete.caretRect(ta), tr = ta.getBoundingClientRect();
         ta.scrollTop += r.top - tr.top - ta.clientHeight / 3;
         ta.setSelectionRange(selStart, selEnd);
+        if (onPhone()) setEditorPane('source');
+        flashActiveLine();
       }
       document.getElementById('editorPreview').addEventListener('dblclick', syncPreviewToSource);
 
@@ -6039,6 +6069,17 @@
         });
       }
 
+      // Used when arriving from the preview or the Problems list.
+      function flashActiveLine() {
+        updateActiveLine();
+        requestAnimationFrame(() => {
+          const band = document.getElementById('editorActiveLine');
+          band.classList.remove('flash');
+          void band.offsetWidth;
+          band.classList.add('flash');
+        });
+      }
+
       function goToLine(line) {
         const ta = document.getElementById('editorTextarea');
         const pos = sourceOffsetOfLine(ta.value, line);
@@ -6048,6 +6089,7 @@
         ta.scrollTop += r.top - tr.top - ta.clientHeight / 3;
         const lineEnd = ta.value.indexOf('\n', pos);
         ta.setSelectionRange(pos, lineEnd < 0 ? ta.value.length : lineEnd);
+        flashActiveLine();
       }
 
       function toggleProblems(e) {
