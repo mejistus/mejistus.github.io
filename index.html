@@ -18,12 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.34.0"></script>
-    <script src="assets/latex-complete.js?v=6.34.0"></script>
-    <script src="assets/vim.js?v=6.34.0"></script>
-    <script src="assets/lint.js?v=6.34.0"></script>
-    <script src="assets/tikz-nn.js?v=6.34.0"></script>
-    <script src="assets/bib.js?v=6.34.0"></script>
+    <script src="assets/latex.js?v=6.34.1"></script>
+    <script src="assets/latex-complete.js?v=6.34.1"></script>
+    <script src="assets/vim.js?v=6.34.1"></script>
+    <script src="assets/lint.js?v=6.34.1"></script>
+    <script src="assets/tikz-nn.js?v=6.34.1"></script>
+    <script src="assets/bib.js?v=6.34.1"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -4169,7 +4169,11 @@
           // Keep the section number in its own column (LaTeX posts have one).
           const numEl = h.querySelector('.latex-secnum');
           const num = numEl ? numEl.textContent.trim() : '';
-          const title = (numEl ? h.textContent.replace(num, '') : h.textContent).trim();
+          // Without this the heading's "#" link lands in the contents entry.
+          const text = [...h.childNodes]
+            .filter(n => !(n.nodeType === 1 && n.classList.contains('heading-anchor')))
+            .map(n => n.textContent).join('');
+          const title = (numEl ? text.replace(num, '') : text).trim();
           return `<div class="blog-toc-item ${h.tagName.toLowerCase()}" data-id="${h.id}" data-sec="${escHtml(h.dataset.sec || '')}">` +
             (num ? `<span class="blog-toc-num">${escHtml(num)}</span>` : '') +
             `${escHtml(title)}</div>`;
