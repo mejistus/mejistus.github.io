@@ -18,11 +18,11 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.20.0"></script>
-    <script src="assets/latex-complete.js?v=6.20.0"></script>
-    <script src="assets/vim.js?v=6.20.0"></script>
-    <script src="assets/lint.js?v=6.20.0"></script>
-    <script src="assets/tikz-nn.js?v=6.20.0"></script>
+    <script src="assets/latex.js?v=6.20.1"></script>
+    <script src="assets/latex-complete.js?v=6.20.1"></script>
+    <script src="assets/vim.js?v=6.20.1"></script>
+    <script src="assets/lint.js?v=6.20.1"></script>
+    <script src="assets/tikz-nn.js?v=6.20.1"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -4606,8 +4606,22 @@
       // The editor keeps the text being edited in this browser while it is open,
       // so closing the tab or a crash doesn't lose it. Saving or cancelling
       // clears it; reopening the same post offers to restore.
-      const DRAFT_KEY = 'editor_draft';
+      // One draft per post, so editing another post doesn't drop the first one.
+      const DRAFT_KEY = 'editor_drafts';
       let draftTimer = 0;
+
+      function allDrafts() {
+        try {
+          const raw = JSON.parse(localStorage.getItem(DRAFT_KEY));
+          return raw && typeof raw === 'object' ? raw : {};
+        } catch (_) { return {}; }
+      }
+      function writeDrafts(all) {
+        try {
+          if (Object.keys(all).length) localStorage.setItem(DRAFT_KEY, JSON.stringify(all));
+          else localStorage.removeItem(DRAFT_KEY);
+        } catch (_) {}
+      }
 
       function draftId() {
         const b = blogs[currentBlog];
@@ -4619,24 +4633,25 @@
         // Nothing to recover when the text still matches the saved post.
         const current = document.getElementById('editorTextarea').value;
         if (current === (blogs[currentBlog] && blogs[currentBlog].content)) { clearDraft(); return; }
-        try {
-          localStorage.setItem(DRAFT_KEY, JSON.stringify({
-            id, mode: editorMode, at: Date.now(),
-            content: current,
-          }));
-        } catch (_) {}
+        const all = allDrafts();
+        all[id] = { mode: editorMode, at: Date.now(), content: current };
+        writeDrafts(all);
       }
       function clearDraft() {
         clearTimeout(draftTimer);
-        try { localStorage.removeItem(DRAFT_KEY); } catch (_) {}
+        const id = draftId();
+        if (!id) return;
+        const all = allDrafts();
+        if (all[id]) { delete all[id]; writeDrafts(all); }
       }
       function readDraft() {
-        try { return JSON.parse(localStorage.getItem(DRAFT_KEY)); } catch (_) { return null; }
+        const id = draftId();
+        return id ? allDrafts()[id] || null : null;
       }
       function offerDraft() {
         const d = readDraft();
         const ta = document.getElementById('editorTextarea');
-        if (!d || d.id !== draftId()) return;
+        if (!d) return;
         if (d.content === ta.value) { clearDraft(); return; }
         const when = new Date(d.at).toLocaleString();
         if (confirm(`This browser has an unsaved draft of this post from ${when}.\n\nRestore it? (Cancel keeps the published version.)`)) {
