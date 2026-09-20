@@ -18,12 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.34.1"></script>
-    <script src="assets/latex-complete.js?v=6.34.1"></script>
-    <script src="assets/vim.js?v=6.34.1"></script>
-    <script src="assets/lint.js?v=6.34.1"></script>
-    <script src="assets/tikz-nn.js?v=6.34.1"></script>
-    <script src="assets/bib.js?v=6.34.1"></script>
+    <script src="assets/latex.js?v=6.35.0"></script>
+    <script src="assets/latex-complete.js?v=6.35.0"></script>
+    <script src="assets/vim.js?v=6.35.0"></script>
+    <script src="assets/lint.js?v=6.35.0"></script>
+    <script src="assets/tikz-nn.js?v=6.35.0"></script>
+    <script src="assets/bib.js?v=6.35.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -1981,6 +1981,45 @@
       .editor-pane-header {
         position: relative;
       }
+      .editor-tools-menu {
+        position: absolute;
+        z-index: 25;
+        top: calc(100% + 4px);
+        left: 0.8rem;
+        min-width: 14rem;
+        padding: 0.3rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      }
+      .editor-tools-menu button {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 1.2rem;
+        width: 100%;
+        padding: 0.35rem 0.55rem;
+        border: none;
+        border-radius: 0.35rem;
+        background: transparent;
+        color: var(--ink);
+        font: 500 0.78rem "Inter", sans-serif;
+        text-align: left;
+        cursor: pointer;
+      }
+      .editor-tools-menu button[hidden] {
+        display: none;
+      }
+      .editor-tools-menu button:hover {
+        background: rgba(196, 124, 90, 0.12);
+      }
+      .editor-tools-hint {
+        color: var(--muted);
+        font-size: 0.7rem;
+        font-weight: 400;
+        white-space: nowrap;
+      }
       .editor-outline {
         position: absolute;
         z-index: 20;
@@ -2813,9 +2852,6 @@
         .editor-preview {
           border-left: none;
         }
-        #editorModeHint {
-          display: none;
-        }
         .editor-pane-header {
           gap: 0.4rem;
           padding: 0.45rem 0.7rem;
@@ -3052,11 +3088,16 @@
                 <button type="button" data-mode="markdown" onclick="setEditorMode('markdown')">Markdown</button>
                 <button type="button" data-mode="latex" onclick="setEditorMode('latex')">LaTeX</button>
               </div>
-              <span class="editor-pane-label" id="editorModeHint">edit front matter directly</span>
-              <button type="button" class="editor-compile-btn" id="editorOutlineBtn" onclick="toggleOutline(event)" title="Sections in this post">Outline</button>
+              <!-- One menu instead of a row of buttons. -->
+              <button type="button" class="editor-compile-btn" id="editorToolsBtn" onclick="toggleTools(event)">Tools ▾</button>
+              <div class="editor-tools-menu" id="editorToolsMenu" hidden>
+                <button type="button" onclick="toggleOutline(event)">Outline<span class="editor-tools-hint">sections</span></button>
+                <button type="button" id="editorRefsItem" onclick="toggleRefs(event)">References<span class="editor-tools-hint">BibTeX · DOI · arXiv</span></button>
+                <button type="button" id="editorSnippetsItem" onclick="toggleSnippetHelp(event)">Snippets<span class="editor-tools-hint">trigger + Tab</span></button>
+                <button type="button" onclick="openFind()">Find &amp; replace<span class="editor-tools-hint">⌘F</span></button>
+                <button type="button" onclick="toggleVim()">Vim keys<span class="editor-tools-hint" id="editorVimState">off</span></button>
+              </div>
               <div class="editor-outline" id="editorOutline" hidden></div>
-              <button type="button" class="editor-compile-btn" id="editorVimBtn" onclick="toggleVim()" title="Vim keybindings">Vim</button>
-              <button type="button" class="editor-compile-btn" id="editorRefsBtn" onclick="toggleRefs(event)" hidden>Refs</button>
               <div class="editor-refs" id="editorRefs" hidden>
                 <p>Paste BibTeX, a DOI, or an arXiv link or id (one per line for several).</p>
                 <textarea id="editorRefsInput" rows="4" spellcheck="false" placeholder="arxiv.org/abs/2006.11239&#10;10.1145/3422622&#10;@inproceedings{…}"></textarea>
@@ -3066,7 +3107,6 @@
                 </div>
                 <div class="editor-refs-status" id="editorRefsStatus"></div>
               </div>
-              <button type="button" class="editor-compile-btn" id="editorSnippetsBtn" onclick="toggleSnippetHelp(event)" hidden>Snippets ⇥</button>
               <div class="editor-snippets-help" id="editorSnippetsHelp" hidden></div>
             </div>
             <div class="editor-find" id="editorFind" hidden>
@@ -5154,21 +5194,16 @@
             : (btn.dataset.mode === 'latex' ? 'LaTeX' : 'Markdown');
           btn.title = locked ? 'Saved posts keep their format' : '';
         });
-        document.getElementById('editorModeHint').textContent =
-          editorMode === 'latex' ? '% front matter at top' : 'front matter at top';
         document.getElementById('editorTextarea').placeholder = EDITOR_PLACEHOLDERS[editorMode];
         const compile = document.getElementById('editorCompileBtn');
         editorVim.reset();
         // The Problems list applies to both modes; the rest is LaTeX-only.
         document.getElementById('editorCompileBtn').hidden = editorMode !== 'latex';
         document.getElementById('editorSyncArrows').hidden = editorMode !== 'latex';
-        document.getElementById('editorSnippetsBtn').hidden = editorMode !== 'latex';
-        document.getElementById('editorRefsBtn').hidden = editorMode !== 'latex';
-        document.getElementById('editorRefs').hidden = true;
-        document.getElementById('editorSnippetsHelp').hidden = true;
-        document.getElementById('editorProblems').hidden = true;
+        document.getElementById('editorSnippetsItem').hidden = editorMode !== 'latex';
+        document.getElementById('editorRefsItem').hidden = editorMode !== 'latex';
         document.getElementById('editorFind').hidden = true;
-        document.getElementById('editorOutline').hidden = true;
+        closeEditorPanels();
         runLint();
         updateHighlight();
         compile.textContent = `Compile ${/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘S' : 'Ctrl+S'}`;
@@ -5280,6 +5315,7 @@
 
       function toggleSnippetHelp(e) {
         e.stopPropagation();
+        closeEditorPanels('editorSnippetsHelp');
         const help = document.getElementById('editorSnippetsHelp');
         if (!help.innerHTML) {
           help.innerHTML = '<p>Type a trigger, then <b>Tab</b>. Tab / Shift+Tab move between the placeholders.</p><table>' +
@@ -5296,6 +5332,7 @@
       // ── References: BibTeX, DOIs and arXiv ids → \bibitem entries ──
       function toggleRefs(e) {
         e.stopPropagation();
+        closeEditorPanels('editorRefs');
         const panel = document.getElementById('editorRefs');
         panel.hidden = !panel.hidden;
         if (!panel.hidden) {
@@ -5415,8 +5452,29 @@
         return items;
       }
 
+      function toggleTools(e) {
+        e.stopPropagation();
+        const menu = document.getElementById('editorToolsMenu');
+        const wasOpen = !menu.hidden;
+        closeEditorPanels();
+        menu.hidden = wasOpen;
+        document.getElementById('editorVimState').textContent = editorVim.enabled() ? 'on' : 'off';
+      }
+      // Only one of the editor's panels is open at a time.
+      function closeEditorPanels(except) {
+        ['editorToolsMenu', 'editorOutline', 'editorRefs', 'editorSnippetsHelp', 'editorProblems'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el && id !== except) el.hidden = true;
+        });
+      }
+      document.addEventListener('click', (e) => {
+        const menu = document.getElementById('editorToolsMenu');
+        if (menu && !menu.hidden && !menu.contains(e.target)) menu.hidden = true;
+      });
+
       function toggleOutline(e) {
         e.stopPropagation();
+        closeEditorPanels('editorOutline');
         const panel = document.getElementById('editorOutline');
         if (!panel.hidden) { panel.hidden = true; return; }
         const items = outlineItems();
@@ -5510,6 +5568,7 @@
         findStep(1, true);
       }
       function openFind() {
+        closeEditorPanels();
         const bar = document.getElementById('editorFind');
         const ta = document.getElementById('editorTextarea');
         bar.hidden = false;
@@ -6162,11 +6221,14 @@
         const on = !editorVim.enabled();
         try { localStorage.setItem(VIM_KEY, on ? '1' : ''); } catch (_) {}
         applyVimSetting(on);
+        document.getElementById('editorToolsMenu').hidden = true;
         document.getElementById('editorTextarea').focus();
       }
       function applyVimSetting(on) {
         editorVim.setEnabled(on);
-        document.getElementById('editorVimBtn').classList.toggle('on', on);
+        const state = document.getElementById('editorVimState');
+        if (state) state.textContent = on ? 'on' : 'off';
+        document.getElementById('editorToolsBtn').classList.toggle('on', on);
       }
       (function () {
         let on = false;
