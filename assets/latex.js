@@ -263,10 +263,6 @@
     });
 
     // TikZ setup commands feed the preamble of every tikzpicture.
-    s = s.replace(/\\usetikzlibrary\s*\{([^}]*)\}/g, (m, libs) => {
-      libs.split(',').map(x => x.trim()).filter(Boolean).forEach(l => ctx.tikzLibs.add(l));
-      return '';
-    });
     s = s.replace(/\\(tikzset|pgfplotsset|usepgfplotslibrary|tikzstyle)(?![a-zA-Z])/g, (m) => '\u0004' + m);
     {
       let out = '', i = 0, k;
@@ -404,8 +400,15 @@
   // tikzpicture / tikzcd → <script type="text/tikz">, which TikZJax (loaded
   // on demand by the page) compiles to SVG in the browser.
   function extractTikz(ctx, s) {
-    return s.replace(/\\begin\{(tikzpicture|tikzcd)\}([\s\S]*?)\\end\{\1\}/g, (m, env) => {
-      m = stripMarks(m);
+    // One pass in document order: a \usetikzlibrary applies to the pictures
+    // after it (as in LaTeX), so adding one later doesn't change the earlier
+    // pictures — and their pre-rendered SVGs stay valid.
+    return s.replace(/\\usetikzlibrary\s*\{([^}]*)\}|\\begin\{(tikzpicture|tikzcd)\}[\s\S]*?\\end\{\2\}/g, (whole, declared, env) => {
+      if (declared !== undefined) {
+        declared.split(',').map(x => x.trim()).filter(Boolean).forEach(l => ctx.tikzLibs.add(l));
+        return '';
+      }
+      let m = stripMarks(whole);
       const packages = {};
       if (env === 'tikzcd') packages['tikz-cd'] = '';
       if (ctx.tikzPgfplots || /\\begin\{(axis|semilogxaxis|semilogyaxis|loglogaxis|polaraxis)\}|\\addplot/.test(m)) {
