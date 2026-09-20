@@ -18,12 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.31.0"></script>
-    <script src="assets/latex-complete.js?v=6.31.0"></script>
-    <script src="assets/vim.js?v=6.31.0"></script>
-    <script src="assets/lint.js?v=6.31.0"></script>
-    <script src="assets/tikz-nn.js?v=6.31.0"></script>
-    <script src="assets/bib.js?v=6.31.0"></script>
+    <script src="assets/latex.js?v=6.32.0"></script>
+    <script src="assets/latex-complete.js?v=6.32.0"></script>
+    <script src="assets/vim.js?v=6.32.0"></script>
+    <script src="assets/lint.js?v=6.32.0"></script>
+    <script src="assets/tikz-nn.js?v=6.32.0"></script>
+    <script src="assets/bib.js?v=6.32.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -564,6 +564,22 @@
       .search-result-item .result-meta .result-tag {
         color: var(--rust);
         margin-left: 0.5rem;
+      }
+      .result-snippet {
+        margin: 0.2rem 0 0.15rem;
+        font-size: 0.78rem;
+        line-height: 1.5;
+        color: var(--muted);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .result-snippet mark {
+        background: rgba(196, 124, 90, 0.22);
+        color: var(--ink);
+        border-radius: 2px;
+        padding: 0 1px;
       }
       .search-no-results {
         padding: 1rem;
@@ -3691,6 +3707,7 @@
       let searchOpen = false;
       let searchSelectedIdx = -1;
       let searchResultIndices = [];
+      let searchSnippets = new Map();
 
       function toggleBlogSearch() {
         const bar = document.getElementById("blogSearchBar");
@@ -3733,26 +3750,72 @@
       }
 
       // Fuzzy-ish search: split query into tokens and check if all tokens appear in text
+      // Search runs over the prose, not the markup: without this, "begin",
+      // "textbf" or "center" match every LaTeX post.
+      const searchTextCache = new Map();
+      function searchableText(b) {
+        if (!b.content) return '';
+        const cached = searchTextCache.get(b.file);
+        if (cached && cached.src === b.content) return cached.text;
+        let t = b.content;
+        if (/\.tex$/i.test(b.file || '')) {
+          t = t.replace(/(^|[^\\])%[^\n]*/g, '$1');                       // comments
+          t = t.replace(/\\begin\{(verbatim\*?|lstlisting|minted)\}[\s\S]*?\\end\{\1\}/g, ' ');
+          t = t.replace(/\\(?:label|ref|eqref|cite\w*|usepackage|documentclass|usetikzlibrary|definecolor|newcommand|renewcommand|newtheorem|includegraphics|bibitem)\s*(?:\[[^\]]*\])?\s*\{[^{}]*\}/g, ' ');
+          t = t.replace(/\\begin\{(tikzpicture|tikzcd)\}[\s\S]*?\\end\{\1\}/g, ' ');
+          t = t.replace(/\\(?:begin|end)\s*\{[^}]*\}/g, ' ');            // environment names
+          t = t.replace(/\$[^$]*\$/g, ' ');                                // inline math
+          t = t.replace(/\\[a-zA-Z@]+\*?/g, ' ');                          // remaining commands
+          t = t.replace(/[{}~&\\]|\[[^\]]{0,20}\]/g, ' ');
+        } else {
+          t = t.replace(/^---[\s\S]*?\n---/, ' ');                        // front matter
+          t = t.replace(/```[\s\S]*?```/g, ' ').replace(/`[^`]*`/g, ' ');
+          t = t.replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1');                // links and images
+          t = t.replace(/\$\$[\s\S]*?\$\$|\$[^$\n]*\$/g, ' ');
+          t = t.replace(/^[#>\-*+\s]+/gm, ' ').replace(/[*_~]/g, '');
+          t = t.replace(/\|/g, ' ').replace(/^[-: ]+$/gm, ' ');            // table pipes and rules
+        }
+        const text = t.replace(/\s+/g, ' ').trim();
+        searchTextCache.set(b.file, { src: b.content, text });
+        return text;
+      }
+
+      // A short piece of the post around the first match, for the result list.
+      function searchSnippet(text, tokens) {
+        const lower = text.toLowerCase();
+        let at = -1;
+        for (const t of tokens) {
+          const i = lower.indexOf(t);
+          if (i >= 0 && (at < 0 || i < at)) at = i;
+        }
+        if (at < 0) return '';
+        const start = Math.max(0, at - 35);
+        const piece = (start ? '…' : '') + text.slice(start, start + 140) + (text.length > start + 140 ? '…' : '');
+        return piece.replace(new RegExp(`(${tokens.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi'),
+          '<mark>$&</mark>');
+      }
+
       function blogSearch(query) {
         if (!query.trim()) return [];
         const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
         const scored = [];
         blogs.forEach((b, i) => {
-          const contentText = (b.content || "").toLowerCase();
-          const haystack = `${b.title} ${b.tag} ${b.excerpt} ${b.date} ${contentText}`.toLowerCase();
-          const allMatch = tokens.every(t => haystack.includes(t));
-          if (allMatch) {
-            let score = 0;
-            tokens.forEach(t => {
-              if (b.title.toLowerCase().includes(t)) score += 4;
-              if (b.tag.toLowerCase().includes(t)) score += 3;
-              if (b.excerpt.toLowerCase().includes(t)) score += 2;
-              if (contentText.includes(t)) score += 1;
-            });
-            scored.push({ index: i, score });
-          }
+          const body = searchableText(b);
+          const bodyLower = body.toLowerCase();
+          const haystack = `${b.title} ${b.tag} ${b.excerpt} ${b.date} ${bodyLower}`.toLowerCase();
+          if (!tokens.every(t => haystack.includes(t))) return;
+          let score = 0;
+          tokens.forEach(t => {
+            if (b.title.toLowerCase().includes(t)) score += 8;
+            if (b.tag.toLowerCase().includes(t)) score += 4;
+            if (b.excerpt.toLowerCase().includes(t)) score += 3;
+            const hits = bodyLower.split(t).length - 1;
+            score += Math.min(hits, 5);
+          });
+          scored.push({ index: i, score, snippet: searchSnippet(body || b.excerpt, tokens) });
         });
         scored.sort((a, b) => b.score - a.score);
+        searchSnippets = new Map(scored.map(s => [s.index, s.snippet]));
         return scored.map(s => s.index);
       }
 
@@ -3765,8 +3828,10 @@
         } else {
           container.innerHTML = indices.map((idx, pos) => {
             const b = blogs[idx];
+            const snippet = searchSnippets.get(idx);
             return `<div class="search-result-item" data-pos="${pos}" onmouseenter="searchHover(${pos})" onclick="selectSearchResult(${idx})">
               <div class="result-title">${renderInline(b.title)}</div>
+              ${snippet ? `<div class="result-snippet">${snippet}</div>` : ''}
               <div class="result-meta">${formatDate(b.date)}<span class="result-tag">${b.tag}</span></div>
             </div>`;
           }).join("");
