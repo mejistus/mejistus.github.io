@@ -15,12 +15,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.1.1"></script>
-    <script src="assets/latex-complete.js?v=8.1.1"></script>
-    <script src="assets/vim.js?v=8.1.1"></script>
-    <script src="assets/lint.js?v=8.1.1"></script>
-    <script src="assets/tikz-nn.js?v=8.1.1"></script>
-    <script src="assets/bib.js?v=8.1.1"></script>
+    <script src="assets/latex.js?v=8.2.0"></script>
+    <script src="assets/latex-complete.js?v=8.2.0"></script>
+    <script src="assets/vim.js?v=8.2.0"></script>
+    <script src="assets/lint.js?v=8.2.0"></script>
+    <script src="assets/tikz-nn.js?v=8.2.0"></script>
+    <script src="assets/bib.js?v=8.2.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -83,6 +83,98 @@
         color-scheme: dark;
       }
 
+      /* Ports of four familiar editor palettes. Each one sets the same
+         variables as the two above; --paper stays light because TikZ draws
+         black ink onto it. */
+      :root[data-theme="onedark"] {
+        --sand: #21252b;
+        --cream: #282c34;
+        --sage: #98c379;
+        --rust: #61afef;
+        --ink: #abb2bf;
+        --muted: #7f848e;
+        --border: #3b4048;
+        --surface: #2c313a;
+        --nav-bg: rgba(40, 44, 52, 0.9);
+        --paper: #f4efe8;
+        --danger: #e06c75;
+        --warn: #d19a66;
+        --tok-comment: #5c6370;
+        --tok-command: #c678dd;
+        --tok-env: #98c379;
+        --tok-math: #61afef;
+        --tok-regex: #56b6c2;
+        --tok-punct: #7f848e;
+        --tok-verbatim: #e5c07b;
+        color-scheme: dark;
+      }
+      :root[data-theme="nord"] {
+        --sand: #272c36;
+        --cream: #2e3440;
+        --sage: #a3be8c;
+        --rust: #88c0d0;
+        --ink: #e5e9f0;
+        --muted: #9aa5b6;
+        --border: #434c5e;
+        --surface: #3b4252;
+        --nav-bg: rgba(46, 52, 64, 0.9);
+        --paper: #eceff4;
+        --danger: #bf616a;
+        --warn: #d08770;
+        --tok-comment: #616e88;
+        --tok-command: #81a1c1;
+        --tok-env: #a3be8c;
+        --tok-math: #88c0d0;
+        --tok-regex: #b48ead;
+        --tok-punct: #7b88a1;
+        --tok-verbatim: #ebcb8b;
+        color-scheme: dark;
+      }
+      :root[data-theme="gruvbox"] {
+        --sand: #32302f;
+        --cream: #282828;
+        --sage: #b8bb26;
+        --rust: #fe8019;
+        --ink: #ebdbb2;
+        --muted: #a89984;
+        --border: #504945;
+        --surface: #3c3836;
+        --nav-bg: rgba(40, 40, 40, 0.9);
+        --paper: #fbf1c7;
+        --danger: #fb4934;
+        --warn: #fabd2f;
+        --tok-comment: #928374;
+        --tok-command: #fe8019;
+        --tok-env: #b8bb26;
+        --tok-math: #83a598;
+        --tok-regex: #d3869b;
+        --tok-punct: #a89984;
+        --tok-verbatim: #fabd2f;
+        color-scheme: dark;
+      }
+      :root[data-theme="solarized"] {
+        --sand: #eee8d5;
+        --cream: #fdf6e3;
+        --sage: #859900;
+        --rust: #cb4b16;
+        --ink: #073642;
+        --muted: #93a1a1;
+        --border: #e3dcc6;
+        --surface: #fffcf2;
+        --nav-bg: rgba(253, 246, 227, 0.9);
+        --paper: #fdf6e3;
+        --danger: #dc322f;
+        --warn: #b58900;
+        --tok-comment: #93a1a1;
+        --tok-command: #cb4b16;
+        --tok-env: #859900;
+        --tok-math: #268bd2;
+        --tok-regex: #6c71c4;
+        --tok-punct: #93a1a1;
+        --tok-verbatim: #2aa198;
+        color-scheme: light;
+      }
+
       html {
         scroll-behavior: smooth;
       }
@@ -137,8 +229,56 @@
         padding: 0;
         cursor: pointer;
       }
-      .theme-toggle:hover {
+      .theme-toggle:hover,
+      .theme-toggle.open {
         color: var(--rust);
+      }
+      .theme-menu {
+        position: fixed;
+        z-index: 300;
+        min-width: 11rem;
+        padding: 0.35rem;
+        border: 1px solid var(--border);
+        border-radius: 0.7rem;
+        background: var(--surface);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+      }
+      .theme-menu button {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        width: 100%;
+        padding: 0.42rem 0.55rem;
+        border: none;
+        border-radius: 0.45rem;
+        background: transparent;
+        color: var(--ink);
+        font: inherit;
+        font-size: 0.82rem;
+        text-align: left;
+        cursor: pointer;
+      }
+      .theme-menu button:hover {
+        background: var(--sand);
+      }
+      .theme-menu button[aria-checked="true"] {
+        color: var(--rust);
+      }
+      .theme-swatch {
+        display: inline-flex;
+        flex: 0 0 auto;
+        width: 2.4rem;
+        height: 0.85rem;
+        border-radius: 0.25rem;
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+      .theme-swatch i {
+        flex: 1;
+      }
+      .theme-menu .tick {
+        margin-left: auto;
+        opacity: 0.8;
       }
       .nav-links {
         display: flex;
@@ -1035,18 +1175,18 @@
       }
       /* Author-chosen backgrounds (\rowcolor, \cellcolor, \hl) are light, so
          their text turns dark to stay readable in the dark theme. */
-      :root[data-theme="dark"] .latex-table [style*="background"],
-      :root[data-theme="dark"] .latex-table tr[style*="background"] > *,
-      :root[data-theme="dark"] .latex-colorbox,
-      :root[data-theme="dark"] .blog-content mark {
+      :root[data-dark] .latex-table [style*="background"],
+      :root[data-dark] .latex-table tr[style*="background"] > *,
+      :root[data-dark] .latex-colorbox,
+      :root[data-dark] .blog-content mark {
         color: #1d1b19;
       }
-      :root[data-theme="dark"] .blog-content mark {
+      :root[data-dark] .blog-content mark {
         background: #e8d98a;
       }
 
       /* TikZ draws black ink, so in the dark theme it keeps a light sheet. */
-      :root[data-theme="dark"] .latex-tikz svg {
+      :root[data-dark] .latex-tikz svg {
         background: var(--paper);
         padding: 0.6rem 0.8rem;
         border-radius: 0.4rem;
@@ -3091,12 +3231,16 @@
   </head>
   <script>
     // Before first paint: a stored choice wins, otherwise follow the system.
+    // The dark names are repeated here because the stylesheet has not run yet.
     (function () {
+      const DARK = ['dark', 'onedark', 'nord', 'gruvbox'];
+      const KNOWN = DARK.concat(['light', 'solarized']);
       let saved = null;
       try { saved = localStorage.getItem('theme'); } catch (_) {}
-      const dark = saved ? saved === 'dark'
-        : window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (dark) document.documentElement.dataset.theme = 'dark';
+      const name = KNOWN.includes(saved) ? saved
+        : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      if (name !== 'light') document.documentElement.dataset.theme = name;
+      if (DARK.includes(name)) document.documentElement.dataset.dark = '';
     })();
   </script>
   <body>
@@ -3345,11 +3489,13 @@
       </div>
     </div>
 
+    <div class="theme-menu" id="themeMenu" hidden role="menu" aria-label="Colours"></div>
+
     <!-- NAV -->
     <nav>
       <a href="#hero" class="nav-logo" id="navLogo" onclick="handleAuthClick(event)">Xu Chen</a>
       <ul class="nav-links">
-        <li><button type="button" class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Light or dark">◐</button></li>
+        <li><button type="button" class="theme-toggle" id="themeToggle" onclick="toggleThemeMenu(event)" title="Colours" aria-haspopup="true" aria-expanded="false">◐</button></li>
         <li><a href="#about">About</a></li>
         <li><a href="#posts">Blog</a></li>
         <li><a href="#poetry">Poetry</a></li>
@@ -4145,26 +4291,89 @@
 
       // ── Light and dark ──
       const THEME_KEY = 'theme';
+      // name → what the picker shows. `dark` decides the glyph, the
+      // colour-scheme-dependent rules and how author-chosen highlights are
+      // made readable; the swatch is page, text and accent.
+      const THEMES = [
+        { name: 'light', label: 'Paper', dark: false, swatch: ['#fdfaf6', '#2d2d2d', '#c47c5a'] },
+        { name: 'dark', label: 'Ink', dark: true, swatch: ['#191817', '#ece7e0', '#d08a63'] },
+        { name: 'onedark', label: 'One Dark', dark: true, swatch: ['#282c34', '#abb2bf', '#61afef'] },
+        { name: 'nord', label: 'Nord', dark: true, swatch: ['#2e3440', '#e5e9f0', '#88c0d0'] },
+        { name: 'gruvbox', label: 'Gruvbox', dark: true, swatch: ['#282828', '#ebdbb2', '#fe8019'] },
+        { name: 'solarized', label: 'Solarized', dark: false, swatch: ['#fdf6e3', '#073642', '#cb4b16'] },
+      ];
+      const themeByName = (n) => THEMES.find(t => t.name === n);
+
       function currentTheme() {
-        return document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
+        return themeByName(document.documentElement.dataset.theme) ? document.documentElement.dataset.theme : 'light';
       }
-      function applyTheme(mode) {
-        if (mode === 'dark') document.documentElement.dataset.theme = 'dark';
-        else delete document.documentElement.dataset.theme;
+      function applyTheme(name) {
+        const theme = themeByName(name) || THEMES[0];
+        const root = document.documentElement;
+        if (theme.name === 'light') delete root.dataset.theme;
+        else root.dataset.theme = theme.name;
+        if (theme.dark) root.dataset.dark = '';
+        else delete root.dataset.dark;
         const btn = document.getElementById('themeToggle');
         if (btn) {
-          btn.textContent = mode === 'dark' ? '☾' : '◐';
-          btn.title = mode === 'dark' ? 'Switch to light' : 'Switch to dark';
+          btn.textContent = theme.dark ? '☾' : '◐';
+          btn.title = `Colours: ${theme.label}`;
         }
+        renderThemeMenu();
         // TikZ sheets change size with the theme, so scaled boxes re-measure.
         // (Guarded: this also runs before the editor's own state exists.)
         try { if (editorActive) fitLatexBoxes(document.getElementById('editorPreview')); } catch (_) {}
       }
-      function toggleTheme() {
-        const next = currentTheme() === 'dark' ? 'light' : 'dark';
-        try { localStorage.setItem(THEME_KEY, next); } catch (_) {}
-        applyTheme(next);
+      function setTheme(name) {
+        try { localStorage.setItem(THEME_KEY, name); } catch (_) {}
+        applyTheme(name);
+        closeThemeMenu();
       }
+      // Kept so a keyboard shortcut or an old link still flips light/dark.
+      function toggleTheme() {
+        const now = themeByName(currentTheme());
+        setTheme(now.dark ? 'light' : 'dark');
+      }
+
+      function renderThemeMenu() {
+        const menu = document.getElementById('themeMenu');
+        if (!menu) return;
+        const active = currentTheme();
+        menu.innerHTML = THEMES.map(t => `
+          <button type="button" role="menuitemradio" aria-checked="${t.name === active}"
+                  onclick="setTheme('${t.name}')">
+            <span class="theme-swatch" aria-hidden="true">${t.swatch.map(c => `<i style="background:${c}"></i>`).join('')}</span>
+            ${t.label}${t.name === active ? '<span class="tick" aria-hidden="true">✓</span>' : ''}
+          </button>`).join('');
+      }
+      function closeThemeMenu() {
+        const menu = document.getElementById('themeMenu');
+        const btn = document.getElementById('themeToggle');
+        if (menu) menu.hidden = true;
+        if (btn) { btn.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+      }
+      function toggleThemeMenu(e) {
+        if (e) e.stopPropagation();
+        const menu = document.getElementById('themeMenu');
+        const btn = document.getElementById('themeToggle');
+        if (!menu.hidden) { closeThemeMenu(); return; }
+        renderThemeMenu();
+        menu.hidden = false;
+        btn.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+        const r = btn.getBoundingClientRect();
+        menu.style.top = `${r.bottom + 8}px`;
+        // Right-aligned to the button, but never off the edge of a phone.
+        const width = menu.offsetWidth || 176;
+        menu.style.left = `${Math.max(8, Math.min(r.right - width, window.innerWidth - width - 8))}px`;
+      }
+      document.addEventListener('click', (e) => {
+        const menu = document.getElementById('themeMenu');
+        if (menu && !menu.hidden && !menu.contains(e.target)) closeThemeMenu();
+      });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeThemeMenu(); });
+      window.addEventListener('resize', closeThemeMenu);
+
       applyTheme(currentTheme());
       // Without a stored choice, follow the system as it changes.
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
