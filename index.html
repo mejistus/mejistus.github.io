@@ -15,12 +15,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.0.2"></script>
-    <script src="assets/latex-complete.js?v=8.0.2"></script>
-    <script src="assets/vim.js?v=8.0.2"></script>
-    <script src="assets/lint.js?v=8.0.2"></script>
-    <script src="assets/tikz-nn.js?v=8.0.2"></script>
-    <script src="assets/bib.js?v=8.0.2"></script>
+    <script src="assets/latex.js?v=8.1.0"></script>
+    <script src="assets/latex-complete.js?v=8.1.0"></script>
+    <script src="assets/vim.js?v=8.1.0"></script>
+    <script src="assets/lint.js?v=8.1.0"></script>
+    <script src="assets/tikz-nn.js?v=8.1.0"></script>
+    <script src="assets/bib.js?v=8.1.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -2373,6 +2373,19 @@
         min-height: 0;
         background: var(--sand);
       }
+      /* The only thing that scrolls. Text, colours and line numbers ride along
+         with it, so the browser can do it all on the compositor. */
+      .editor-scroll {
+        position: absolute;
+        inset: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        overscroll-behavior: contain;
+      }
+      .editor-doc {
+        position: relative;
+        min-height: 100%;
+      }
       /* The textarea and its highlight layer must lay text out identically. */
       .editor-textarea,
       .editor-highlight {
@@ -2400,7 +2413,8 @@
         z-index: 2;
         display: block;
         width: 100%;
-        height: 100%;
+        height: auto;
+        min-height: 100%;
         background: transparent;
         color: transparent;
         /* The caret is drawn from the highlight layer instead (see
@@ -2412,7 +2426,7 @@
         caret-color: transparent;
         resize: none;
         outline: none;
-        overflow-y: auto;
+        overflow: hidden;
       }
       .editor-textarea.composing { caret-color: var(--rust); }
       .editor-textarea::selection {
@@ -2469,8 +2483,10 @@
       .editor-highlight {
         position: absolute;
         z-index: 1;
-        inset: 0;
-        overflow: hidden;
+        top: 0;
+        left: 0;
+        width: 100%;
+        overflow: visible;
         pointer-events: none;
         color: var(--ink);
         background: transparent;
@@ -2481,9 +2497,9 @@
         z-index: 3;
         left: 0;
         top: 0;
-        bottom: 0;
+        height: 100%;
         width: 3.1rem;
-        overflow: hidden;
+        overflow: visible;
         border-right: 1px solid var(--border);
         background: var(--sand);
         font-family: "SF Mono", "Fira Code", "Consolas", monospace;
@@ -3233,12 +3249,18 @@
               <button type="button" onclick="closeFind()" title="Close (Esc)">✕</button>
             </div>
             <div class="editor-input">
-              <!-- Highlighted copy of the source, drawn under the (transparent-text) textarea. -->
-              <div class="editor-gutter" id="editorGutter" aria-hidden="true"></div>
-              <div class="editor-active-line" id="editorActiveLine" aria-hidden="true"></div>
-              <div class="editor-caret" id="editorCaret" aria-hidden="true"></div>
-              <pre class="editor-highlight" id="editorHighlight" aria-hidden="true"><code></code></pre>
-              <textarea class="editor-textarea" id="editorTextarea" spellcheck="false" placeholder="---&#10;title: ...&#10;date: ...&#10;tag: ...&#10;---&#10;&#10;Your content here..."></textarea>
+              <!-- One scroller for every layer: the browser scrolls them together,
+                   so nothing in here is driven from a scroll handler. -->
+              <div class="editor-scroll" id="editorScroll">
+                <div class="editor-doc" id="editorDoc">
+                  <div class="editor-gutter" id="editorGutter" aria-hidden="true"></div>
+                  <div class="editor-active-line" id="editorActiveLine" aria-hidden="true"></div>
+                  <div class="editor-caret" id="editorCaret" aria-hidden="true"></div>
+                  <!-- Highlighted copy of the source, drawn under the (transparent-text) textarea. -->
+                  <pre class="editor-highlight" id="editorHighlight" aria-hidden="true"><code></code></pre>
+                  <textarea class="editor-textarea" id="editorTextarea" spellcheck="false" placeholder="% ---&#10;% title: ...&#10;% date: ...&#10;% tag: ...&#10;% ---&#10;&#10;Your content here..."></textarea>
+                </div>
+              </div>
             </div>
           </div>
           <div class="editor-pane editor-pane-preview">
@@ -5393,7 +5415,7 @@
         if (cite && caret > bibAt) editorRangeReplace(caret, caret, cite);
         const pos = caret + (cite && caret <= bibAt ? cite.length : 0);
         ta.setSelectionRange(pos, pos);
-        ta.focus();
+        ta.focus({ preventScroll: true });
         return result;
       }
 
@@ -5520,10 +5542,9 @@
         const [a, b] = all[i];
         // Keep the focus where it is (usually the find box).
         const focused = document.activeElement;
-        ta.focus();
+        ta.focus({ preventScroll: true });
         ta.setSelectionRange(a, b);
-        const r = LatexComplete.caretRect(ta), tr = ta.getBoundingClientRect();
-        if (r.top < tr.top || r.bottom > tr.bottom) ta.scrollTop += r.top - tr.top - ta.clientHeight / 3;
+        revealCaret();
         if (focused && focused !== ta && focused.focus) focused.focus();
         count.textContent = `${i + 1} / ${all.length}`;
       }
@@ -5572,7 +5593,7 @@
       }
       function closeFind() {
         document.getElementById('editorFind').hidden = true;
-        document.getElementById('editorTextarea').focus();
+        document.getElementById('editorTextarea').focus({ preventScroll: true });
       }
       document.getElementById('editorFindInput').addEventListener('input', () => findStep(1, true));
       document.getElementById('editorFind').addEventListener('keydown', (e) => {
@@ -5818,7 +5839,7 @@
           pre.firstElementChild.innerHTML = (grammar ? Prism.highlight(src, grammar, 'latex') : escHtml(src)) + '\n';
           syncHighlightLayout();
           renderGutter();
-          updateActiveLine();
+          updateActiveLine(true);
         });
       }
       // One pass over the highlight layer maps each source line to its y offset,
@@ -5836,7 +5857,7 @@
           if (p.severity === 'error' || !marks.has(p.line)) marks.set(p.line, p.severity);
         });
         const walker = document.createTreeWalker(pre, NodeFilter.SHOW_TEXT);
-        const preTop = pre.getBoundingClientRect().top - pre.scrollTop;
+        const preTop = pre.getBoundingClientRect().top;
         const range = document.createRange();
         let node = walker.nextNode(), acc = 0, html = '';
         for (let i = 0; i < starts.length; i++) {
@@ -5850,7 +5871,6 @@
           html += `<div class="editor-gutter-line${mark ? ' ' + mark : ''}" style="top:${top}px" data-line="${i + 1}">${i + 1}</div>`;
         }
         gutter.innerHTML = html;
-        gutter.scrollTop = ta.scrollTop;
       }
       document.getElementById('editorGutter').addEventListener('click', (e) => {
         const el = e.target.closest('.editor-gutter-line');
@@ -5928,10 +5948,13 @@
         return new DOMRect(rects[0].left, top, 0, bottom - top);
       }
 
-      let activeLineFrame = 0, composing = false;
-      function updateActiveLine() {
+      let activeLineFrame = 0, composing = false, revealWanted = false;
+      function updateActiveLine(reveal) {
+        revealWanted = revealWanted || reveal === true;
         cancelAnimationFrame(activeLineFrame);
         activeLineFrame = requestAnimationFrame(() => {
+          const wantReveal = revealWanted;
+          revealWanted = false;
           const ta = document.getElementById('editorTextarea');
           const band = document.getElementById('editorActiveLine');
           const caret = document.getElementById('editorCaret');
@@ -5941,7 +5964,7 @@
           }
           // The caret sits at the end the user is moving (Shift+Left grows left).
           const at = ta.selectionDirection === 'backward' ? ta.selectionStart : ta.selectionEnd;
-          const box = document.querySelector('.editor-input').getBoundingClientRect();
+          const box = document.getElementById('editorDoc').getBoundingClientRect();
           const lh = parseFloat(getComputedStyle(ta).lineHeight) || 24;
           const line = lineBoxAt(ta.value, at);
           const r = line || LatexComplete.caretRect(ta);
@@ -5967,12 +5990,36 @@
             void caret.offsetWidth;                      // restart the blink
             caret.classList.add('blink');
           }
+          if (wantReveal) revealRect(c || r);
 
           const num0 = ta.value.slice(0, at).split('\n').length;
           document.querySelectorAll('.editor-gutter-line.current').forEach(el => el.classList.remove('current'));
           const num = document.querySelector(`.editor-gutter-line[data-line="${num0}"]`);
           if (num) num.classList.add('current');
         });
+      }
+
+      // Focusing a textarea as tall as the document makes the browser scroll
+      // it into view, which throws the pane to one end; every focus here asks
+      // it not to, and the caret is revealed deliberately instead.
+      // The textarea no longer scrolls itself, so keep the caret in view.
+      // Measuring the highlight layer costs a tenth of what the mirror div
+      // costs, and that difference is per keystroke.
+      function revealRect(r, align) {
+        const sc = document.getElementById('editorScroll');
+        if (!sc || !r) return;
+        const box = sc.getBoundingClientRect();
+        const lh = parseFloat(getComputedStyle(document.getElementById('editorTextarea')).lineHeight) || 24;
+        if (align === 'center') { sc.scrollTop += r.top - box.top - sc.clientHeight / 3; return; }
+        if (r.top < box.top + lh) sc.scrollTop += r.top - box.top - lh;
+        else if (r.bottom > box.bottom - lh) sc.scrollTop += r.bottom - box.bottom + lh;
+      }
+
+      function revealCaret(align) {
+        if (!editorActive) return;
+        const ta = document.getElementById('editorTextarea');
+        const at = ta.selectionDirection === 'backward' ? ta.selectionStart : ta.selectionEnd;
+        revealRect(caretRectInHighlight(at) || LatexComplete.caretRect(ta), align);
       }
 
       // A pulse over a stretch of source, for arrivals from the preview.
@@ -6002,7 +6049,7 @@
 
       function drawJump(fresh) {
         if (!jumpSpan) return;
-        const host = document.querySelector('.editor-input');
+        const host = document.getElementById('editorDoc');
         const range = rangeBetween(jumpSpan.from, jumpSpan.to);
         const rects = range ? [...range.getClientRects()].filter(r => r.height && r.width) : [];
         if (!rects.length) { clearJump(); return; }
@@ -6030,11 +6077,12 @@
       document.addEventListener('selectionchange', () => {
         if (document.activeElement === document.getElementById('editorTextarea')) updateActiveLine();
       });
-      ['focus', 'blur', 'input', 'scroll', 'click', 'keyup', 'mouseup'].forEach(ev =>
-        document.getElementById('editorTextarea').addEventListener(ev, updateActiveLine));
-      // The pulse rides along with the text it marks.
-      ['scroll', 'input'].forEach(ev =>
-        document.getElementById('editorTextarea').addEventListener(ev, () => positionJump(false)));
+      ['focus', 'blur', 'input', 'click', 'mouseup'].forEach(ev =>
+        document.getElementById('editorTextarea').addEventListener(ev, () => updateActiveLine()));
+      // A keystroke can walk the caret off screen; the band's own measurement
+      // brings it back.
+      document.getElementById('editorTextarea').addEventListener('keyup', () => updateActiveLine(true));
+      document.getElementById('editorTextarea').addEventListener('input', () => positionJump(false));
       // While an IME composes, Chrome draws the composition under the native
       // caret; hand it back for the duration.
       document.getElementById('editorTextarea').addEventListener('compositionstart', (e) => {
@@ -6049,17 +6097,15 @@
       });
       window.addEventListener('resize', () => { if (editorActive) { updateActiveLine(); positionJump(false); } });
 
+      // Both layers are inside the scroller at the same width, so the only
+      // thing to keep in step is the textarea's height: it holds the whole
+      // text, and the scroller does the scrolling.
       function syncHighlightLayout() {
         const ta = document.getElementById('editorTextarea');
         const pre = document.getElementById('editorHighlight');
-        // Match the textarea's scrollbar so both wrap lines at the same width.
-        const scrollbar = ta.offsetWidth - ta.clientWidth;
-        pre.style.paddingRight = `calc(1.2rem + ${scrollbar}px)`;
-        pre.scrollTop = ta.scrollTop;
-        pre.scrollLeft = ta.scrollLeft;
-        document.getElementById('editorGutter').scrollTop = ta.scrollTop;
+        const h = pre.offsetHeight;
+        if (h && ta.style.height !== `${h}px`) ta.style.height = `${h}px`;
       }
-      document.getElementById('editorTextarea').addEventListener('scroll', syncHighlightLayout, { passive: true });
       document.getElementById('editorTextarea').addEventListener('input', updateHighlight);
       new ResizeObserver(() => { syncHighlightLayout(); renderGutter(); positionJump(false); }).observe(document.getElementById('editorTextarea'));
 
@@ -6075,17 +6121,28 @@
       // Source ↔ preview jumps set this so their own smooth scroll isn't mirrored.
       let scrollSyncLockedUntil = 0;
       (function () {
-        const ta = document.getElementById('editorTextarea');
+        const ta = document.getElementById('editorScroll');
         const pv = document.getElementById('editorPreview');
         let lockedUntil = 0;
+        // One write per frame: the preview is a big KaTeX tree and every
+        // scrollTop written to it costs a repaint.
+        let frame = 0, pending = null;
         const sync = (from, to) => () => {
           const now = performance.now();
           if (now < lockedUntil || now < scrollSyncLockedUntil) return;
-          const fMax = from.scrollHeight - from.clientHeight;
-          const tMax = to.scrollHeight - to.clientHeight;
-          if (fMax <= 0 || tMax <= 0) return;
-          lockedUntil = now + 80;
-          to.scrollTop = (from.scrollTop / fMax) * tMax;
+          pending = { from, to };
+          if (frame) return;
+          frame = requestAnimationFrame(() => {
+            frame = 0;
+            const job = pending;
+            pending = null;
+            if (!job) return;
+            const fMax = job.from.scrollHeight - job.from.clientHeight;
+            const tMax = job.to.scrollHeight - job.to.clientHeight;
+            if (fMax <= 0 || tMax <= 0) return;
+            lockedUntil = performance.now() + 80;
+            job.to.scrollTop = (job.from.scrollTop / fMax) * tMax;
+          });
         };
         ta.addEventListener('scroll', sync(ta, pv), { passive: true });
         pv.addEventListener('scroll', sync(pv, ta), { passive: true });
@@ -6158,7 +6215,7 @@
         const top = target.getBoundingClientRect().top - pv.getBoundingClientRect().top + pv.scrollTop;
         pv.scrollTo({ top: Math.max(0, top - pv.clientHeight / 3), behavior: 'smooth' });
         if (flash) flashPreviewBlock(target);
-        ta.focus();
+        ta.focus({ preventScroll: true });
       }
 
       // ── LaTeX preview → source: double-click a word in the preview ──
@@ -6212,8 +6269,7 @@
         scrollSyncLockedUntil = performance.now() + 900;
         ta.focus({ preventScroll: true });
         ta.setSelectionRange(selStart, selStart);
-        const r = LatexComplete.caretRect(ta), tr = ta.getBoundingClientRect();
-        ta.scrollTop += r.top - tr.top - ta.clientHeight / 3;
+        revealCaret('center');
         ta.setSelectionRange(selStart, selEnd);
         if (onPhone()) setEditorPane('source');
         flashActiveLine();
@@ -6302,10 +6358,9 @@
       function goToLine(line) {
         const ta = document.getElementById('editorTextarea');
         const pos = sourceOffsetOfLine(ta.value, line);
-        ta.focus();
+        ta.focus({ preventScroll: true });
         ta.setSelectionRange(pos, pos);
-        const r = LatexComplete.caretRect(ta), tr = ta.getBoundingClientRect();
-        ta.scrollTop += r.top - tr.top - ta.clientHeight / 3;
+        revealCaret('center');
         const lineEnd = ta.value.indexOf('\n', pos);
         ta.setSelectionRange(pos, lineEnd < 0 ? ta.value.length : lineEnd);
         flashActiveLine();
@@ -6406,19 +6461,19 @@
           if (typeof ta.setRangeText === 'function') {
             ta.setRangeText(text, start, end, 'preserve');
           } else {
-            const scrollTop = ta.scrollTop;
+            const scrollTop = document.getElementById('editorScroll').scrollTop;
             const savedStart = ta.selectionStart;
             const savedEnd = ta.selectionEnd;
             ta.value = ta.value.slice(0, start) + text + ta.value.slice(end);
             ta.selectionStart = savedStart;
             ta.selectionEnd = savedEnd;
-            ta.scrollTop = scrollTop;
+            document.getElementById('editorScroll').scrollTop = scrollTop;
           }
           ta.dispatchEvent(new Event('input'));
           return;
         }
 
-        ta.focus();
+        ta.focus({ preventScroll: true });
         ta.selectionStart = start;
         ta.selectionEnd = end;
         let ok = false;
@@ -6428,11 +6483,11 @@
         if (typeof ta.setRangeText === 'function') {
           ta.setRangeText(text, start, end, opts.mode || 'end');
         } else {
-          const scrollTop = ta.scrollTop;
+          const scrollTop = document.getElementById('editorScroll').scrollTop;
           ta.value = ta.value.slice(0, start) + text + ta.value.slice(end);
           const pos = start + text.length;
           ta.selectionStart = ta.selectionEnd = pos;
-          ta.scrollTop = scrollTop;
+          document.getElementById('editorScroll').scrollTop = scrollTop;
         }
         ta.dispatchEvent(new Event('input'));
       }
@@ -6498,7 +6553,7 @@
         try { localStorage.setItem(VIM_KEY, on ? '1' : ''); } catch (_) {}
         applyVimSetting(on);
         document.getElementById('editorMenu').hidden = true;
-        document.getElementById('editorTextarea').focus();
+        document.getElementById('editorTextarea').focus({ preventScroll: true });
       }
       function applyVimSetting(on) {
         editorVim.setEnabled(on);
@@ -7497,7 +7552,7 @@
           document.getElementById('editorStatus').textContent = '';
           document.getElementById('editorStatus').className = 'editor-status';
           updatePreview();
-          document.getElementById('editorTextarea').focus();
+          document.getElementById('editorTextarea').focus({ preventScroll: true });
         }); });
       }
 
