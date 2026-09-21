@@ -18,12 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.37.0"></script>
-    <script src="assets/latex-complete.js?v=6.37.0"></script>
-    <script src="assets/vim.js?v=6.37.0"></script>
-    <script src="assets/lint.js?v=6.37.0"></script>
-    <script src="assets/tikz-nn.js?v=6.37.0"></script>
-    <script src="assets/bib.js?v=6.37.0"></script>
+    <script src="assets/latex.js?v=6.38.0"></script>
+    <script src="assets/latex-complete.js?v=6.38.0"></script>
+    <script src="assets/vim.js?v=6.38.0"></script>
+    <script src="assets/lint.js?v=6.38.0"></script>
+    <script src="assets/tikz-nn.js?v=6.38.0"></script>
+    <script src="assets/bib.js?v=6.38.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -2018,6 +2018,61 @@
         font-weight: 400;
         white-space: nowrap;
       }
+      .editor-fonts {
+        position: fixed;
+        z-index: 25;
+        width: 17rem;
+        max-height: 60vh;
+        overflow-y: auto;
+        padding: 0.35rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      }
+      .editor-fonts-size {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding: 0.3rem 0.55rem 0.45rem;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 0.3rem;
+        font: 500 0.75rem "Inter", sans-serif;
+        color: var(--muted);
+      }
+      .editor-fonts-size button {
+        border: 1px solid var(--border);
+        border-radius: 0.3rem;
+        background: transparent;
+        color: var(--ink);
+        width: 1.7rem;
+        height: 1.5rem;
+        cursor: pointer;
+      }
+      .editor-font-item {
+        display: block;
+        width: 100%;
+        padding: 0.35rem 0.55rem;
+        border: none;
+        border-radius: 0.35rem;
+        background: transparent;
+        color: var(--ink);
+        text-align: left;
+        cursor: pointer;
+        font-size: 0.8rem;
+      }
+      .editor-font-item:hover {
+        background: rgba(196, 124, 90, 0.12);
+      }
+      .editor-font-item.active {
+        color: var(--rust);
+      }
+      .editor-font-sample {
+        display: block;
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
       .editor-outline {
         position: fixed;
         z-index: 20;
@@ -2328,16 +2383,15 @@
         margin: 0;
         padding: 1.2rem 1.2rem 1.2rem 3.6rem;
         border: none;
-        /* Latin comes from a coding face; the CJK entries are only reached for
-           characters those faces lack. Both layers share the list, so the
-           coloured copy and the real text lay out the same way. */
-        font-family: ui-monospace, "SF Mono", Menlo, "Hack", "JetBrains Mono",
-          "Fira Code", Consolas, "Sarasa Mono SC", "Noto Sans Mono CJK SC",
-          "PingFang SC", "Hiragino Sans GB", monospace;
-        font-size: 0.85rem;
+        /* Both layers share one stack (Latin from a coding face, CJK only for
+           what it lacks) and one size, so the coloured copy and the real text
+           lay out the same way. The Menu's font picker sets these. */
+        font-family: var(--editor-font, ui-monospace), "Sarasa Mono SC",
+          "Noto Sans Mono CJK SC", "PingFang SC", "Hiragino Sans GB", monospace;
+        font-size: var(--editor-font-size, 13.6px);
         /* Whole pixels: textarea and <pre> round fractional line boxes
            differently, which drifts the layers apart over long files. */
-        line-height: 24px;
+        line-height: var(--editor-line-height, 24px);
         letter-spacing: normal;
         tab-size: 2;
         white-space: pre-wrap;
@@ -2401,7 +2455,7 @@
         background: var(--sand);
         font-family: "SF Mono", "Fira Code", "Consolas", monospace;
         font-size: 0.72rem;
-        line-height: 24px;
+        line-height: var(--editor-line-height, 24px);
         color: var(--muted);
         user-select: none;
       }
@@ -3122,8 +3176,10 @@
                 <button type="button" id="editorSnippetsItem" onclick="toggleSnippetHelp(event)">Snippets<span class="editor-menu-hint">trigger + Tab</span></button>
                 <button type="button" onclick="openFind()">Find &amp; replace<span class="editor-menu-hint">⌘F</span></button>
                 <button type="button" onclick="toggleVim()">Vim keys<span class="editor-menu-hint" id="editorVimState">off</span></button>
+                <button type="button" onclick="toggleFontPicker(event)">Editor font<span class="editor-menu-hint" id="editorFontName">default</span></button>
               </div>
               <div class="editor-outline" id="editorOutline" hidden></div>
+              <div class="editor-fonts" id="editorFonts" hidden></div>
               <div class="editor-refs" id="editorRefs" hidden>
                 <p>Paste BibTeX, a DOI, or an arXiv link or id (one per line for several).</p>
                 <textarea id="editorRefsInput" rows="4" spellcheck="false" placeholder="arxiv.org/abs/2006.11239&#10;10.1145/3422622&#10;@inproceedings{…}"></textarea>
@@ -5504,7 +5560,7 @@
       }
       // Only one of the editor's panels is open at a time.
       function closeEditorPanels(except) {
-        ['editorMenu', 'editorOutline', 'editorRefs', 'editorSnippetsHelp', 'editorProblems'].forEach(id => {
+        ['editorMenu', 'editorOutline', 'editorRefs', 'editorSnippetsHelp', 'editorProblems', 'editorFonts'].forEach(id => {
           const el = document.getElementById(id);
           if (el && id !== except) el.hidden = true;
         });
@@ -5512,6 +5568,8 @@
       document.addEventListener('click', (e) => {
         const menu = document.getElementById('editorMenu');
         if (menu && !menu.hidden && !menu.contains(e.target)) menu.hidden = true;
+        const fonts = document.getElementById('editorFonts');
+        if (fonts && !fonts.hidden && !fonts.contains(e.target)) fonts.hidden = true;
       });
 
       function toggleOutline(e) {
@@ -5747,6 +5805,108 @@
 
       // ── Syntax highlighting: Prism renders the source into a <pre> laid out
       // exactly like the textarea above it, whose own text is transparent. ──
+      // ── Editor font ──
+      // Candidates are offered only when the machine actually has them; the
+      // CJK fallbacks stay in the CSS, after whichever face is chosen.
+      const EDITOR_FONTS = [
+        ['System coding font', 'ui-monospace, "SF Mono", Menlo, monospace'],
+        ['SF Mono', '"SF Mono", ui-monospace, monospace'],
+        ['Menlo', 'Menlo, monospace'],
+        ['Monaco', 'Monaco, monospace'],
+        ['Hack', 'Hack, monospace'],
+        ['JetBrains Mono', '"JetBrains Mono", monospace'],
+        ['Fira Code', '"Fira Code", monospace'],
+        ['Cascadia Code', '"Cascadia Code", "Cascadia Mono", monospace'],
+        ['Source Code Pro', '"Source Code Pro", monospace'],
+        ['IBM Plex Mono', '"IBM Plex Mono", monospace'],
+        ['Iosevka', 'Iosevka, monospace'],
+        ['Sarasa Mono SC', '"Sarasa Mono SC", monospace'],
+        ['Consolas', 'Consolas, monospace'],
+        ['Courier New', '"Courier New", monospace'],
+      ];
+      const FONT_KEY = 'editor_font';
+      const FONT_SIZE_KEY = 'editor_font_size';
+
+      function fontAvailable(name) {
+        if (/^(System coding font|SF Mono|Menlo|Monaco|Courier New)$/.test(name)) return true;
+        const probe = (family) => {
+          const span = document.createElement('span');
+          span.style.cssText = 'position:absolute;visibility:hidden;white-space:pre;font-size:48px';
+          span.style.fontFamily = family;
+          span.textContent = 'mmmiiilll0123';
+          document.body.appendChild(span);
+          const w = span.getBoundingClientRect().width;
+          span.remove();
+          return w;
+        };
+        // A missing family falls back to monospace and measures the same.
+        return Math.abs(probe(`"${name}", monospace`) - probe('monospace')) > 0.5;
+      }
+
+      function applyEditorFont() {
+        let stack = '', size = 13.6;
+        try {
+          stack = localStorage.getItem(FONT_KEY) || '';
+          size = parseFloat(localStorage.getItem(FONT_SIZE_KEY)) || 13.6;
+        } catch (_) {}
+        const root = document.documentElement;
+        root.style.setProperty('--editor-font', stack || EDITOR_FONTS[0][1]);
+        root.style.setProperty('--editor-font-size', `${size}px`);
+        // A whole-pixel line height keeps the layers from drifting apart.
+        root.style.setProperty('--editor-line-height', `${Math.round(size * 1.75)}px`);
+        const label = document.getElementById('editorFontName');
+        const chosen = EDITOR_FONTS.find(([, css]) => css === stack);
+        if (label) label.textContent = `${chosen ? chosen[0] : EDITOR_FONTS[0][0]} · ${Math.round(size)}px`;
+        if (editorActive) { updateHighlight(); updateActiveLine(); }
+      }
+
+      function setEditorFont(stack) {
+        try { localStorage.setItem(FONT_KEY, stack); } catch (_) {}
+        applyEditorFont();
+        renderFontPicker();
+      }
+      function stepEditorFontSize(delta, e) {
+        if (e) e.stopPropagation(); // the panel rebuilds; don't let it read as an outside click
+        let size = 13.6;
+        try { size = parseFloat(localStorage.getItem(FONT_SIZE_KEY)) || 13.6; } catch (_) {}
+        size = Math.min(20, Math.max(11, Math.round((size + delta) * 10) / 10));
+        try { localStorage.setItem(FONT_SIZE_KEY, String(size)); } catch (_) {}
+        applyEditorFont();
+        renderFontPicker();
+      }
+
+      function renderFontPicker() {
+        const panel = document.getElementById('editorFonts');
+        let current = '', size = 13.6;
+        try {
+          current = localStorage.getItem(FONT_KEY) || EDITOR_FONTS[0][1];
+          size = parseFloat(localStorage.getItem(FONT_SIZE_KEY)) || 13.6;
+        } catch (_) {}
+        const items = EDITOR_FONTS.filter(([name]) => fontAvailable(name));
+        panel.innerHTML =
+          `<div class="editor-fonts-size"><span>Size ${Math.round(size)}px</span><span>` +
+          `<button type="button" onclick="stepEditorFontSize(-1, event)">−</button> ` +
+          `<button type="button" onclick="stepEditorFontSize(1, event)">+</button></span></div>` +
+          items.map(([name, css]) =>
+            `<button type="button" class="editor-font-item${css === current ? ' active' : ''}" data-css="${escHtml(css)}">` +
+            `${escHtml(name)}<span class="editor-font-sample" style="font-family:${escHtml(css)}">` +
+            `\\section{标题} $x^2$ 0O1lI</span></button>`).join('');
+        panel.querySelectorAll('.editor-font-item').forEach(el =>
+          el.addEventListener('click', (e) => { e.stopPropagation(); setEditorFont(el.dataset.css); }));
+      }
+
+      function toggleFontPicker(e) {
+        e.stopPropagation();
+        const panel = document.getElementById('editorFonts');
+        closeEditorPanels('editorFonts');
+        panel.hidden = !panel.hidden;
+        if (!panel.hidden) {
+          renderFontPicker();
+          placeUnder(panel, document.getElementById('editorMenuBtn'));
+        }
+      }
+      applyEditorFont();
+
       // Prism's LaTeX grammar colours commands but not what they emphasise.
       (function () {
         if (!window.Prism || !Prism.languages.latex) return;
