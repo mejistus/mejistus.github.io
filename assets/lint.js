@@ -1,11 +1,10 @@
 // Errors and warnings for a post's source, shown in the editor's Problems list.
 //
-// Checks (LaTeX): unmatched \begin/\end, unbalanced braces, unclosed $ math,
+// Checks: unmatched \begin/\end, unbalanced braces, unclosed $ math,
 // \ref / \cite to something that doesn't exist, duplicate \label, rows whose
 // cell count doesn't match the tabular's column spec, missing front matter.
-// (Markdown): unterminated code fence, unclosed math, missing front matter.
 //
-// window.lintSource(text, mode) → [{ line, severity: 'error'|'warning', message }]
+// window.lintSource(text) → [{ line, severity: 'error'|'warning', message }]
 // Image paths are checked separately by the editor (it can look in the repo).
 (function () {
   'use strict';
@@ -23,16 +22,12 @@
     return out;
   }
 
-  function frontMatterProblems(text, mode) {
+  function frontMatterProblems(text) {
     const out = [];
-    const re = mode === 'latex'
-      ? /^%[ \t]*---[ \t]*\n((?:%.*\n)*?)%[ \t]*---[ \t]*(?:\n|$)/
-      : /^---\s*\n([\s\S]*?)\n---[ \t]*(?:\n|$)/;
-    const m = re.exec(text);
+    const m = /^%[ \t]*---[ \t]*\n((?:%.*\n)*?)%[ \t]*---[ \t]*(?:\n|$)/.exec(text);
     if (!m) {
-      out.push({ line: 1, severity: 'warning', message: mode === 'latex'
-        ? 'No front matter: add a "% ---" block with title, date and tag'
-        : 'No front matter: add a "---" block with title, date and tag' });
+      out.push({ line: 1, severity: 'warning',
+        message: 'No front matter: add a "% ---" block with title, date and tag' });
       return out;
     }
     const fields = m[1].split('\n').map(l => l.replace(/^%[ \t]?/, ''));
@@ -170,35 +165,17 @@
     return problems;
   }
 
-  function lintMarkdown(text) {
-    const problems = [];
-    const lines = text.split('\n');
-    let fence = null;
-    lines.forEach((l, i) => {
-      const m = /^\s*(```|~~~)/.exec(l);
-      if (!m) return;
-      if (fence && l.trim().startsWith(fence)) fence = null;
-      else if (!fence) fence = m[1];
-    });
-    if (fence) problems.push({ line: lines.length, severity: 'error', message: 'Code fence is never closed' });
-    const body = text.replace(/```[\s\S]*?```/g, '').replace(/`[^`\n]*`/g, '');
-    const dollars = (body.match(/(?<!\\)\$\$?/g) || []).length;
-    if (dollars % 2) problems.push({ line: lineOf(text, text.lastIndexOf('$')), severity: 'error', message: 'Unclosed $ math' });
-    return problems;
-  }
-
-  window.lintSource = function (text, mode) {
-    const problems = (mode === 'latex' ? lintLatex(text) : lintMarkdown(text))
-      .concat(frontMatterProblems(text, mode));
+  window.lintSource = function (text) {
+    const problems = lintLatex(text).concat(frontMatterProblems(text));
     problems.sort((a, b) => a.line - b.line || (a.severity === b.severity ? 0 : a.severity === 'error' ? -1 : 1));
     return problems;
   };
 
   // Image paths a post references, for the editor to look up in the repo.
-  window.referencedImages = function (text, mode) {
+  window.referencedImages = function (text) {
     const out = [];
-    const src = mode === 'latex' ? mask(text) : text;
-    const re = mode === 'latex' ? /\\includegraphics\*?\s*(?:\[[^\]]*\])?\s*\{([^}]*)\}/g : /!\[[^\]]*\]\(([^)\s]+)/g;
+    const src = mask(text);
+    const re = /\\includegraphics\*?\s*(?:\[[^\]]*\])?\s*\{([^}]*)\}/g;
     for (let m; (m = re.exec(src));) {
       const path = m[1].trim();
       if (path && !/^(https?:|data:)/.test(path)) out.push({ path, line: lineOf(src, m.index) });

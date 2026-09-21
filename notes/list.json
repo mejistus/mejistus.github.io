@@ -7,280 +7,280 @@
     "excerpt": "本站 LaTeX 模式的完整示例：章节与交叉引用、公式、复杂表格、插图与子图、TikZ 绘图、伪代码、引用与参考文献等日常写作场景，可直接复制作为模板。"
   },
   {
-    "file": "Notes/Rethink-Diffusion-Models-for-Feature-Modeling.md",
+    "file": "Notes/Rethink-Diffusion-Models-for-Feature-Modeling.tex",
     "title": "Rethink Diffusion Models for Feature Modeling",
     "date": "2026-06-21",
     "tag": "Notes",
     "excerpt": "本文总结了扩散模型在特征建模中的优势与局限，重点讨论小样本特征建模和高维特征建模两个场景。"
   },
   {
-    "file": "ML/Krogh-Vedelsby-集成误差分解.md",
+    "file": "ML/Krogh-Vedelsby-集成误差分解.tex",
     "title": "Krogh-Vedelsby 集成误差分解",
     "date": "2026-06-21",
     "tag": "ML",
     "excerpt": "Krogh-Vedelsby 集成误差分解说明，集成模型的误差可以表示为单模型平均误差减去模型之间的差异性，因此好的集成不仅依赖单模型准确性，也依赖模型之间的有效分歧。"
   },
   {
-    "file": "Math/Parseval’s-theorem.md",
+    "file": "Math/Parseval’s-theorem.tex",
     "title": "Parseval’s theorem",
     "date": "2026-06-01",
     "tag": "Math",
     "excerpt": "Parseval’s theorem states that the total energy of a signal is preserved under an orthonormal change of basis, especially under Fourier transform."
   },
   {
-    "file": "Math/信息论入门.md",
+    "file": "Math/信息论入门.tex",
     "title": "信息论入门",
     "date": "2026-06-01",
     "tag": "Math",
     "excerpt": "Create and learn, with joy."
   },
   {
-    "file": "ML/Untitled.md",
+    "file": "ML/Untitled.tex",
     "title": "Expectation Maximization Algorithm",
     "date": "2026-05-28",
     "tag": "ML",
     "excerpt": "Recapped from [知乎专栏：EM算法]{https://zhuanlan.zhihu.com/p/484134651}"
   },
   {
-    "file": "ML/不同基在损失作用下的优表现.md",
+    "file": "ML/不同基在损失作用下的优表现.tex",
     "title": "损失与正交基",
     "date": "2026-04-26",
     "tag": "ML",
     "excerpt": "本文从极坐标扰动、二次损失的 Hessian 和梯度流出发，说明正交基为何会改善梯度下降的条件数与方向耦合。"
   },
   {
-    "file": "Math/KKT-reviews.md",
+    "file": "Math/KKT-reviews.tex",
     "title": "KKT reviews",
     "date": "2026-04-22",
     "tag": "Math",
     "excerpt": "时隔2周再探KTT条件。"
   },
   {
-    "file": "Math/3-keys.md",
+    "file": "Math/3-keys.tex",
     "title": "泛函与优化",
     "date": "2026-04-21",
     "tag": "Math",
     "excerpt": "本文介绍了3个泛函优化的典型问题."
   },
   {
-    "file": "Math/最小作用量原理.md",
+    "file": "Math/最小作用量原理.tex",
     "title": "最小作用量原理",
     "date": "2026-04-21",
     "tag": "Math",
     "excerpt": "本文介绍了最小作用量原理、拉格朗日力学与泛函之间的联系，并解释为什么力学问题会自然落到变分法的语言中。"
   },
   {
-    "file": "Math/Mixture-Distribution's-Variance.md",
+    "file": "Math/Mixture-Distribution's-Variance.tex",
     "title": "Mixture Distribution's Variance",
     "date": "2026-04-10",
     "tag": "Math",
     "excerpt": "This post introduces a concept about mixture distribution's variance."
   },
   {
-    "file": "Math/Infinite-Dimensions-$^®$.md",
+    "file": "Math/Infinite-Dimensions-$^®$.tex",
     "title": "Infinite Dimension ™",
     "date": "2026-04-07",
     "tag": "Math",
     "excerpt": "This blog introduces the calculus of variations."
   },
   {
-    "file": "Notes/Nabla.md",
+    "file": "Notes/Nabla.tex",
     "title": "Nabla Operator",
     "date": "2026-04-01",
     "tag": "Notes",
     "excerpt": "哈密顿算子的一些直观理解"
   },
   {
-    "file": "RL/RL Paradigms.md",
+    "file": "RL/RL Paradigms.tex",
     "title": "主流强化学习方法范式综述：策略梯度、值函数、Actor-Critic 及现代变体",
     "date": "2026-03-29",
     "tag": "RL",
     "excerpt": "系统梳理强化学习核心范式，涵盖值函数法（MC、TD、Q-Learning、DQN）、策略梯度法（REINFORCE、PPO、TRPO）、Actor-Critic 族（A2C、SAC）及面向 LLM 的 GRPO，每种方法附完整伪代码与核心公式。"
   },
   {
-    "file": "RL/奖励函数的梯度.md",
+    "file": "RL/奖励函数的梯度.tex",
     "title": "The Gradiant of Reward Function",
     "date": "2026-02-17",
     "tag": "RL",
     "excerpt": "Why is it so important to get the gradient of the reward function?"
   },
   {
-    "file": "RL/Reward-hacking.md",
+    "file": "RL/Reward-hacking.tex",
     "title": "Reward Hacking",
     "date": "2026/2/9",
     "tag": "RL",
     "excerpt": "在使用在线 RL（例如 GRPO / PPO）时，经常会出现："
   },
   {
-    "file": "RL/KL-Divergence-Biased.md",
+    "file": "RL/KL-Divergence-Biased.tex",
     "title": "Difference with KL in Loss and reward",
     "date": "2026/2/9",
     "tag": "RL",
     "excerpt": "为什么在GRPO中进行微调时，在损失（Loss）里添加散度项（Reverse KL Divergence)本质上和在奖励（Reward）中添加散度项是不同的，并且会造成Bias？"
   },
   {
-    "file": "RL/强化学习入门.md",
+    "file": "RL/强化学习入门.tex",
     "title": "Reinforcement Learning",
     "date": "2026/3/8",
     "tag": "RL",
     "excerpt": "本文主要讲解强化学习的基础知识，包括强化学习的概念，RL的基本算法，以及RL的应用。"
   },
   {
-    "file": "RL/兩類KL散度.md",
+    "file": "RL/兩類KL散度.tex",
     "title": "KL Divergence in Reinforcement Learning",
     "date": "2026/2/13",
     "tag": "RL",
     "excerpt": "There are two types of KL divergence in Reinforcement Learning, forward KL and reverse KL. In this p..."
   },
   {
-    "file": "RL/GRPO-DAPO-λGRPO.md",
+    "file": "RL/GRPO-DAPO-λGRPO.tex",
     "title": "GRPO, DAPO and λGRPO",
     "date": "2026/1/3",
     "tag": "RL",
     "excerpt": "This blog is a summary of GRPO, DAPO and λGRPO."
   },
   {
-    "file": "Notes/usual_command.md",
+    "file": "Notes/usual_command.tex",
     "title": "Usual Command",
     "date": "2026/3/27",
     "tag": "Notes",
     "excerpt": "Some whisper about Docker、Git and Latex..."
   },
   {
-    "file": "Notes/i3wm-setup.md",
+    "file": "Notes/i3wm-setup.tex",
     "title": "My i3wm setup: calm aesthetics for a busy mind",
     "date": "2026/1/26",
     "tag": "Notes",
     "excerpt": "How a tiling window manager helped me find focus — and a colour palette that stays out of the way."
   },
   {
-    "file": "Math/Fubini.md",
+    "file": "Math/Fubini.tex",
     "title": "富比尼定理",
     "date": "2026/2/26",
     "tag": "Math",
     "excerpt": "富比尼定理（英語：Fubini's theorem）是數學分析中有關重積分的一個定理，由數學家圭多·富比尼在1907年提出。富比尼定理給出了使用逐次積分的方法計算雙重積分的條件。在這些條件下，不僅能夠..."
   },
   {
-    "file": "Math/Optimal-Control.md",
+    "file": "Math/Optimal-Control.tex",
     "title": "最优控制（Optimal Control）",
     "date": "2025/12/31",
     "tag": "Math",
     "excerpt": "最优控制理论是控制理论的一个分支，研究在一段时间内寻找动力系统的控制 )，从而优化目标函数 。[1\\] 它在科学、工程和运筹学中有广泛的应用。"
   },
   {
-    "file": "Math/KKT-Conditions.md",
+    "file": "Math/KKT-Conditions.tex",
     "title": "KKT-Conditions",
     "date": "2025/12/28",
     "tag": "Math",
     "excerpt": "在數學中，卡魯什-庫恩-塔克條件（英語：Karush-Kuhn-Tucker Conditions，常見別名：Kuhn-Tucker，KKT條件，Karush-Kuhn-Tucker最優化條件，Kar..."
   },
   {
-    "file": "Math/Functional-Analysis.md",
+    "file": "Math/Functional-Analysis.tex",
     "title": "Functional Analysis",
     "date": "2026/3/25",
     "tag": "Math",
     "excerpt": "This note is my study for Function Analysis."
   },
   {
-    "file": "ML/MiniMax.md",
+    "file": "ML/MiniMax.tex",
     "title": "MiniMax Loss",
     "date": "2025/11/3",
     "tag": "ML",
     "excerpt": "“MiniMax 损失函数”通常指的是 极小极大优化目标，最常见出现在 GAN（生成对抗网络） 里。"
   },
   {
-    "file": "ML/Residual.md",
+    "file": "ML/Residual.tex",
     "title": "Residual to HC, mHC, and Attention-Residual",
     "date": "2026/3/17",
     "tag": "ML",
     "excerpt": "From Standard Residual Connection to Hyper-Connections, mHC and Attention-Residual."
   },
   {
-    "file": "ML/Hinge Loss: An example.md",
+    "file": "ML/Hinge Loss: An example.tex",
     "title": "Hinge loss: An example",
     "date": "2026-03-30",
     "tag": "ML",
     "excerpt": "这是一个典型的带 margin 的排序损失，用来约束样本映射后的特征更接近正确类别文本特征，并与错误类别文本特征至少拉开一个间隔。"
   },
   {
-    "file": "ML/集中不等式.md",
+    "file": "ML/集中不等式.tex",
     "title": "Concentration inequality",
     "date": "2025/12/19",
     "tag": "ML",
     "excerpt": "这是一个集中不等式，更准确地说，是 McDiarmid 不等式（有界差分不等式） 的形式。"
   },
   {
-    "file": "ML/GUMBEL-SOFTMAX.md",
+    "file": "ML/GUMBEL-SOFTMAX.tex",
     "title": "GUMBEL-SOFTMAX",
     "date": "2025/12/18",
     "tag": "ML",
     "excerpt": "This post is a summary of Gumbel-Softmax, which solves the issue of categorical sampling that is not..."
   },
   {
-    "file": "ML/Variational-method.md",
+    "file": "ML/Variational-method.tex",
     "title": "Variational Method",
     "date": "2026/1/12",
     "tag": "ML",
     "excerpt": "变分法 （或称变分法 ）是数学分析的一个领域，利用变分，变分是函数)中的微小变化 以及泛函 )，用于求函数的极大值和最小值：从一组函数)映射到实数的映射 )。[a\\] 泛函通常表示为包含函数及其导数的..."
   },
   {
-    "file": "ML/Monte Callo.md",
+    "file": "ML/Monte Callo.tex",
     "title": "Monte Callo Method",
     "date": "2026/1/2",
     "tag": "ML",
     "excerpt": "Monte Callo Method is a method for analyzing the uncertainty of a model."
   },
   {
-    "file": "Diffusion/ODE-has-no-GRPO.md",
+    "file": "Diffusion/ODE-has-no-GRPO.tex",
     "title": "ODE has no GRPO",
     "date": "2025/12/22",
     "tag": "Diffusion",
     "excerpt": "为什么 deterministic flow 会导致计算  变得“computationally expensive”，以及“divergence estimation”到底指什么?"
   },
   {
-    "file": "Diffusion/Rethinking the Design Space of RL for Diffusion Models.md",
+    "file": "Diffusion/Rethinking the Design Space of RL for Diffusion Models.tex",
     "title": "Rethinking the Design Space of RL for Diffusion Models — On the Importance of Likelihood Estimation Beyond Loss Design",
     "date": "2026-03-28",
     "tag": "Diffusion",
     "excerpt": "本文系统分析 RL fine-tuning diffusion model 的三大设计维度，发现 ELBO-based likelihood estimation 是主导效率与性能的核心因素，而非 policy-gradient loss 的具体形式；最终方法在 90 GPU hours 内将 SD3.5-M 的 GenEval 从 0.24 提升至 0.95。"
   },
   {
-    "file": "Diffusion/LCM.md",
+    "file": "Diffusion/LCM.tex",
     "title": "Latent Consistency Models（LCM）技术说明",
     "date": "2025/12/22",
     "tag": "Diffusion",
     "excerpt": "扩散模型（Diffusion Models）在图像生成任务中表现出优异性能，但其推理过程通常依赖多步逐次去噪，计算开销较大。为降低推理成本，Latent Consistency Models（LCMs..."
   },
   {
-    "file": "Diffusion/How-to-calculate-logp.md",
+    "file": "Diffusion/How-to-calculate-logp.tex",
     "title": "Calculate Log Probability of Diffusion",
     "date": "2025/12/7",
     "tag": "Diffusion",
     "excerpt": "在流匹配中，使用策略模型下的条件对数概率通过高斯概率公式计算："
   },
   {
-    "file": "Diffusion/擴散模型邊緣分布.md",
+    "file": "Diffusion/擴散模型邊緣分布.tex",
     "title": "擴散模型邊緣分布",
     "date": "2025/12/30",
     "tag": "Diffusion",
     "excerpt": "当前时刻的 score function 可以通过条件分布来计算：$\\nabla \\log p_t(x_t) = \\mathbb{E}_{x_0 \\sim p(x_0|x_t)}[\\nabla \\log p(x_t|x_0)]$"
   },
   {
-    "file": "Diffusion/Flow-Model-rev.md",
+    "file": "Diffusion/Flow-Model-rev.tex",
     "title": "the RCGM framework",
     "date": "2025/11/12",
     "tag": "Diffusion",
     "excerpt": "所谓蒸馏即对已有的扩散模型， 减少其采样步数从而提高生成性能。"
   },
   {
-    "file": "Diffusion/Reconsidering-Noise-DDPM.md",
+    "file": "Diffusion/Reconsidering-Noise-DDPM.tex",
     "title": "重新审视扩散模型中的噪声：理论与实验",
     "date": "2026/3/28",
     "tag": "Diffusion",
     "excerpt": "当前绝大多数去噪扩散概率模型（DDPM）在前向扩散与反向去噪过程中，默认使用**白高斯噪声（White Gaussian Noise）**。这一选择的理由很简单——分析方便、实现简单。但这真的是最优选择吗？"
   },
   {
-    "file": "Diffusion/Diffusion-LogPi.md",
+    "file": "Diffusion/Diffusion-LogPi.tex",
     "title": "Calculate $log \\pi_\\theta$ in code",
     "date": "2025/11/17",
     "tag": "Diffusion",

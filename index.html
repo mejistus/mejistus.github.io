@@ -4,8 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Xu Chen — Personal Blog</title>
-    <!-- Marked.js for Markdown parsing -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- KaTeX for math formulas -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -15,15 +13,14 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.38.1"></script>
-    <script src="assets/latex-complete.js?v=6.38.1"></script>
-    <script src="assets/vim.js?v=6.38.1"></script>
-    <script src="assets/lint.js?v=6.38.1"></script>
-    <script src="assets/tikz-nn.js?v=6.38.1"></script>
-    <script src="assets/bib.js?v=6.38.1"></script>
+    <script src="assets/latex.js?v=8.0.0"></script>
+    <script src="assets/latex-complete.js?v=8.0.0"></script>
+    <script src="assets/vim.js?v=8.0.0"></script>
+    <script src="assets/lint.js?v=8.0.0"></script>
+    <script src="assets/tikz-nn.js?v=8.0.0"></script>
+    <script src="assets/bib.js?v=8.0.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -2546,11 +2543,10 @@
       .editor-highlight .token.cdata { color: var(--tok-verbatim); }
       .editor-highlight .token.url { color: var(--tok-env); text-decoration: underline; }
       .editor-highlight .token.punctuation { color: var(--tok-punct); }
-      /* Markdown */
       .editor-highlight .token.front-matter-block,
       .editor-highlight .token.front-matter { color: var(--tok-comment); }
       .editor-highlight .token.title { color: var(--warn); }
-      /* Markdown's own emphasis, and the LaTeX commands below. */
+      /* Emphasis, where the source actually asks for it. */
       .editor-highlight .token.bold,
       .editor-highlight .token.tex-bold { font-weight: 700; }
       .editor-highlight .token.italic,
@@ -3200,10 +3196,6 @@
           </div>
           <div class="editor-pane editor-pane-source">
             <div class="editor-pane-header">
-              <div class="editor-mode-switch" id="editorModeSwitch" role="group" aria-label="Editor mode">
-                <button type="button" data-mode="markdown" onclick="setEditorMode('markdown')">Markdown</button>
-                <button type="button" data-mode="latex" onclick="setEditorMode('latex')">LaTeX</button>
-              </div>
               <!-- One menu instead of a row of buttons. -->
               <button type="button" class="editor-compile-btn" id="editorMenuBtn" onclick="toggleMenu(event)">Menu ▾</button>
               <div class="editor-menu" id="editorMenu" hidden>
@@ -3609,89 +3601,7 @@
       const nl = (s) => s.replace(/\n/g, "<br>");
 
       // Protect math blocks before parsing, restore after
-      const mathPlaceholders = [];
-      const protectMath = (text) => {
-        let protectedText = text;
-        // Protect display math $$ ... $$
-        protectedText = protectedText.replace(/\$\$([\s\S]+?)\$\$/g, (match, tex) => {
-          const idx = mathPlaceholders.length;
-          mathPlaceholders.push({ tex, display: true });
-          return `%%MATH_PLACEHOLDER_${idx}%%`;
-        });
-        // Protect inline math $ ... $ (but not $$)
-        protectedText = protectedText.replace(/\$([^\n$]+?)\$/g, (match, tex) => {
-          const idx = mathPlaceholders.length;
-          mathPlaceholders.push({ tex, display: false });
-          return `%%MATH_PLACEHOLDER_${idx}%%`;
-        });
-        return protectedText;
-      };
-
-      const restoreMath = (html) => {
-        mathPlaceholders.forEach((item, idx) => {
-          const placeholder = `%%MATH_PLACEHOLDER_${idx}%%`;
-          try {
-            const rendered = katex.renderToString(item.tex, { 
-              displayMode: item.display, 
-              throwOnError: false 
-            });
-            html = html.replace(placeholder, rendered);
-          } catch (e) {
-            html = html.replace(placeholder, item.tex);
-          }
-        });
-        return html;
-      };
-
-      // Configure marked
-      marked.setOptions({
-        breaks: true,
-        gfm: true
-      });
-
-      // Parse Markdown with marked.js + KaTeX + Prism
-      const parseMarkdown = (text, hideH1 = false) => {
-        // Reset placeholders
-        mathPlaceholders.length = 0;
-        
-        // Remove YAML front matter (--- ... ---) FIRST
-        text = text.replace(/^---\s*\n[\s\S]*?\n\s*---\s*\n/m, '');
-        
-        // Protect code blocks
-        const codeBlocks = [];
-        let protectedText = text.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
-          const idx = codeBlocks.length;
-          codeBlocks.push({ lang, code });
-          return `%%CODE_BLOCK_${idx}%%`;
-        });
-        
-        // Protect math blocks (after removing front matter and code blocks)
-        protectedText = protectMath(protectedText);
-        
-        // Parse with marked
-        let html = marked.parse(protectedText);
-        
-        // Restore code blocks with Prism highlighting
-        codeBlocks.forEach((block, idx) => {
-          const language = block.lang || 'plaintext';
-          const grammar = Prism.languages[language] || Prism.languages.plaintext;
-          const highlighted = Prism.highlight(block.code, grammar, language);
-          const codeHtml = `<pre class="language-${language}"><code class="language-${language}">${highlighted}</code></pre>`;
-          html = html.replace(`%%CODE_BLOCK_${idx}%%`, codeHtml);
-        });
-        
-        // Hide H1 if requested (already shown in panel title)
-        if (hideH1) {
-          html = html.replace(/<h1>.*?<\/h1>/g, '');
-        }
-        
-        // Restore and render math
-        html = restoreMath(html);
-        
-        return html;
-      };
-
-      // Extract first N words from text (stripped of markdown)
+      // Extract first N words from text
       const excerpt = (text, limit = 120) => {
         // Remove front matter
         text = text.replace(/^---\s*\n[\s\S]*?\n\s*---\s*\n/m, '');
@@ -3728,12 +3638,6 @@
         }
         
         return truncated + '...';
-      };
-
-      // Extract title from markdown (first h1)
-      const extractTitle = (text) => {
-        const match = text.match(/^# (.+)$/m);
-        return match ? match[1] : 'Untitled';
       };
 
       // ── Poem pagination ──
@@ -3800,7 +3704,7 @@
           <button class="pager-btn" onclick="poemPage++;renderCards()" ${poemPage === totalPages - 1 ? "disabled" : ""}>Next →</button>`;
       };
 
-      // Render inline markdown (bold, italic, links, math) for titles/excerpts
+      // Render a title or excerpt: emphasis, links and maths, nothing else.
       const renderInline = (text) => {
         if (!text) return '';
         let html = text;
@@ -4375,19 +4279,13 @@
 
       // ── Parsed HTML cache ──
       const parsedHtmlCache = new Map();
-      // A saved post's format is fixed by its extension; an unsaved one
-      // carries the mode chosen in the editor.
-      function postMode(b) {
-        if (b && b.file) return /\.tex$/i.test(b.file) ? 'latex' : 'markdown';
-        return (b && b.mode) || 'markdown';
-      }
-      function renderPost(content, mode, hideTitle) {
-        return mode === 'latex' ? parseLatex(content || '') : parseMarkdown(content || '', hideTitle);
+      function renderPost(content) {
+        return parseLatex(content || '');
       }
 
       function getParsedHtml(i) {
         if (parsedHtmlCache.has(i)) return parsedHtmlCache.get(i);
-        const html = renderPost(blogs[i].content, postMode(blogs[i]), true);
+        const html = renderPost(blogs[i].content);
         parsedHtmlCache.set(i, html);
         return html;
       }
@@ -5293,58 +5191,21 @@
 
       // ── Editor ──
       let previewDebounce = null;
-      let editorMode = 'markdown';
-      const EDITOR_MODE_KEY = 'editor_default_mode';
+      const EDITOR_PLACEHOLDER =
+        '% ---\n% title: ...\n% date: ...\n% tag: ...\n% ---\n\n\\section{...}\n\nYour content here...';
 
-      const EDITOR_PLACEHOLDERS = {
-        markdown: '---\ntitle: ...\ndate: ...\ntag: ...\n---\n\nYour content here...',
-        latex: '% ---\n% title: ...\n% date: ...\n% tag: ...\n% ---\n\n\\section{...}\n\nYour content here...',
-      };
-
-      function syncEditorModeUI(locked) {
-        const sw = document.getElementById('editorModeSwitch');
-        sw.classList.toggle('locked', locked);
-        const short = window.matchMedia('(max-width: 768px)').matches;
-        sw.querySelectorAll('button').forEach(btn => {
-          btn.classList.toggle('active', btn.dataset.mode === editorMode);
-          btn.disabled = locked;
-          // Short labels keep the switch inside a phone's header row.
-          btn.textContent = short
-            ? (btn.dataset.mode === 'latex' ? 'TeX' : 'MD')
-            : (btn.dataset.mode === 'latex' ? 'LaTeX' : 'Markdown');
-          btn.title = locked ? 'Saved posts keep their format' : '';
-        });
-        document.getElementById('editorTextarea').placeholder = EDITOR_PLACEHOLDERS[editorMode];
+      // Posts are LaTeX; this just puts the editor's chrome back in its
+      // opening state whenever a post is loaded.
+      function syncEditorModeUI() {
+        document.getElementById('editorTextarea').placeholder = EDITOR_PLACEHOLDER;
         const compile = document.getElementById('editorCompileBtn');
         editorVim.reset();
-        // The Problems list applies to both modes; the rest is LaTeX-only.
-        document.getElementById('editorCompileBtn').hidden = editorMode !== 'latex';
-        document.getElementById('editorSyncArrows').hidden = editorMode !== 'latex';
-        document.getElementById('editorSnippetsItem').hidden = editorMode !== 'latex';
-        document.getElementById('editorRefsItem').hidden = editorMode !== 'latex';
+        document.getElementById('editorSyncArrows').hidden = false;
         document.getElementById('editorFind').hidden = true;
         closeEditorPanels();
         runLint();
         updateHighlight();
         compile.textContent = `Compile ${/Mac|iPhone|iPad/.test(navigator.platform) ? '⌘S' : 'Ctrl+S'}`;
-      }
-
-      // Only an unsaved post can switch; its front matter is converted and
-      // an untouched template body is swapped for the other format's.
-      function setEditorMode(mode) {
-        const b = blogs[currentBlog];
-        if (!b || b.file || mode === editorMode) return;
-        const ta = document.getElementById('editorTextarea');
-        const { fields, body } = splitFrontMatter(ta.value);
-        const title = parseFrontMatterField(ta.value, 'title') || 'Untitled';
-        const fresh = { markdown: `# ${title}\n\n`, latex: `\\section{Introduction}\n\n` };
-        const newBody = body.trim() === fresh[editorMode].trim() || !body.trim() ? fresh[mode] : body;
-        ta.value = buildFrontMatter(fields, mode) + '\n' + newBody;
-        editorMode = mode;
-        b.mode = mode;
-        try { localStorage.setItem(EDITOR_MODE_KEY, mode); } catch (_) {}
-        syncEditorModeUI(false);
-        updatePreview();
       }
 
       function toggleEditor() {
@@ -5374,8 +5235,7 @@
 
         // Fill textarea with full content (including front matter)
         document.getElementById('editorTextarea').value = b.content || '';
-        editorMode = postMode(b);
-        syncEditorModeUI(!!b.file);
+        syncEditorModeUI();
 
         // Show editor, hide read view
         document.getElementById('blogReadBody').classList.add('hidden');
@@ -5427,7 +5287,7 @@
       function updatePreview() {
         document.getElementById('editorCompileBtn').classList.remove('stale');
         const md = document.getElementById('editorTextarea').value;
-        document.getElementById('editorPreview').innerHTML = renderPost(md, editorMode, false);
+        document.getElementById('editorPreview').innerHTML = renderPost(md);
         applyStagedImages(document.getElementById('editorPreview'));
         fitLatexBoxes(document.getElementById('editorPreview'));
         loadTikzJax(document.getElementById('editorPreview'));
@@ -5542,13 +5402,11 @@
         const src = document.getElementById('editorTextarea').value;
         const items = [];
         const counters = [0, 0, 0];
-        const re = editorMode === 'latex'
-          ? /^[ \t]*\\(sub)?(sub)?section(\*?)\s*(?:\[[^\]]*\])?\s*\{/gm
-          : /^(#{1,3})\s+(.+)$/gm;
+        const re = /^[ \t]*\\(sub)?(sub)?section(\*?)\s*(?:\[[^\]]*\])?\s*\{/gm;
         for (let m; (m = re.exec(src));) {
           const line = src.slice(0, m.index).split('\n').length;
           let level, title;
-          if (editorMode === 'latex') {
+          {
             level = 1 + (m[1] ? 1 : 0) + (m[2] ? 1 : 0);
             const g = /\{/.exec(src.slice(m.index + m[0].length - 1));
             // read the braced title
@@ -5562,11 +5420,6 @@
             }
             title = out.replace(/\\[a-zA-Z]+\s*/g, '').replace(/[{}]/g, '').trim();
             if (!m[3]) { counters[level - 1]++; for (let k = level; k < 3; k++) counters[k] = 0; }
-          } else {
-            level = m[1].length;
-            title = m[2].replace(/[*`_]/g, '').trim();
-            counters[level - 1]++;
-            for (let k = level; k < 3; k++) counters[k] = 0;
           }
           const num = counters.slice(0, level).filter((n, i) => i === 0 || n).join('.');
           items.push({ line, level, title, num: level === 1 || counters[level - 1] ? num : '' });
@@ -5769,7 +5622,7 @@
         const current = document.getElementById('editorTextarea').value;
         if (current === (blogs[currentBlog] && blogs[currentBlog].content)) { clearDraft(); return; }
         const all = allDrafts();
-        all[id] = { mode: editorMode, at: Date.now(), content: current };
+        all[id] = { at: Date.now(), content: current };
         writeDrafts(all);
       }
       function clearDraft() {
@@ -5791,9 +5644,7 @@
         const when = new Date(d.at).toLocaleString();
         if (confirm(`This browser has an unsaved draft of this post from ${when}.\n\nRestore it? (Cancel keeps the published version.)`)) {
           ta.value = d.content;
-          editorMode = d.mode || editorMode;
-          syncEditorModeUI(!!blogs[currentBlog].file);
-          if (editorMode !== 'latex') updatePreview();
+          syncEditorModeUI();
         } else {
           clearDraft();
         }
@@ -5961,11 +5812,10 @@
         highlightFrame = requestAnimationFrame(() => {
           const ta = document.getElementById('editorTextarea');
           const pre = document.getElementById('editorHighlight');
-          const lang = editorMode === 'latex' ? 'latex' : 'markdown';
-          const grammar = Prism.languages[lang];
+          const grammar = Prism.languages.latex;
           const src = ta.value;
           // Trailing newline so a final empty line still takes up height.
-          pre.firstElementChild.innerHTML = (grammar ? Prism.highlight(src, grammar, lang) : escHtml(src)) + '\n';
+          pre.firstElementChild.innerHTML = (grammar ? Prism.highlight(src, grammar, 'latex') : escHtml(src)) + '\n';
           syncHighlightLayout();
           renderGutter();
           updateActiveLine();
@@ -6177,15 +6027,10 @@
       document.getElementById('editorTextarea').addEventListener('input', updateHighlight);
       new ResizeObserver(() => { syncHighlightLayout(); renderGutter(); }).observe(document.getElementById('editorTextarea'));
 
-      // Markdown previews live. LaTeX would render half-typed commands, so it
-      // only compiles on Cmd/Ctrl+S (or the Compile button).
+      // The preview would render half-typed commands, so it waits for
+      // Cmd/Ctrl+S (or the Compile button).
       document.getElementById('editorTextarea').addEventListener('input', () => {
-        if (editorMode === 'latex') {
-          document.getElementById('editorCompileBtn').classList.add('stale');
-          return;
-        }
-        clearTimeout(previewDebounce);
-        previewDebounce = setTimeout(updatePreview, 300);
+        document.getElementById('editorCompileBtn').classList.add('stale');
       });
 
       // Bidirectional proportional scroll sync. Uses a short time-based lock to
@@ -6262,7 +6107,6 @@
       }
 
       function syncSourceToPreview(flash) {
-        if (editorMode !== 'latex') return;
         const ta = document.getElementById('editorTextarea');
         const target = previewTargetForLine(sourceLineAt(ta.selectionStart));
         if (!target) return;
@@ -6295,7 +6139,6 @@
       }
 
       function syncPreviewToSource(e) {
-        if (editorMode !== 'latex') return;
         const hit = document.caretRangeFromPoint ? document.caretRangeFromPoint(e.clientX, e.clientY) : null;
         const marker = lineMarkerBefore((hit && hit.startContainer) || e.target);
         if (!marker) return;
@@ -6373,9 +6216,9 @@
 
       async function runLint() {
         const src = document.getElementById('editorTextarea').value;
-        problems = lintSource(src, editorMode).concat(tikzProblems());
+        problems = lintSource(src).concat(tikzProblems());
         renderProblems();
-        const imgs = await checkImages(referencedImages(src, editorMode));
+        const imgs = await checkImages(referencedImages(src));
         problems = problems.concat(imgs).sort((a, b) => a.line - b.line);
         problems = problems.filter((p, i, all) => i === all.findIndex(q => q.line === p.line && q.message === p.message));
         renderProblems();
@@ -6438,7 +6281,6 @@
 
       // The "‹" arrow: whatever the preview shows at the top maps back to the source.
       function syncPreviewTopToSource() {
-        if (editorMode !== 'latex') return;
         const pv = document.getElementById('editorPreview');
         const top = pv.getBoundingClientRect().top;
         let best = null;
@@ -6468,8 +6310,7 @@
         requestAnimationFrame(() => syncSourceToPreview(false));
       }
 
-      // ── Cmd/Ctrl+/ toggles comments on the selected lines (or the caret's line):
-      // "% " in LaTeX; Markdown has no line comments, so <!-- … --> wraps them. ──
+      // ── Cmd/Ctrl+/ comments the selected lines (or the caret's line) with "% " ──
       function toggleComment() {
         const ta = document.getElementById('editorTextarea');
         const v = ta.value;
@@ -6480,22 +6321,12 @@
         const endNl = v.indexOf('\n', b);
         const end = endNl < 0 ? v.length : endNl;
         const block = v.slice(start, end);
-        let out;
-        if (editorMode === 'latex') {
-          const lines = block.split('\n');
-          const filled = lines.filter(l => l.trim());
-          const commented = filled.length && filled.every(l => /^\s*%/.test(l));
-          if (commented) {
-            out = lines.map(l => l.replace(/^(\s*)% ?/, '$1')).join('\n');
-          } else {
-            const indent = Math.min(...filled.map(l => /^[ \t]*/.exec(l)[0].length).concat(filled.length ? [] : [0]));
-            out = lines.map(l => l.trim() || lines.length === 1 ? l.slice(0, indent) + '% ' + l.slice(indent) : l).join('\n');
-          }
-        } else {
-          const m = /^(\s*)<!--\s?([\s\S]*?)\s?-->(\s*)$/.exec(block);
-          const lead = /^\s*/.exec(block)[0];
-          out = m ? m[1] + m[2] + m[3] : `${lead}<!-- ${block.slice(lead.length)} -->`;
-        }
+        const lines = block.split('\n');
+        const filled = lines.filter(l => l.trim());
+        const commented = filled.length && filled.every(l => /^\s*%/.test(l));
+        const out = commented
+          ? lines.map(l => l.replace(/^(\s*)% ?/, '$1')).join('\n')
+          : lines.map(l => (l.trim() ? l.replace(/^(\s*)/, '$1% ') : l)).join('\n');
         if (out === block) return;
         editorRangeReplace(start, end, out);
         ta.setSelectionRange(start, start + out.length);
@@ -6507,16 +6338,15 @@
         }
       });
 
-      // Cmd+S / Ctrl+S: compile in LaTeX mode, save in Markdown mode
+      // Cmd+S / Ctrl+S compiles
       document.addEventListener('keydown', (e) => {
         if (editorActive && (e.metaKey || e.ctrlKey) && e.key === 's') {
           e.preventDefault();
-          if (editorMode === 'latex') compileLatex();
-          else saveToGitHub();
+          compileLatex();
         }
       });
 
-      // ── Markdown editor helpers: format insertion + context menu + image upload ──
+      // ── Editor helpers: format insertion + context menu + image upload ──
       // Default path uses document.execCommand('insertText'), which:
       //   • is recorded in the textarea's native undo stack (Ctrl/Cmd-Z works)
       //   • preserves scroll position (no .value reset jitter)
@@ -6603,35 +6433,9 @@
         editorRangeReplace(trimmedLen, ta.value.length, `\n\n[^${label}]: `, { noUndo: true });
       }
 
-      const EDITOR_FORMAT_ACTIONS = {
-        bold:        () => editorWrap('**', '**', 'bold'),
-        italic:      () => editorWrap('*', '*', 'italic'),
-        underline:   () => editorWrap('<u>', '</u>', 'underline'),
-        highlight:   () => editorWrap('==', '==', 'highlight'),
-        strike:      () => editorWrap('~~', '~~', 'strikethrough'),
-        'math-inline': () => editorWrap('$', '$', 'x'),
-        'math-block':  () => editorInsertBlock('$$\n\n$$'),
-        footnote: () => {
-          const label = String(Date.now()).slice(-4);
-          // Order matters: append the def FIRST (out-of-band setRangeText would
-          // otherwise clobber the undo stack and lose the marker insert).
-          editorAppendFootnote(label);
-          editorInsertAtCursor(`[^${label}]`);
-        },
-        'code-inline': () => editorWrap('`', '`', 'code'),
-        'code-block':  () => editorInsertBlock('```\n\n```'),
-        link: () => editorInsertAtCursor('[text](url)', 4),
-        table: () => editorInsertBlock(
-          '| Header | Header |\n| --- | --- |\n| cell | cell |\n| cell | cell |'
-        ),
-        quote: () => editorWrap('> ', '', 'quote'),
-        hr: () => editorInsertBlock('---'),
-        image: () => triggerImageUpload(),
-      };
-
       const latexCompletion = LatexComplete.attach(document.getElementById('editorTextarea'), {
         // In Vim mode only insert mode types text, so completion stays out of the way.
-        isActive: () => editorActive && editorMode === 'latex' && ['off', 'insert'].includes(editorVim.mode()),
+        isActive: () => editorActive && ['off', 'insert'].includes(editorVim.mode()),
         replace: (start, end, text) => editorRangeReplace(start, end, text),
       });
 
@@ -6641,7 +6445,7 @@
         replace: (start, end, text) => editorRangeReplace(start, end, text),
         statusEl: document.getElementById('vimStatus'),
         cmdlineEl: document.getElementById('vimCmdline'),
-        onWrite: () => { if (editorMode === 'latex') compileLatex(); else saveToGitHub(); },
+        onWrite: () => compileLatex(),
         onWriteQuit: () => saveToGitHub(),
         onQuit: () => closeEditor(),
         onLeaveInsert: () => latexCompletion.dismiss(),
@@ -6755,7 +6559,7 @@
         const filename = makeImageFilename(file.name);
         const path = `notes/assets/${filename}`;
 
-        const placeholder = editorMode === 'latex' ? `% uploading ${filename}…` : `![uploading ${filename}…]()`;
+        const placeholder = `% uploading ${filename}…`;
         const ta = document.getElementById('editorTextarea');
         const insertPos = ta.selectionStart;
         editorInsertAtCursor(placeholder);
@@ -6771,9 +6575,7 @@
         try {
           const b64 = await fileToBase64(file);
           await commitBinaryFile(path, b64, `Add image: ${filename}`);
-          const ref = editorMode === 'latex'
-            ? `\\begin{figure}\n  \\centering\n  \\includegraphics[width=0.8\\linewidth]{${path}}\n\\end{figure}`
-            : `![${filename}](${path})`;
+          const ref = `\\begin{figure}\n  \\centering\n  \\includegraphics[width=0.8\\linewidth]{${path}}\n\\end{figure}`;
           replacePlaceholder(ref);
           const newPos = insertPos + ref.length;
           ta.selectionStart = ta.selectionEnd = newPos;
@@ -6851,7 +6653,7 @@
         const action = item.dataset.action;
         if (!action) return; // parent submenu trigger — keep menu open
         closeEditorCtxMenu();
-        const fn = (editorMode === 'latex' ? LATEX_FORMAT_ACTIONS : EDITOR_FORMAT_ACTIONS)[action];
+        const fn = LATEX_FORMAT_ACTIONS[action];
         if (fn) fn();
       });
       document.addEventListener('mousedown', (e) => {
@@ -6902,11 +6704,9 @@
       })();
 
       // ── Front matter helpers ──
-      // Markdown posts use a YAML block between --- lines. LaTeX posts use the
-      // same block commented out with %, so the .tex file still compiles.
+      // A YAML-ish block commented out with %, so the .tex file still compiles.
       function splitFrontMatter(content) {
-        let m = content.match(/^---\s*\n([\s\S]*?)\n---[ \t]*(?:\n|$)/);
-        if (!m) m = content.match(/^%[ \t]*---[ \t]*\n((?:%.*\n)*?)%[ \t]*---[ \t]*(?:\n|$)/);
+        const m = content.match(/^%[ \t]*---[ \t]*\n((?:%.*\n)*?)%[ \t]*---[ \t]*(?:\n|$)/);
         if (!m) return { fields: [], body: content };
         const fields = m[1].split('\n')
           .map(l => l.replace(/^%[ \t]?/, ''))
@@ -6915,9 +6715,8 @@
         return { fields, body: content.slice(m[0].length).replace(/^\n/, '') };
       }
 
-      function buildFrontMatter(fields, mode) {
-        const p = mode === 'latex' ? '% ' : '';
-        return [`${p}---`, ...fields.map(([k, v]) => `${p}${k}: ${v}`.trimEnd()), `${p}---`].join('\n') + '\n';
+      function buildFrontMatter(fields) {
+        return ['% ---', ...fields.map(([k, v]) => `% ${k}: ${v}`.trimEnd()), '% ---'].join('\n') + '\n';
       }
 
       function parseFrontMatterField(content, field) {
@@ -6926,34 +6725,15 @@
       }
 
       // Port of Python extract_excerpt — matches add_blog.py logic
-      function extractExcerpt(content, mode) {
-        // Check front matter excerpt first
+      function extractExcerpt(content) {
         const fmExcerpt = parseFrontMatterField(content, 'excerpt');
         if (fmExcerpt) return fmExcerpt;
-        if (mode === 'latex') {
-          // First rendered paragraph, without math.
-          const div = document.createElement('div');
-          div.innerHTML = parseLatex(content);
-          div.querySelectorAll('.katex, .latex-fn-ref').forEach(el => el.remove());
-          const p = [...div.querySelectorAll('p')].map(el => el.textContent.replace(/\s+/g, ' ').trim()).find(Boolean) || '';
-          return p.length > 100 ? p.slice(0, 100) + '...' : p;
-        }
-        // Strip front matter
-        const body = content.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, '');
-        const lines = body.split('\n');
-        for (const line of lines) {
-          const stripped = line.trim();
-          if (!stripped || stripped.startsWith('#')) continue;
-          let text = stripped;
-          text = text.replace(/\*\*(.+?)\*\*/g, '$1');
-          text = text.replace(/\*(.+?)\*/g, '$1');
-          text = text.replace(/\[(.+?)\]\(.+?\)/g, '$1');
-          text = text.replace(/<[^>]+>/g, '');
-          text = text.replace(/\$\$?.*?\$\$?/g, '');
-          text = text.trim();
-          if (text) return text.length > 100 ? text.slice(0, 100) + '...' : text;
-        }
-        return '';
+        // Otherwise the first rendered paragraph, without its maths.
+        const div = document.createElement('div');
+        div.innerHTML = parseLatex(content);
+        div.querySelectorAll('.katex, .latex-fn-ref').forEach(el => el.remove());
+        const p = [...div.querySelectorAll('p')].map(el => el.textContent.replace(/\s+/g, ' ').trim()).find(Boolean) || '';
+        return p.length > 100 ? p.slice(0, 100) + '...' : p;
       }
 
       // ── Save to GitHub ──
@@ -7039,7 +6819,7 @@
         if (!ghToken || currentBlog === null) return;
 
         // Saving compiles first, so TikZ pictures match what is being saved.
-        if (editorMode === 'latex' && document.getElementById('editorCompileBtn').classList.contains('stale')) {
+        if (document.getElementById('editorCompileBtn').classList.contains('stale')) {
           updatePreview();
         }
 
@@ -7055,13 +6835,13 @@
           const newTitle = parseFrontMatterField(fullContent, 'title') || 'Untitled';
           const newTag = parseFrontMatterField(fullContent, 'tag') || 'Notes';
           const newDate = parseFrontMatterField(fullContent, 'date') || new Date().toISOString().split('T')[0];
-          const newExcerpt = extractExcerpt(fullContent, editorMode);
+          const newExcerpt = extractExcerpt(fullContent);
 
           const oldFile = b.file;
-          const newFile = await makeUniqueBlogFilePath(newTag, newTitle, oldFile, editorMode === 'latex' ? '.tex' : '.md');
+          const newFile = await makeUniqueBlogFilePath(newTag, newTitle, oldFile, '.tex');
           const fileMoved = !!oldFile && oldFile !== newFile;
 
-          // 1. Commit the markdown file
+          // 1. Commit the post
           const mdPath = `notes/${newFile}`;
           const commitMsg = isNewPost ? `New blog: ${newTitle}` : (fileMoved ? `Move blog: ${newTitle}` : `Update blog: ${newTitle}`);
           await commitFile(mdPath, fullContent, commitMsg);
@@ -7091,7 +6871,7 @@
             await deleteGitHubFile(`notes/${oldFile}`, `Remove old blog path: ${oldFile}`);
           }
 
-          const tikz = editorMode === 'latex' ? await stageCompiledTikz() : { staged: 0, pending: 0 };
+          const tikz = await stageCompiledTikz();
 
           // 3. Update local state immediately
           b.file = newFile;
@@ -7636,14 +7416,11 @@
         // Tag = current filter, or Notes if "all"
         const tag = blogFilter !== 'all' ? blogFilter : 'Notes';
         const today = new Date().toISOString().split('T')[0];
-        let mode = 'latex';
-        try { mode = localStorage.getItem(EDITOR_MODE_KEY) || 'latex'; } catch (_) {}
         const fields = [['title', 'Untitled'], ['date', today], ['tag', tag], ['excerpt', '']];
-        const template = buildFrontMatter(fields, mode) + '\n' +
-          (mode === 'latex' ? '\\section{Introduction}\n\n' : '# Untitled\n\n');
+        const template = buildFrontMatter(fields) + '\n\\section{Introduction}\n\n';
 
         // Create a placeholder blog entry in local state
-        const placeholder = { file: null, mode, title: 'Untitled', date: today, tag, excerpt: '', content: template };
+        const placeholder = { file: null, title: 'Untitled', date: today, tag, excerpt: '', content: template };
         blogs.unshift(placeholder);
         displayBlogs = [];
         buildBlogFilters();
@@ -7672,8 +7449,7 @@
           document.getElementById('editorContainer').classList.add('active');
           document.getElementById('blogEditBtn').classList.add('active');
           document.getElementById('editorTextarea').value = template;
-          editorMode = mode;
-          syncEditorModeUI(false);
+          syncEditorModeUI();
           offerDraft();
           document.getElementById('editorStatus').textContent = '';
           document.getElementById('editorStatus').className = 'editor-status';
@@ -7703,7 +7479,7 @@
           await commitFile('notes/list.json', JSON.stringify(listContent, null, 2) + '\n',
             `Remove from list.json: ${b.title}`);
 
-          // 2. Delete the markdown file
+          // 2. Delete the post
           await deleteGitHubFile(`notes/${b.file}`, `Delete blog: ${b.title}`);
 
           // 3. Update local state immediately

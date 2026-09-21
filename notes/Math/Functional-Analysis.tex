@@ -1,0 +1,508 @@
+% ---
+% title: Functional Analysis
+% date: 2026/3/25
+% tag: Math
+% ---
+This note is my study for Function Analysis.
+
+\section{Chap 0}
+
+\subsection{Inner Product \& Outer Product}
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Operation & Scalar or Vector? & Measures & Physical Examples \\
+\midrule
+\textbf{Dot product} & Scalar & Alignment along a direction & Work, flux, projection \\
+\textbf{Cross product} & Vector & Rotation / perpendicular effect & Torque, angular momentum, magnetic force \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Dinstinct from Matrix Theory}
+
+\begin{quote}
+Functional analysis is the extension of finite-dimensional linear algebra (matrix theory) to infinite-dimensional spaces of functions and general operators.
+\end{quote}
+
+What fundamentally changes:
+
+\begin{itemize}
+  \item \textbf{From vectors to functions}
+  Objects are no longer ( \(\mathbb{R}^n\) ), but spaces like (\(L^2\)), (\(C([a,b])\)).
+  \item \textbf{From matrices to operators}
+  Linear maps become general operators (often not representable as matrices, possibly unbounded).
+  \item \textbf{Infinite-dimensional effects}
+  Many finite-dimensional facts break:
+  bounded ≠ compact, norms are not equivalent, bases behave differently.
+  \item \textbf{Richer notions of convergence}
+  Not just norm convergence, but also weak and weak-* convergence.
+  \item \textbf{Spectral theory generalizes}
+  Eigenvalues → spectrum (can be continuous, not just discrete).
+  \item \textbf{Structure via topology}
+  Norms, completeness (Banach spaces), inner products (Hilbert spaces) become central tools.
+\end{itemize}
+
+\begin{quote}
+In short: functional analysis studies linear structure in settings where \textbf{dimension, convergence, and operators become genuinely more subtle than in matrix theory}.
+\end{quote}
+
+\subsection{Definition for InProduct in Function Space}
+
+\(\mathbf{L}^2(-\pi,\pi)\) :
+
+\[
+(f,g)=\int_{-\pi}^{\pi}f(x)g(x)dx
+\]
+
+For Fourier series, the \textbf{orthogonal basis} comes from \textbf{trigonometric functions}. Here’s a concise summary:
+
+\hrule
+
+\subsection{Orthogonal Basis of Fourier Series}
+
+For a function ( \(f(x)\) ) defined on ( \([-L, L]\) ):
+
+\[
+f(x) \sim \frac{a_0}{2} + \sum_{n=1}^{\infty} \big(a_n \cos\frac{n\pi x}{L} + b_n \sin\frac{n\pi x}{L}\big)
+\]
+
+The \textbf{orthogonal basis functions} are:
+
+\[
+{ 1, \cos\frac{n\pi x}{L}, \sin\frac{n\pi x}{L} }_{n=1}^{\infty}
+\]
+
+\hrule
+
+\subsubsection{Orthogonality Relations}
+
+\begin{itemize}
+  \item Over the interval (\([-L, L]\)):
+  \\
+\end{itemize}
+
+\[
+\int_{-L}^{L} cos \frac{m\pi x}{L} cos \frac{n\pi x}{L},dx = 0 \quad (m \ne n)    \\ 
+  \int_{-L}^{L} sin \frac{m\pi x}{L} sin \frac{n\pi x}{L},dx = 0 \quad (m \ne n)    \\
+  \int_{-L}^{L} cos \frac{m\pi x}{L} sin \frac{n\pi x}{L},dx = 0 \quad (\forall m,n)
+\]
+
+\begin{itemize}
+  \item The constant function (1) is orthogonal to all (\(\sin\)) and (\(\cos\)) functions for (\( n \ge 1\) ).
+\end{itemize}
+
+\hrule
+
+\subsubsection{Intuition}
+
+\begin{itemize}
+  \item Each basis function represents a \textbf{“pure frequency”}.
+  \item Orthogonality means the projection of one basis onto another is zero — no overlap in “energy” between different frequencies.
+  \item Fourier coefficients \((a_n, b_n)\) are just \textbf{projections onto these orthogonal directions}, analogous to a vector decomposition in a Euclidean space.
+\end{itemize}
+
+\hrule
+
+\subsubsection{One-line summary}
+
+\begin{quote}
+Fourier series uses the orthogonal trigonometric functions ( \({1, \cos(n\pi x/L), \sin(n\pi x/L)}\) ) as a basis, allowing any square-integrable function on (\([-L,L]\)) to be expressed as a sum of non-overlapping frequency components.
+\end{quote}
+
+\subsubsection{Decomposition}
+
+One function can be regarded as the decomposition on each axis.
+
+\[
+f(x) \sim \sum_{k=0}^{n}(f,e_k)e_k
+\]
+
+\subsection{Fourier series convergency}
+
+For a (2L)-periodic function (\(f(x)\)), the (N)-th partial sum is
+
+\[
+S_N(x) = \frac{a_0}{2} + \sum_{n=1}^{N} \left(a_n \cos \frac{n\pi x}{L} + b_n \sin \frac{n\pi x}{L}\right)
+\]
+
+It can also be written using the \textbf{Dirichlet kernel} (D\_N):
+
+\[
+S_N(x) = \int_{-L}^{L} f(y) D_N(x-y) , dy
+\]
+
+where
+
+\[
+D_N(t) = \frac{1}{2L} \frac{\sin\left((N+\frac12)\pi t / L\right)}{\sin(\pi t / 2L)}
+\]
+
+\hrule
+
+\subsubsection{Convolution with Dirichlet kernel}
+
+\begin{itemize}
+  \item The Fourier partial sum is a \textbf{convolution} of (\(f\)) with (\(D_N\)):
+\end{itemize}
+
+\[
+S_N(x) = \int_{-L}^{L} f(x - t) D_N(t) , dt
+\]
+
+\begin{itemize}
+  \item (\(D_N(t)\)) is an \textbf{approximate identity}: as (\(N \to \infty\)), it behaves like a delta function, averaging symmetrically around (t=0).
+\end{itemize}
+
+\hrule
+
+\subsubsection{Split around the point (x)}
+
+Assume (f) is piecewise continuously differentiable, so the left and right limits exist:
+
+\[
+f(x^+) = \lim_{t \to 0^+} f(x+t), \quad f(x^-) = \lim_{t \to 0^-} f(x+t)
+\]
+
+Then we can write the integral as
+
+\[
+S_N(x) = \int_{-δ}^{δ} f(x-t) D_N(t) dt + \int_{|t|>δ} f(x-t) D_N(t) dt
+\]
+
+\begin{itemize}
+  \item The second integral goes to 0 as (\(N \to \infty\)) (Dirichlet kernel decays away from \(0\)).
+  \item The first integral (around (t=0)) gives the \textbf{average of the left and right limits}:
+\end{itemize}
+
+\[
+\lim_{N \to \infty} \int_{-δ}^{δ} f(x-t) D_N(t) dt = \frac{f(x^+) + f(x^-)}{2}
+\]
+
+This uses the \textbf{Dirichlet integral formula}:
+
+\[
+\lim_{N \to \infty} \int_{-ε}^{ε} g(t) \frac{\sin((N+\frac12)t)}{\sin(t/2)} dt = \pi \cdot \frac{g(0^+) + g(0^-)}{2}
+\]
+
+\hrule
+
+\subsubsection{Conclusion}
+
+\[
+\boxed{
+\lim_{N \to \infty} S_N(x) = \frac{f(x^+) + f(x^-)}{2}
+}
+\]
+
+\begin{itemize}
+  \item If (f) is continuous at (x), this reduces to (f(x)).
+  \item At jump discontinuities, the Fourier series converges to the midpoint of the jump.
+\end{itemize}
+
+\hrule
+
+\textbf{Key points:}
+
+\begin{enumerate}
+  \item Piecewise differentiability ensures \textbf{bounded variation}, which controls the kernel integral.
+  \item Dirichlet kernel acts as an \textbf{approximate delta}, giving the symmetric average.
+  \item This is the classical \textbf{Dirichlet convergence theorem} for Fourier series.
+\end{enumerate}
+
+\subsection{Week Convergence and Riemann integrals}
+
+\subsubsection{Weak Convergence}
+
+Let \((X, |\cdot|)\) be a Banach space, and let \({x_n} \subset X\). We say:
+
+\begin{itemize}
+  \item \textbf{Weak convergence}: \(x_n \rightharpoonup x\) if
+\end{itemize}
+
+\[
+f(x_n) \to f(x) \quad \text{for all } f \in X^*,
+\]
+
+where \(X^*\) is the dual space (continuous linear functionals).
+
+\begin{itemize}
+  \item \textbf{Weak-* convergence}: \(x_n \stackrel{*}{\rightharpoonup} x\) in \(X^*\) if
+\end{itemize}
+
+\[
+x_n(y) \to x(y) \quad \text{for all } y \in X
+\]
+
+This is common in spaces like \(L^\infty\) where the dual is bigger than the space itself.
+
+\hrule
+
+\subsubsection{Connection to Riemann Integrals}
+
+\begin{itemize}
+  \item Consider \(f_n \in L^1([a,b])\).
+  \item \textbf{Weak convergence of functions}: \(f_n \rightharpoonup f\) in \(L^1\) means
+\end{itemize}
+
+\[
+\int_a^b f_n(x) g(x) dx \to \int_a^b f(x) g(x) dx \quad \forall g \in L^\infty([a,b])
+\]
+
+\begin{itemize}
+  \item \textbf{Interpretation}: The \(f_n\) may \textbf{not converge pointwise} or in norm, but \textbf{all integrals against bounded test functions converge}.
+  \item This is a generalization of the \textbf{Riemann integral idea}: the integral is the linear functional, and weak convergence ensures “convergence under integration.”
+\end{itemize}
+
+\hrule
+
+\subsubsection{Intuition}
+
+\begin{itemize}
+  \item Strong convergence: functions converge in norm (area under |f\_n - f| goes to 0).
+  \item Weak convergence: functions converge \textbf{on average}, via integration against test functions.
+  \item Weak-* convergence: dual-level convergence, typical in spaces of measures or \(L^\infty\).
+\end{itemize}
+
+\hrule
+
+\textbf{One-line summary:}
+
+\begin{quote}
+Weak convergence generalizes convergence under the integral: \(f_n\) may not converge pointwise, but all integrals \(\int f_n g\) converge to \(\int f g\), connecting naturally to the concept of the Riemann integral as a linear functional.
+\end{quote}
+
+\subsection{Week Convergence: Starting from What You Already Know}
+
+In calculus, a sequence converges when:
+
+\[
+x_n \to x \iff |x_n - x| \to 0
+\]
+
+Extended to vectors (linear algebra), a sequence of vectors converges when every component converges, equivalently:
+
+\[
+\vec{v}_n \to \vec{v} \iff \|\vec{v}_n - \vec{v}\| \to 0
+\]
+
+This is called \textbf{strong convergence} — the familiar kind.
+
+\hrule
+
+\subsubsection{What Weak Convergence Means}
+
+Weak convergence does NOT directly require \(\|\vec{v}_n - \vec{v}\| \to 0\). Instead it requires:
+
+\begin{quote}
+\textbf{When you "measure" the sequence with any linear function, the measured values converge.}
+\end{quote}
+
+In finite dimensions (the world of linear algebra), every linear function is just an inner product \(\langle a, x \rangle\), so weak convergence simply means:
+
+\[
+\vec{v}_n \rightharpoonup \vec{v} \iff \forall \vec{a},\quad \langle \vec{a}, \vec{v}_n \rangle \to \langle \vec{a}, \vec{v} \rangle
+\]
+
+\textbf{In finite-dimensional spaces, weak and strong convergence are completely equivalent} — which is why you never saw this distinction in linear algebra. There was no distinction to make.
+
+\hrule
+
+\subsubsection{Why Infinite Dimensions Change Everything}
+
+Consider an infinite-dimensional setting, such as the space of infinite sequences. Take:
+
+\[
+e_1 = (1, 0, 0, 0, \ldots)
+\]
+
+\[
+e_2 = (0, 1, 0, 0, \ldots)
+\]
+
+\[
+e_3 = (0, 0, 1, 0, \ldots)
+\]
+
+\textbf{Strong convergence view:} \(\|e_n - e_m\| = \sqrt{2}\) for all \(n \neq m\) — the vectors never get close to each other. No strong convergence.
+
+\textbf{Weak convergence view:} Take any fixed \(a = (a_1, a_2, a_3, \ldots)\) and compute the inner product:
+
+\[
+\langle a, e_n \rangle = a_n \to 0
+\]
+
+because \(\sum a_i^2 < \infty\) forces \(a_n \to 0\). So:
+
+\[
+e_n \rightharpoonup 0 \quad \text{weakly, but } e_n \not\to 0 \text{ strongly}
+\]
+
+\hrule
+
+\subsubsection{One-Line Summary}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+ & Intuition \\
+\midrule
+Strong convergence & The vectors themselves get closer and closer \\
+Weak convergence & Every "viewpoint" sees them getting closer, but the vectors themselves can keep "running away" \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\hrule
+
+\subsubsection{Why It's Useful}
+
+In probability theory, \textbf{convergence in distribution} (the kind that appears in the Central Limit Theorem) is essentially a form of weak convergence — it does not require the random variables themselves to get close, only that the expected value of any continuous test function converges. So weak convergence is actually closer to you than it might seem.
+
+\subsection{Weak-* Convergence}
+
+To understand weak-* convergence, you first need one extra idea.
+
+\hrule
+
+\subsubsection{The Dual Space (in plain terms)}
+
+Given a vector space \(X\), its \textbf{dual space} \(X^*\) is simply:
+
+\[
+X^* = \{\text{all linear functions } f : X \to \mathbb{R}\}
+\]
+
+Think of it this way from linear algebra: if \(X = \mathbb{R}^n\), then every linear function on \(X\) looks like:
+
+\[
+f(x) = a_1 x_1 + a_2 x_2 + \cdots + a_n x_n = \langle a, x \rangle
+\]
+
+So \(X^*\) is basically "another copy" of \(X\), made of row vectors acting on column vectors. In finite dimensions, \(X\) and \(X^*\) are indistinguishable. In infinite dimensions, they can be very different.
+
+\hrule
+
+\subsubsection{Three Levels of Convergence}
+
+Now suppose you have a sequence of \textbf{linear functions} \(f_n \in X^*\) (not vectors). There are three ways it can converge:
+
+\paragraph{Strong convergence in \(X^*\)}
+
+\[
+f_n \to f \iff \|f_n - f\|_{X^*} \to 0
+\]
+
+The functions themselves get close, in norm. Strictest requirement.
+
+\paragraph{Weak convergence in \(X^*\)}
+
+\[
+f_n \rightharpoonup f \iff \forall g \in X^{**}, \quad g(f_n) \to g(f)
+\]
+
+Here \(X^{**}\) is the dual of the dual — you test \(f_n\) against all linear functions \textbf{on \(X^*\)}. This is one level more abstract.
+
+\paragraph{Weak-* convergence}
+
+\[
+f_n \overset{w^*}{\rightharpoonup} f \iff \forall x \in X, \quad f_n(x) \to f(x)
+\]
+
+You only test \(f_n\) against elements of the \textbf{original space} \(X\), not all of \(X^{**}\). This is the weakest requirement of the three.
+
+\hrule
+
+\subsubsection{A Concrete Example}
+
+Let \(X = \ell^2\) (square-summable sequences), so \(X^* \cong \ell^2\) as well.
+
+Take \(f_n = e_n^*\), the functional that picks out the \(n\)-th component:
+
+\[
+f_n(x) = x_n
+\]
+
+\textbf{Weak-* convergence:} For any fixed \(x = (x_1, x_2, \ldots) \in \ell^2\):
+
+\[
+f_n(x) = x_n \to 0
+\]
+
+since \(\sum x_i^2 < \infty\) forces \(x_n \to 0\). So \(f_n \overset{w^*}{\rightharpoonup} 0\).
+
+Same conclusion as weak convergence here — because \(\ell^2\) is \textbf{reflexive} (explained below).
+
+\hrule
+
+\subsubsection{The Key Difference: Reflexivity}
+
+A space \(X\) is called \textbf{reflexive} if \(X^{**} = X\), i.e. the dual of the dual brings you back to where you started. In that case:
+
+\[
+\text{weak convergence} \iff \text{weak-* convergence}
+\]
+
+The interesting gap appears in \textbf{non-reflexive} spaces:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Space & Reflexive? & Weak \(\neq\) Weak-*? \\
+\midrule
+\(\mathbb{R}^n\) & Yes & No difference \\
+\(\ell^2\), \(L^2\) & Yes & No difference \\
+\(L^1\) & No & \textbf{Yes, they differ} \\
+\(L^\infty\) & No & \textbf{Yes, they differ} \\
+\(C([a,b])\) & No & \textbf{Yes, they differ} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\hrule
+
+\subsubsection{The Full Picture}
+
+\[
+\text{Strong} \implies \text{Weak} \implies \text{Weak-*}
+\]
+
+Each arrow is strict in infinite-dimensional non-reflexive spaces. None of the arrows reverse in general.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Convergence & What you test against & How strict \\
+\midrule
+Strong & Nothing — just the norm & Strictest \\
+Weak & All of \(X^{**}\) & Middle \\
+Weak-* & Only \(X\) itself & Weakest \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\hrule
+
+\subsubsection{Why Weak-* Is Useful}
+
+The payoff is \textbf{Banach-Alaoglu Theorem}:
+
+\begin{quote}
+The closed unit ball in \(X^*\) is always \textbf{compact} in the weak-* topology.
+\end{quote}
+
+In \(L^1\) or \(L^\infty\), strong compactness fails badly. But weak-\emph{compactness is always guaranteed — so you can always extract a weak-} convergent subsequence from any bounded sequence of functionals. This is the workhorse behind existence proofs in PDEs, optimization, and probability theory.
+
+\section{无穷维空间的线性算子和谱分解}
+
+\subsection{核心}
+
+在 \(\mathbb{R}^n\) 中，线性算子就是\textbf{矩阵}，谱分解就是特征值分解。
+进入无穷维空间后，"矩阵"变成了算子（如微分、积分、乘法算子），而"谱"的结构远比特征值丰富得多。
+
+\begin{quote}
+关键空间：Hilbert 空间 \(H\)（完备内积空间），例如 \(L^2[0,1]\), \(L2[0,1]\), \(\ell^2(\mathbb{N})\), Sobolev 空间 \(H^1(\Omega)\)。
+\end{quote}
+
+\#\#\#
