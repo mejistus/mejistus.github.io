@@ -18,12 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=6.36.1"></script>
-    <script src="assets/latex-complete.js?v=6.36.1"></script>
-    <script src="assets/vim.js?v=6.36.1"></script>
-    <script src="assets/lint.js?v=6.36.1"></script>
-    <script src="assets/tikz-nn.js?v=6.36.1"></script>
-    <script src="assets/bib.js?v=6.36.1"></script>
+    <script src="assets/latex.js?v=6.37.0"></script>
+    <script src="assets/latex-complete.js?v=6.37.0"></script>
+    <script src="assets/vim.js?v=6.37.0"></script>
+    <script src="assets/lint.js?v=6.37.0"></script>
+    <script src="assets/tikz-nn.js?v=6.37.0"></script>
+    <script src="assets/bib.js?v=6.37.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -2328,10 +2328,12 @@
         margin: 0;
         padding: 1.2rem 1.2rem 1.2rem 3.6rem;
         border: none;
-        /* Both layers must resolve the same font for every script, or the
-           coloured copy and the real text drift apart. */
-        font-family: "SF Mono", "Fira Code", "Consolas", "PingFang SC",
-          "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", monospace;
+        /* Latin comes from a coding face; the CJK entries are only reached for
+           characters those faces lack. Both layers share the list, so the
+           coloured copy and the real text lay out the same way. */
+        font-family: ui-monospace, "SF Mono", Menlo, "Hack", "JetBrains Mono",
+          "Fira Code", Consolas, "Sarasa Mono SC", "Noto Sans Mono CJK SC",
+          "PingFang SC", "Hiragino Sans GB", monospace;
         font-size: 0.85rem;
         /* Whole pixels: textarea and <pre> round fractional line boxes
            differently, which drifts the layers apart over long files. */
@@ -2444,10 +2446,11 @@
         white-space: inherit;
       }
       /* LaTeX */
-      .editor-highlight .token.comment { color: var(--tok-comment); font-style: italic; }
+      /* Colour marks the syntax; bold and italic are left to \textbf and \emph. */
+      .editor-highlight .token.comment { color: var(--tok-comment); }
       .editor-highlight .token.function { color: var(--warn); }
-      .editor-highlight .token.keyword { color: var(--tok-env); font-weight: 600; }
-      .editor-highlight .token.headline { color: var(--ink); font-weight: 700; }
+      .editor-highlight .token.keyword { color: var(--tok-env); }
+      .editor-highlight .token.headline { color: var(--ink); }
       .editor-highlight .token.equation { color: var(--tok-math); }
       .editor-highlight .token.equation .token.regex { color: var(--tok-regex); }
       .editor-highlight .token.cdata { color: var(--tok-verbatim); }
@@ -2456,9 +2459,13 @@
       /* Markdown */
       .editor-highlight .token.front-matter-block,
       .editor-highlight .token.front-matter { color: var(--tok-comment); }
-      .editor-highlight .token.title { color: var(--warn); font-weight: 700; }
-      .editor-highlight .token.bold { font-weight: 700; }
-      .editor-highlight .token.italic { font-style: italic; }
+      .editor-highlight .token.title { color: var(--warn); }
+      /* Markdown's own emphasis, and the LaTeX commands below. */
+      .editor-highlight .token.bold,
+      .editor-highlight .token.tex-bold { font-weight: 700; }
+      .editor-highlight .token.italic,
+      .editor-highlight .token.tex-italic { font-style: italic; }
+      .editor-highlight .token.tex-underline { text-decoration: underline; }
       .editor-highlight .token.code-snippet,
       .editor-highlight .token.code { color: var(--tok-verbatim); }
       .editor-highlight .token.blockquote,
@@ -5740,6 +5747,17 @@
 
       // ── Syntax highlighting: Prism renders the source into a <pre> laid out
       // exactly like the textarea above it, whose own text is transparent. ──
+      // Prism's LaTeX grammar colours commands but not what they emphasise.
+      (function () {
+        if (!window.Prism || !Prism.languages.latex) return;
+        const inside = { function: /\\[a-zA-Z@]+\*?/, punctuation: /[{}]/ };
+        Prism.languages.insertBefore('latex', 'function', {
+          'tex-bold': { pattern: /\\(?:textbf|textsc|bfseries)\s*\{[^{}]*\}/, inside },
+          'tex-italic': { pattern: /\\(?:emph|textit|itshape|textsl)\s*\{[^{}]*\}/, inside },
+          'tex-underline': { pattern: /\\(?:underline|uline)\s*\{[^{}]*\}/, inside },
+        });
+      })();
+
       let highlightFrame = 0;
       function updateHighlight() {
         cancelAnimationFrame(highlightFrame);
