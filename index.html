@@ -15,12 +15,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.0.0"></script>
-    <script src="assets/latex-complete.js?v=8.0.0"></script>
-    <script src="assets/vim.js?v=8.0.0"></script>
-    <script src="assets/lint.js?v=8.0.0"></script>
-    <script src="assets/tikz-nn.js?v=8.0.0"></script>
-    <script src="assets/bib.js?v=8.0.0"></script>
+    <script src="assets/latex.js?v=8.0.1"></script>
+    <script src="assets/latex-complete.js?v=8.0.1"></script>
+    <script src="assets/vim.js?v=8.0.1"></script>
+    <script src="assets/lint.js?v=8.0.1"></script>
+    <script src="assets/tikz-nn.js?v=8.0.1"></script>
+    <script src="assets/bib.js?v=8.0.1"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -5976,29 +5976,56 @@
       }
 
       // A pulse over a stretch of source, for arrivals from the preview.
+      // The pulse is measured from the highlight layer, so it has to be
+      // re-measured whenever that layer moves — otherwise it hangs in the
+      // viewport while the text scrolls out from under it.
+      let jumpSpan = null;
       function flashSourceRange(from, to) {
+        clearJump();
+        jumpSpan = { from, to };
+        positionJump(true);
+      }
+
+      function clearJump() {
+        jumpSpan = null;
+        document.querySelectorAll('.editor-jump').forEach(el => el.remove());
+      }
+
+      function positionJump(fresh) {
+        if (!jumpSpan) return;
         const host = document.querySelector('.editor-input');
-        host.querySelectorAll('.editor-jump').forEach(el => el.remove());
-        const range = rangeBetween(from, to);
-        if (!range) return;
+        const range = rangeBetween(jumpSpan.from, jumpSpan.to);
+        const rects = range ? [...range.getClientRects()].filter(r => r.height && r.width) : [];
+        if (!rects.length) { clearJump(); return; }
         const box = host.getBoundingClientRect();
-        for (const r of range.getClientRects()) {
-          if (!r.height || !r.width) continue;
+        const els = [...host.querySelectorAll('.editor-jump')];
+        // A wrapped range can change its number of pieces when the pane resizes.
+        while (els.length > rects.length) els.pop().remove();
+        while (els.length < rects.length) {
           const el = document.createElement('div');
           el.className = 'editor-jump';
+          // The last piece to finish takes the whole pulse away with it.
+          el.addEventListener('animationend', () => { if (jumpSpan) clearJump(); });
+          host.appendChild(el);
+          els.push(el);
+        }
+        rects.forEach((r, i) => {
+          const el = els[i];
           el.style.left = `${r.left - box.left - 1}px`;
           el.style.top = `${r.top - box.top}px`;
           el.style.width = `${r.width + 2}px`;
           el.style.height = `${r.height}px`;
-          el.addEventListener('animationend', () => el.remove());
-          host.appendChild(el);
-        }
+        });
+        if (fresh) els.forEach(el => { el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; });
       }
       document.addEventListener('selectionchange', () => {
         if (document.activeElement === document.getElementById('editorTextarea')) updateActiveLine();
       });
       ['focus', 'blur', 'input', 'scroll', 'click', 'keyup', 'mouseup'].forEach(ev =>
         document.getElementById('editorTextarea').addEventListener(ev, updateActiveLine));
+      // The pulse rides along with the text it marks.
+      ['scroll', 'input'].forEach(ev =>
+        document.getElementById('editorTextarea').addEventListener(ev, () => positionJump(false)));
       // While an IME composes, Chrome draws the composition under the native
       // caret; hand it back for the duration.
       document.getElementById('editorTextarea').addEventListener('compositionstart', (e) => {
@@ -6011,7 +6038,7 @@
         e.target.classList.remove('composing');
         updateActiveLine();
       });
-      window.addEventListener('resize', () => { if (editorActive) updateActiveLine(); });
+      window.addEventListener('resize', () => { if (editorActive) { updateActiveLine(); positionJump(false); } });
 
       function syncHighlightLayout() {
         const ta = document.getElementById('editorTextarea');
@@ -6025,7 +6052,7 @@
       }
       document.getElementById('editorTextarea').addEventListener('scroll', syncHighlightLayout, { passive: true });
       document.getElementById('editorTextarea').addEventListener('input', updateHighlight);
-      new ResizeObserver(() => { syncHighlightLayout(); renderGutter(); }).observe(document.getElementById('editorTextarea'));
+      new ResizeObserver(() => { syncHighlightLayout(); renderGutter(); positionJump(false); }).observe(document.getElementById('editorTextarea'));
 
       // The preview would render half-typed commands, so it waits for
       // Cmd/Ctrl+S (or the Compile button).
