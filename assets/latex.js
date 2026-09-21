@@ -524,24 +524,47 @@
     }
   }
 
+  // Split an alignment body into its rows: "\\\\" at the top level only, so a
+  // nested matrix or cases keeps its own row breaks.
+  function splitRows(body) {
+    const rows = [];
+    let depth = 0, start = 0;
+    for (let i = 0; i < body.length; i++) {
+      if (body[i] !== '\\') continue;
+      if (/^\\begin\b/.test(body.slice(i))) { depth++; i += 5; continue; }
+      if (/^\\end\b/.test(body.slice(i))) { depth = Math.max(0, depth - 1); i += 3; continue; }
+      if (body[i + 1] === '\\') {
+        if (!depth) { rows.push(body.slice(start, i)); start = i + 2; }
+        i++;
+      } else i++;                                  // skip the escaped character
+    }
+    rows.push(body.slice(start));
+    return rows;
+  }
+
   function extractMath(ctx, s) {
     // Numbered display environments: record \label → equation number.
     const envRe = new RegExp('\\\\begin\\{(' + MATH_ENVS.map(e => e.replace('*', '\\*')).join('|') + ')\\}([\\s\\S]*?)\\\\end\\{\\1\\}', 'g');
     s = s.replace(envRe, (m, env, body) => {
       body = stripMarks(body);
       const numbered = !env.endsWith('*') && env !== 'displaymath' && env !== 'math';
-      const rows = /^(multline|equation)$/.test(env) ? [body] : body.split(/\\\\/);
+      const rows = /^(multline|equation)$/.test(env) ? [body] : splitRows(body);
       let anchors = '';
-      rows.forEach(row => {
-        const isNumbered = numbered && !/\\(nonumber|notag)\b/.test(row);
-        if (isNumbered) ctx.counters.equation++;
+      const numbers = rows.map(row => {
+        const isNumbered = numbered && row.trim() && !/\\(nonumber|notag)\b/.test(row);
+        if (!isNumbered) return null;
+        ctx.counters.equation++;
         const lbl = /\\label\{([^}]*)\}/.exec(row);
-        if (lbl && isNumbered) {
+        if (lbl) {
           const key = lbl[1].trim();
           ctx.labels[key] = { num: String(ctx.counters.equation), type: 'equation' };
           anchors += `<span class="latex-anchor" id="${esc(ctx.uid + '-' + key)}"></span>`;
         }
+        return ctx.counters.equation;
       });
+      // Show the number the way LaTeX does; KaTeX takes \tag per row.
+      body = rows.map((row, i) => (numbers[i] && !/\\tag\b/.test(row) ? `${row}\\tag{${numbers[i]}}` : row))
+        .join('\\\\');
       body = body.replace(/\\label\{[^}]*\}/g, '');
       let tex;
       if (env === 'math') return slot(ctx, renderMath(ctx, body, false), false);

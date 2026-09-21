@@ -1,0 +1,125 @@
+% ---
+% title: My i3wm setup: calm aesthetics for a busy mind
+% date: 2026/1/26
+% tag: Notes
+% ---
+How a tiling window manager helped me find focus — and a colour palette that stays out of the way.
+
+\section{Why i3wm}
+
+I've never been good at managing chaos. My desktop used to be a graveyard of overlapping terminals, half-read papers, and browser tabs I swore I'd come back to. Then I discovered i3wm — a tiling window manager that, by design, refuses to let windows pile up.
+
+The appeal was immediate: \textbf{everything has its place}. No decorations, no distractions. Just screens split into logical regions, each holding exactly what I need.
+
+\section{The Setup}
+
+This configuration is built on \textbf{i3-wm}, which uses the classic X11 display protocol. It may not be the flashiest option, but it's simple, stable, and gets out of the way.
+
+I've collected and refined these configurations from various open-source projects, adding small tweaks to make the experience more usable. The goal wasn't to reinvent the wheel — it was to create something that works, day in and day out.
+
+\section{What's Included}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Component & Purpose \\
+\midrule
+\textbf{i3} & Window manager core \\
+\textbf{Polybar} & Status bar with customizable modules \\
+\textbf{Rofi} & Application launcher and window switcher \\
+\textbf{Kitty} & GPU-accelerated terminal emulator \\
+\textbf{Picom} & Compositor for smooth shadows and transparency \\
+\textbf{Dunst} & Lightweight notification daemon \\
+\textbf{Conky} & System monitoring (slate theme) \\
+\textbf{Btop} & Resource monitor \\
+\textbf{Fastfetch} & System information display \\
+\textbf{Cava} & Audio visualizer \\
+\textbf{Qutebrowser} & Keyboard-driven web browser \\
+\textbf{Neovim (NvChad)} & Customized editor with OneDark theme \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Key Bindings That Matter}
+
+After two years, these are the bindings I actually use:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Key & Action \\
+\midrule
+\verb|Mod+Enter| & Open terminal \\
+\verb|Mod+d| & Launch app menu (dmenu) \\
+\verb|Mod+[1-9]| & Switch workspace \\
+\verb|Mod+Shift+[1-9]| & Move window to workspace \\
+\verb|Mod+h/j/k/l| & Navigate windows (vim-style) \\
+\verb|Mod+Shift+q| & Close window \\
+\verb|Mod+r| & Reload config \\
+\verb|Mod+Shift+c| & Restart i3 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The vim-style navigation was the hardest to build into muscle memory. Now I can't imagine going back to clicking.
+
+\section{Polybar Customization}
+
+The status bar supports multiple configurations. For example, to activate style \#2 with CPU monitoring:
+
+\begin{lstlisting}[language=bash]
+python ~/.config/polybar/scripts/change.py --select 2
+\end{lstlisting}
+
+Or edit the configuration files directly to create your own combination.
+
+\section{Neovim Integration}
+
+I use a customized \textbf{NvChad} configuration for a consistent experience across the setup. The theme is OneDark (though I personally use Dracula).
+
+Key mappings are defined in \verb|mappings.lua|. Combined with qutebrowser, this setup lets you keep your hands on the keyboard for most tasks — freeing your mouse and neck from unnecessary strain.
+
+\begin{quote}
+Note: The code hover key has been remapped to \verb|F|. Double-tap \verb|Shift+f| to activate.
+\end{quote}
+
+\section{Directory Structure}
+
+\begin{verbatim}
+~/.config/
+├── i3/              # Window manager config
+├── polybar/         # Status bar
+├── rofi/            # Launcher
+├── kitty/           # Terminal
+├── picom/           # Compositor
+├── dunst/           # Notifications
+├── conky/           # System monitor
+├── btop/            # Resource monitor
+├── fastfetch/       # System info
+├── cava/            # Audio visualizer
+├── qutebrowser/     # Browser
+└── nvim/            # Editor
+\end{verbatim}
+
+\section{A Note on Colours}
+
+The accent colour (\verb|#c47c5a| — a muted rust/orange) is the same one I use throughout my personal site. It's warm without being loud, and it pairs well with the cool greys that dominate my editor and terminal.
+
+I've learned that \textbf{aesthetics isn't about adding more} — it's about knowing what to leave out. i3wm enforces that philosophy at the window-manager level. My mind, once scattered, now has room to breathe.
+
+\section{Acknowledgments}
+
+This setup builds on the work of many great open-source projects:
+
+\begin{itemize}
+  \item \href{https://i3wm.org/}{i3-wm} — The foundation
+  \item \href{https://github.com/polybar/polybar}{Polybar} — Status bar
+  \item \href{https://github.com/NvChad/NvChad}{NvChad} — Neovim configuration
+  \item \href{https://github.com/slate-conky-theme}{slate-conky-theme} — Conky theme
+\end{itemize}
+
+Respect to all the developers who make this ecosystem possible.
+
+\hrule
+
+\emph{Full configuration files are available on \href{https://github.com/mejistus/fantastic-i3}{GitHub}.}

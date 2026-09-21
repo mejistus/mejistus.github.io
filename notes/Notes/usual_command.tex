@@ -1,0 +1,363 @@
+% ---
+% title: Usual Command
+% date: 2026/3/27
+% tag: Notes
+% excerpt: Some whisper about Docker、Git and Latex...
+% ---
+\section{Usual Command.}
+
+本文记录了 docker、git、latex 的一些常见使用方法。
+
+三个类别的常用命令都整理好了，支持顶部 Tab 切换，也可以用搜索框快速筛选命令。
+
+几个重点补充说明：
+
+\textbf{Docker} 中标注 ⚠️ 危险的命令（如 \verb|docker system prune -a|、\verb|docker reset --hard|）会不可逆地删除数据，务必确认后再执行。
+
+\textbf{Git} 协作中最重要的习惯是：\verb|push --force-with-lease| 代替 \verb|push --force|，以及用 \verb|rebase -i| 整理提交再发 PR，保持提交历史整洁。
+
+\textbf{LaTeX} 推荐现代工具链：用 \verb|biblatex + biber| 管理文献（比旧的 \verb|bibtex| 更强），中文文档用 \verb|ctex| 包配合 \verb|XeLaTeX| 编译。
+
+\section{常用命令速查}
+
+\hrule
+
+\subsection{🐳 Docker 容器常用命令}
+
+\subsubsection{镜像管理}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\verb|docker images| & 列出本地所有镜像 \\
+\verb|docker pull nginx:latest| & 拉取镜像 \\
+\verb|docker build -t myapp:1.0 .| & 构建镜像（当前目录 Dockerfile） \\
+\verb|docker push myapp:1.0| & 推送镜像到仓库 \\
+\verb|docker rmi image_id| & 删除镜像 \\
+\verb|docker image prune| & 清理未使用的镜像 \\
+\verb|docker tag src:tag dst:tag| & 给镜像打标签 \\
+\verb|docker save -o img.tar myapp| & 导出镜像为 tar 文件 \\
+\verb|docker load -i img.tar| & 从 tar 文件载入镜像 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{容器生命周期}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\verb|docker run -d -p 80:80 nginx| & 后台运行容器并映射端口 \\
+\verb|docker run -it ubuntu bash| & 交互式运行并进入 shell \\
+\verb|docker run --rm alpine echo hi| & 运行完自动删除容器 \\
+\verb|docker ps| & 列出运行中的容器 \\
+\verb|docker ps -a| & 列出所有容器（含已停止） \\
+\verb|docker start / stop / restart id| & 启动 / 停止 / 重启容器 \\
+\verb|docker rm id| & 删除已停止的容器 \\
+\verb|docker rm -f id| & 强制删除运行中容器 \\
+\verb|docker container prune| & 清理所有已停止容器 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{调试与交互}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\verb|docker exec -it id bash| & 进入运行中容器的 shell \\
+\verb|docker logs -f id| & 实时查看容器日志 \\
+\verb|docker logs --tail 100 id| & 查看最后 100 行日志 \\
+\verb|docker inspect id| & 查看容器详细信息（JSON） \\
+\verb|docker stats| & 实时资源使用监控 \\
+\verb|docker top id| & 查看容器内进程 \\
+\verb|docker cp id:/path ./local| & 从容器复制文件到宿主机 \\
+\verb|docker diff id| & 查看容器文件系统变更 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{网络与存储}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\verb|docker network ls| & 列出所有网络 \\
+\verb|docker network create mynet| & 创建自定义网络 \\
+\verb|docker run --network mynet ...| & 指定容器网络 \\
+\verb|docker volume ls| & 列出所有卷 \\
+\verb|docker volume create myvol| & 创建数据卷 \\
+\verb|docker run -v myvol:/data ...| & 挂载数据卷 \\
+\verb|docker run -v $(pwd):/app ...| & 挂载宿主机目录 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Compose \& 系统}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\verb|docker compose up -d| & 后台启动 compose 服务 \\
+\verb|docker compose down| & 停止并删除 compose 服务 \\
+\verb|docker compose logs -f| & 查看 compose 日志 \\
+\verb|docker compose ps| & 查看 compose 服务状态 \\
+\verb|docker compose build| & 重新构建服务镜像 \\
+\verb|docker system df| & 查看磁盘使用情况 \\
+\verb|docker system prune -a| & ⚠️ 清理所有未使用资源 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\hrule
+
+\subsection{🔀 Git 协作常用命令}
+
+\subsubsection{初始化与配置}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\verb|git init| & 初始化本地仓库 \\
+\verb|git clone url| & 克隆远程仓库 \\
+\verb|git config --global user.name 'Name'| & 设置全局用户名 \\
+\verb|git config --global user.email 'x@y'| & 设置全局邮箱 \\
+\verb|git remote -v| & 查看远程仓库信息 \\
+\verb|git remote add origin url| & 添加远程仓库 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{提交工作流}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\verb|git status| & 查看工作区状态 \\
+\verb|git add .| & 暂存所有改动 \\
+\verb|git add file.txt| & 暂存指定文件 \\
+\verb|git commit -m 'msg'| & 提交并附说明 \\
+\verb|git commit --amend| & 修改最后一次提交 \\
+\verb|git diff| & 查看未暂存的改动 \\
+\verb|git diff --staged| & 查看已暂存的改动 \\
+\verb|git stash| & 临时储藏当前改动 \\
+\verb|git stash pop| & 恢复最近一次储藏 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{分支操作}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\verb|git branch| & 列出本地分支 \\
+\verb|git branch -a| & 列出所有分支（含远程） \\
+\verb|git branch feat/login| & 创建新分支 \\
+\verb|git checkout feat/login| & 切换到分支 \\
+\verb|git checkout -b feat/login| & 创建并切换分支 \\
+\verb|git switch -c feat/login| & 同上（新语法） \\
+\verb|git branch -d feat/login| & 删除已合并分支 \\
+\verb|git branch -D feat/login| & 强制删除分支 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{合并与变基}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\verb|git merge feat/login| & 合并分支（产生合并提交） \\
+\verb|git merge --no-ff feat/login| & 强制保留合并提交 \\
+\verb|git rebase main| & 将当前分支变基到 main \\
+\verb|git rebase -i HEAD~3| & 交互式整理最近 3 次提交 \\
+\verb|git cherry-pick abc1234| & 摘取指定提交到当前分支 \\
+\verb|git revert abc1234| & 撤销某次提交（生成新提交） \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{同步远程}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\verb|git fetch origin| & 拉取远程变更（不合并） \\
+\verb|git pull| & 拉取并合并远程分支 \\
+\verb|git pull --rebase| & 拉取并变基（保持线性历史） \\
+\verb|git push origin main| & 推送到远程分支 \\
+\verb|git push -u origin feat/login| & 推送并设置追踪关系 \\
+\verb|git push --force-with-lease| & 安全的强制推送 \\
+\verb|git push origin :feat/login| & 删除远程分支 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{历史与回滚}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\verb|git log --oneline --graph| & 紧凑图形化查看提交历史 \\
+\verb|git log -p file.txt| & 查看文件改动历史 \\
+\verb|git blame file.txt| & 查看每行最后修改人 \\
+\verb|git reset --soft HEAD~1| & 回退提交，保留暂存区 \\
+\verb|git reset --hard HEAD~1| & ⚠️ 回退提交，丢弃所有改动 \\
+\verb|git reflog| & 查看操作记录（救命日志） \\
+\verb|git tag v1.0.0| & 打轻量标签 \\
+\verb|git tag -a v1.0.0 -m 'msg'| & 打附注标签 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\hrule
+
+\subsection{📄 LaTeX 常用命令}
+
+\subsubsection{文档结构}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\verb|\documentclass{article}| & 声明文档类型 \\
+\verb|\usepackage{ctex}| & 中文支持包 \\
+\verb|\usepackage{amsmath}| & 数学公式增强 \\
+\verb|\begin{document}| & 正文开始 \\
+\verb|\end{document}| & 正文结束 \\
+\verb|\title{} \author{} \date{}| & 设置标题、作者、日期 \\
+\verb|\maketitle| & 输出标题块 \\
+\verb|\tableofcontents| & 自动生成目录 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{章节标题}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\verb|\chapter{标题}| & 章（book/report 类） \\
+\verb|\section{标题}| & 节 \\
+\verb|\subsection{标题}| & 小节 \\
+\verb|\subsubsection{标题}| & 子小节 \\
+\verb|\paragraph{标题}| & 段落标题 \\
+\verb|\section*{标题}| & 加 \verb|*| 表示不编号 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{文本格式}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\verb|\textbf{加粗}| & 粗体 \\
+\verb|\textit{斜体}| & 斜体 \\
+\verb|\underline{下划线}| & 下划线 \\
+\verb|\emph{强调}| & 语义强调（通常为斜体） \\
+\verb|\texttt{等宽字体}| & 代码/等宽 \\
+\verb|{\color{red} 文字}| & 彩色文字（需 xcolor 包） \\
+\verb|\footnote{注释内容}| & 脚注 \\
+\verb|\label{} \ref{}| & 标签与交叉引用 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{列表与表格}
+
+\begin{center}
+\begin{tabular}{llllll}
+\toprule
+命令 & 说明 &  &  &  &  \\
+\midrule
+\verb|\begin{itemize} \item … \end{itemize}| & 无序列表 &  &  &  &  \\
+\verb|\begin{enumerate} \item … \end{enumerate}| & 有序列表 &  &  &  &  \\
+`\textbackslash{}begin\{tabular\}\{ & l & c & r & \}` & 表格（左/中/右对齐） \\
+\verb|\hline| & 表格横线 &  &  &  &  \\
+\verb|A & B & C \\| & 表格行（\verb|&| 分列，\verb|\\| 换行） &  &  &  &  \\
+\verb|\multicolumn{2}{c}{内容}| & 跨列合并 &  &  &  &  \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{数学公式}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\(E = mc^2\) & 行内公式 \\
+\verb|\[ E = mc^2 \]| & 独立公式（居中） \\
+\verb|\begin{equation} … \end{equation}| & 带编号的公式 \\
+\verb|\begin{align} … \end{align}| & 多行对齐公式 \\
+\verb|\frac{a}{b}| & 分式 \\
+\verb|\sqrt{x}| / \verb|\sqrt[n]{x}| & 平方根 / n 次根 \\
+\verb|x^{2}| / \verb|x_{i}| & 上标 / 下标 \\
+\verb|\sum_{i=1}^{n}| / \verb|\int_{a}^{b}| & 求和 / 积分 \\
+\verb|\alpha \beta \gamma \pi| & 希腊字母 \\
+\verb|\vec{v}| / \verb|\hat{x}| / \verb|\dot{x}| & 向量 / 帽 / 导数 \\
+\verb|\begin{pmatrix} … \end{pmatrix}| & 圆括号矩阵 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{图片与浮动体}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\verb|\usepackage{graphicx}| & 引入图片包 \\
+\verb|\includegraphics[width=0.8\linewidth]{img}| & 插入图片 \\
+\verb|\begin{figure}[h] … \end{figure}| & 图片浮动环境 \\
+\verb|\caption{图片说明}| & 图注 \\
+\verb|\centering| & 居中对齐 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{参考文献}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+命令 & 说明 \\
+\midrule
+\verb|\cite{key}| & 引用文献 \\
+\verb|\usepackage{biblatex}| & 使用 biblatex（现代方式） \\
+\verb|\addbibresource{refs.bib}| & 指定 bib 文件 \\
+\verb|\printbibliography| & 输出参考文献列表 \\
+\bottomrule
+\end{tabular}
+\end{center}
