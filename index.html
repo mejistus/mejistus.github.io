@@ -15,12 +15,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.2.0"></script>
-    <script src="assets/latex-complete.js?v=8.2.0"></script>
-    <script src="assets/vim.js?v=8.2.0"></script>
-    <script src="assets/lint.js?v=8.2.0"></script>
-    <script src="assets/tikz-nn.js?v=8.2.0"></script>
-    <script src="assets/bib.js?v=8.2.0"></script>
+    <script src="assets/latex.js?v=8.2.1"></script>
+    <script src="assets/latex-complete.js?v=8.2.1"></script>
+    <script src="assets/vim.js?v=8.2.1"></script>
+    <script src="assets/lint.js?v=8.2.1"></script>
+    <script src="assets/tikz-nn.js?v=8.2.1"></script>
+    <script src="assets/bib.js?v=8.2.1"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -3413,7 +3413,7 @@
                   <div class="editor-caret" id="editorCaret" aria-hidden="true"></div>
                   <!-- Highlighted copy of the source, drawn under the (transparent-text) textarea. -->
                   <pre class="editor-highlight" id="editorHighlight" aria-hidden="true"><code></code></pre>
-                  <textarea class="editor-textarea" id="editorTextarea" spellcheck="false" placeholder="% ---&#10;% title: ...&#10;% date: ...&#10;% tag: ...&#10;% ---&#10;&#10;Your content here..."></textarea>
+                  <textarea class="editor-textarea" id="editorTextarea" aria-label="LaTeX source" spellcheck="false" placeholder="% ---&#10;% title: ...&#10;% date: ...&#10;% tag: ...&#10;% ---&#10;&#10;Your content here..."></textarea>
                 </div>
               </div>
             </div>
@@ -4537,12 +4537,18 @@
         document.getElementById("blogPanelLabel").textContent =
           `Blog · ${i + 1} of ${blogs.length}`;
         document.getElementById("blogPanelTitle").innerHTML = renderInline(b.title);
-        document.getElementById("blogPanelContent").innerHTML = getParsedHtml(i);
-        applyStagedImages(document.getElementById("blogPanelContent"));
-        fitLatexBoxes(document.getElementById("blogPanelContent"));
-        loadTikzJax(document.getElementById("blogPanelContent"));
+        const content = document.getElementById("blogPanelContent");
+        content.innerHTML = getParsedHtml(i);
+        // Screen readers pick a voice from this; the page shell is English but
+        // most posts are not.
+        const text = (b.content || '').slice(0, 4000);
+        const cjk = (text.match(/[\u3400-\u9fff]/g) || []).length;
+        content.lang = cjk > text.replace(/\s/g, '').length * 0.15 ? 'zh' : 'en';
+        applyStagedImages(content);
+        fitLatexBoxes(content);
+        loadTikzJax(content);
         buildToc();
-        enhanceReading(document.getElementById("blogPanelContent"), b);
+        enhanceReading(content, b);
         document.getElementById("blogCounter").textContent =
           `${i + 1} / ${blogs.length}`;
         document.getElementById("blogBtnPrev").disabled = i === 0;

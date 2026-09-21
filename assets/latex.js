@@ -707,6 +707,9 @@
     // A \label right after the heading names it.
     const lbl = /^\s*\\label\{([^}]*)\}/.exec(rest);
     const id = lbl ? `${ctx.uid}-${lbl[1].trim()}` : '';
+    // The heading carries the id itself, so the same \label must not also
+    // render its own anchor further down — that would be a duplicate id.
+    if (lbl) (ctx.headingLabels || (ctx.headingLabels = new Set())).add(lbl[1].trim());
     if (lbl && num) ctx.labels[lbl[1].trim()] = { num, type: 'section' };
     ctx.currentRef = num ? { num, type: 'section' } : null;
     return `<h${level}${id ? ` id="${esc(id)}"` : ''}>` +
@@ -1341,12 +1344,12 @@
       case 'href': {
         const u = readGroup(s, end); const t = u && readArg(s, u.end);
         if (!t) break;
-        return { html: `<a href="${esc(unescapeUrl(u.content))}">${renderInline(ctx, t.content)}</a>`, end: t.end };
+        return { html: `<a href="${esc(safeUrl(unescapeUrl(u.content)))}">${renderInline(ctx, t.content)}</a>`, end: t.end };
       }
       case 'url': {
         const u = readGroup(s, end); if (!u) break;
         const url = unescapeUrl(u.content);
-        return { html: `<a href="${esc(url)}" class="latex-url">${esc(url)}</a>`, end: u.end };
+        return { html: `<a href="${esc(safeUrl(url))}" class="latex-url">${esc(url)}</a>`, end: u.end };
       }
       case 'footnote': {
         const o = readOptional(s, end); if (o) end = o.end;
@@ -1365,6 +1368,7 @@
         const a = readGroup(s, end); if (!a) break;
         const key = a.content.trim();
         if (ctx.currentRef && !ctx.labels[key]) ctx.labels[key] = { ...ctx.currentRef };
+        if (ctx.headingLabels && ctx.headingLabels.has(key)) return { html: '', end: a.end };
         return { html: `<span id="${esc(ctx.uid + '-' + key)}"></span>`, end: a.end };
       }
       case 'ref': case 'eqref': case 'autoref': case 'cref': case 'Cref': case 'pageref': case 'nameref': {
@@ -1449,6 +1453,13 @@
     const mix = /^([a-zA-Z0-9]+)!(\d+)/.exec(c); // xcolor "red!60"
     if (mix && named(mix[1])) return `color-mix(in srgb, ${named(mix[1])} ${mix[2]}%, white)`;
     return named(c) || 'inherit';
+  }
+
+  // A post is the author's own, but a link should still only be able to point
+  // somewhere — not run something.
+  function safeUrl(u) {
+    const v = String(u || '').trim();
+    return /^(?:https?:|mailto:|tel:|#|\/|\.{0,2}\/|[^:]*$)/i.test(v) ? v : '#';
   }
 
   function imageTag(path, opts) {
