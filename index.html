@@ -15,12 +15,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.1.0"></script>
-    <script src="assets/latex-complete.js?v=8.1.0"></script>
-    <script src="assets/vim.js?v=8.1.0"></script>
-    <script src="assets/lint.js?v=8.1.0"></script>
-    <script src="assets/tikz-nn.js?v=8.1.0"></script>
-    <script src="assets/bib.js?v=8.1.0"></script>
+    <script src="assets/latex.js?v=8.1.1"></script>
+    <script src="assets/latex-complete.js?v=8.1.1"></script>
+    <script src="assets/vim.js?v=8.1.1"></script>
+    <script src="assets/lint.js?v=8.1.1"></script>
+    <script src="assets/tikz-nn.js?v=8.1.1"></script>
+    <script src="assets/bib.js?v=8.1.1"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -93,6 +93,11 @@
         color: var(--ink);
         line-height: 1.7;
         overflow-x: hidden;
+      }
+      /* A panel covers the nav, and re-blurring it behind a sliding panel is
+         the most expensive thing on screen; the overlay hides it anyway. */
+      html.scroll-locked nav {
+        backdrop-filter: none;
       }
       html.scroll-locked {
         overflow: hidden;
@@ -213,7 +218,7 @@
         border-radius: 2rem;
         font-size: 0.875rem;
         text-decoration: none;
-        transition: all 0.2s;
+        transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s, box-shadow 0.2s;
         cursor: pointer;
         border: none;
       }
@@ -458,16 +463,22 @@
         box-shadow: 0 4px 24px rgba(0,0,0,0.08);
         gap: 0.6rem;
         opacity: 0;
-        max-height: 0;
+        height: 0;
+        padding: 0 1rem;
+        margin: 0;
         overflow: hidden;
+        pointer-events: none;
         transform: translateY(-8px);
-        transition: opacity 0.25s ease, transform 0.25s ease, max-height 0.25s ease, padding 0.25s ease, margin 0.25s ease;
+        /* Only what the compositor can animate by itself: height, padding and
+           margin would each put a layout pass in every frame. */
+        transition: opacity 0.25s ease, transform 0.25s ease;
       }
       .blog-search-bar.visible {
         opacity: 1;
-        max-height: 3rem;
+        height: auto;
         padding: 0.6rem 1rem;
         margin: 1rem 0 1.2rem;
+        pointer-events: auto;
         transform: translateY(0);
       }
       .blog-search-bar svg {
@@ -604,7 +615,7 @@
         border: 1px solid var(--border);
         color: var(--muted);
         cursor: pointer;
-        transition: all .2s;
+        transition: background .2s, color .2s, border-color .2s;
       }
       .blog-filter-btn:hover {
         border-color: var(--rust);
@@ -632,7 +643,7 @@
         color: var(--muted);
         font-size: 0.82rem;
         cursor: pointer;
-        transition: all .2s;
+        transition: background .2s, color .2s, border-color .2s, opacity .2s;
         font-family: "Inter", sans-serif;
       }
       .pager-btn:hover:not(:disabled) {
@@ -693,7 +704,7 @@
         justify-content: center;
         color: var(--muted);
         font-size: 1rem;
-        transition: all 0.2s;
+        transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
         display: none;
       }
       .blog-panel.fullscreen .panel-close {
@@ -1488,7 +1499,7 @@
         justify-content: center;
         color: var(--muted);
         font-size: 1rem;
-        transition: all 0.2s;
+        transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
         display: none;
       }
       .poem-panel.fullscreen .panel-close {
@@ -1563,7 +1574,7 @@
         font-size: 0.8rem;
         color: var(--muted);
         cursor: pointer;
-        transition: all 0.2s;
+        transition: background 0.2s, color 0.2s, border-color 0.2s, opacity 0.2s;
         font-family: inherit;
       }
       .panel-nav-btn:hover:not(:disabled) {
@@ -1731,7 +1742,7 @@
         text-decoration: none;
         color: var(--ink);
         font-size: 0.875rem;
-        transition: all 0.2s;
+        transition: background 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
       }
       .social-btn:hover {
         border-color: var(--rust);
@@ -1845,7 +1856,7 @@
         justify-content: center;
         color: var(--muted);
         font-size: 0.85rem;
-        transition: all 0.2s;
+        transition: background 0.2s, color 0.2s, border-color 0.2s;
       }
       .editor-btn:hover {
         border-color: var(--rust);
@@ -2600,7 +2611,7 @@
         font-size: 0.8rem;
         font-family: "Inter", sans-serif;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: background 0.2s, color 0.2s, border-color 0.2s, opacity 0.2s;
       }
       .editor-save-btn:hover {
         background: #6d8f6f;
@@ -2618,7 +2629,7 @@
         font-size: 0.8rem;
         font-family: "Inter", sans-serif;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: background 0.2s, color 0.2s, border-color 0.2s;
       }
       .editor-cancel-btn:hover {
         border-color: var(--rust);
@@ -2879,7 +2890,7 @@
         font-size: 0.8rem;
         font-family: "Inter", sans-serif;
         cursor: pointer;
-        transition: all 0.18s ease;
+        transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
       }
       .section-editor-btn.cancel {
         border: 1.5px solid var(--border);
@@ -2935,7 +2946,7 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        transition: all 0.15s ease;
+        transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
       }
       .item-action-btn:hover { color: var(--rust); border-color: var(--rust); }
       .item-action-btn.del:hover { color: #c0392b; border-color: #c0392b; }
@@ -6524,12 +6535,6 @@
         editorRangeReplace(start, end, needsLeadingNL + block + needsTrailingNL, 'end');
       }
 
-      function editorAppendFootnote(label) {
-        const ta = document.getElementById('editorTextarea');
-        if (ta.value.includes(`[^${label}]:`)) return;
-        const trimmedLen = ta.value.replace(/\s*$/, '').length;
-        editorRangeReplace(trimmedLen, ta.value.length, `\n\n[^${label}]: `, { noUndo: true });
-      }
 
       const latexCompletion = LatexComplete.attach(document.getElementById('editorTextarea'), {
         // In Vim mode only insert mode types text, so completion stays out of the way.
@@ -6761,7 +6766,11 @@
         if (e.key === 'Escape') closeEditorCtxMenu();
       });
       window.addEventListener('blur', closeEditorCtxMenu);
-      window.addEventListener('scroll', closeEditorCtxMenu, true);
+      // Capture phase sees every scroll in the page, so it leaves at once
+      // unless the menu it closes is actually open.
+      window.addEventListener('scroll', () => {
+        if (!editorCtxMenu.hidden) closeEditorCtxMenu();
+      }, { capture: true, passive: true });
 
       // ── Paste image from clipboard ──
       document.getElementById('editorTextarea').addEventListener('paste', (e) => {

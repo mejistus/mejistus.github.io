@@ -518,7 +518,16 @@
     const K = window.katex;
     if (!K) return '<code>' + esc(tex) + '</code>';
     try {
-      return K.renderToString(tex, { displayMode: display, throwOnError: false, macros: ctx.katexMacros });
+      // KaTeX writes every formula twice: the visual HTML and a hidden MathML
+      // copy for screen readers. The MathML costs about three quarters of the
+      // layout time of a maths-heavy post, so it is dropped and the source is
+      // handed to assistive tech as a label instead.
+      const html = K.renderToString(tex, {
+        displayMode: display, throwOnError: false, macros: ctx.katexMacros, output: 'html',
+      });
+      const label = esc(tex.replace(/\s+/g, ' ').trim());
+      return html.replace('<span class="katex">',
+        `<span class="katex" role="math" aria-label="${label}">`);
     } catch (e) {
       return '<code>' + esc(tex) + '</code>';
     }
