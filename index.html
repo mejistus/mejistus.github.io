@@ -15,12 +15,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.0.1"></script>
-    <script src="assets/latex-complete.js?v=8.0.1"></script>
-    <script src="assets/vim.js?v=8.0.1"></script>
-    <script src="assets/lint.js?v=8.0.1"></script>
-    <script src="assets/tikz-nn.js?v=8.0.1"></script>
-    <script src="assets/bib.js?v=8.0.1"></script>
+    <script src="assets/latex.js?v=8.0.2"></script>
+    <script src="assets/latex-complete.js?v=8.0.2"></script>
+    <script src="assets/vim.js?v=8.0.2"></script>
+    <script src="assets/lint.js?v=8.0.2"></script>
+    <script src="assets/tikz-nn.js?v=8.0.2"></script>
+    <script src="assets/bib.js?v=8.0.2"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -5991,7 +5991,16 @@
         document.querySelectorAll('.editor-jump').forEach(el => el.remove());
       }
 
+      let jumpFrame = 0;
       function positionJump(fresh) {
+        if (!jumpSpan) return;
+        // On a frame of its own: a scroll only reaches the highlight layer
+        // once every scroll listener has run, and this measures that layer.
+        cancelAnimationFrame(jumpFrame);
+        jumpFrame = requestAnimationFrame(() => drawJump(fresh));
+      }
+
+      function drawJump(fresh) {
         if (!jumpSpan) return;
         const host = document.querySelector('.editor-input');
         const range = rangeBetween(jumpSpan.from, jumpSpan.to);
@@ -6080,6 +6089,13 @@
         };
         ta.addEventListener('scroll', sync(ta, pv), { passive: true });
         pv.addEventListener('scroll', sync(pv, ta), { passive: true });
+        // The lock is there to swallow a jump's own scrolling, not to ignore
+        // the reader: once they scroll a pane themselves, the panes pair up
+        // again immediately.
+        ['wheel', 'touchstart', 'keydown'].forEach(ev => {
+          ta.addEventListener(ev, () => { scrollSyncLockedUntil = 0; }, { passive: true });
+          pv.addEventListener(ev, () => { scrollSyncLockedUntil = 0; }, { passive: true });
+        });
       })();
 
       // Tab key inserts spaces in textarea
