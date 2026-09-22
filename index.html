@@ -3,24 +3,54 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- First thing in the head: the page is 290KB, and until it is parsed the
+         browser would paint its own white. This paints the chosen theme's own
+         colour instead, and tells the browser's UI what colour to be. -->
+    <meta name="theme-color" id="themeColorMeta" content="#fdfaf6" />
+    <script>
+      (function () {
+        // page colour and darkness per theme; kept in step with THEMES by a test
+        const T = {
+          light: ['#fdfaf6', 0], dark: ['#191817', 1], onedark: ['#282c34', 1],
+          nord: ['#2e3440', 1], gruvbox: ['#282828', 1], solarized: ['#fdf6e3', 0],
+          vscode: ['#1e1e1e', 1], github: ['#ffffff', 0], 'github-dark': ['#0d1117', 1],
+          'plain-white': ['#ffffff', 0], 'plain-dark': ['#000000', 1],
+        };
+        let saved = null;
+        try { saved = localStorage.getItem('theme'); } catch (_) {}
+        // Same fallback the page uses when site data is blocked.
+        if (!saved) { try { saved = sessionStorage.getItem('theme'); } catch (_) {} }
+        const name = T[saved] ? saved
+          : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        const root = document.documentElement;
+        if (name !== 'light') root.dataset.theme = name;
+        if (T[name][1]) root.dataset.dark = '';
+        root.style.background = T[name][0];
+        root.style.colorScheme = T[name][1] ? 'dark' : 'light';
+        document.getElementById('themeColorMeta').setAttribute('content', T[name][0]);
+      })();
+    </script>
     <title>Xu Chen — Personal Blog</title>
     <!-- KaTeX for math formulas -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+          media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"></noscript>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <!-- Prism.js for code highlighting -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css"
+          media="print" onload="this.media='all'">
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.4.2"></script>
-    <script src="assets/latex-complete.js?v=8.4.2"></script>
-    <script src="assets/vim.js?v=8.4.2"></script>
-    <script src="assets/lint.js?v=8.4.2"></script>
-    <script src="assets/tikz-nn.js?v=8.4.2"></script>
-    <script src="assets/bib.js?v=8.4.2"></script>
+    <script src="assets/latex.js?v=8.4.3"></script>
+    <script src="assets/latex-complete.js?v=8.4.3"></script>
+    <script src="assets/vim.js?v=8.4.3"></script>
+    <script src="assets/lint.js?v=8.4.3"></script>
+    <script src="assets/tikz-nn.js?v=8.4.3"></script>
+    <script src="assets/bib.js?v=8.4.3"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -3384,22 +3414,6 @@
       }
     </style>
   </head>
-  <script>
-    // Before first paint: a stored choice wins, otherwise follow the system.
-    // The dark names are repeated here because the stylesheet has not run yet.
-    (function () {
-      const DARK = ['dark', 'onedark', 'nord', 'gruvbox', 'vscode', 'github-dark', 'plain-dark'];
-      const KNOWN = DARK.concat(['light', 'solarized', 'github', 'plain-white']);
-      let saved = null;
-      try { saved = localStorage.getItem('theme'); } catch (_) {}
-      // Same fallback the page uses when site data is blocked.
-      if (!saved) { try { saved = sessionStorage.getItem('theme'); } catch (_) {} }
-      const name = KNOWN.includes(saved) ? saved
-        : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      if (name !== 'light') document.documentElement.dataset.theme = name;
-      if (DARK.includes(name)) document.documentElement.dataset.dark = '';
-    })();
-  </script>
   <body>
     <!-- AUTH MODAL -->
     <div class="auth-overlay" id="authOverlay">
@@ -4481,6 +4495,12 @@
           btn.textContent = theme.dark ? '☾' : '◐';
           btn.title = `Colours: ${theme.label}`;
         }
+        // The page colour, for the browser's own chrome and for the first
+        // paint of the next load.
+        root.style.background = theme.swatch[0];
+        root.style.colorScheme = theme.dark ? 'dark' : 'light';
+        const meta = document.getElementById('themeColorMeta');
+        if (meta) meta.setAttribute('content', theme.swatch[0]);
         renderThemeMenu();
         // TikZ sheets change size with the theme, so scaled boxes re-measure.
         // (Guarded: this also runs before the editor's own state exists.)
