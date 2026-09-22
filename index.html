@@ -57,12 +57,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.8.0"></script>
-    <script src="assets/latex-complete.js?v=8.8.0"></script>
-    <script src="assets/vim.js?v=8.8.0"></script>
-    <script src="assets/lint.js?v=8.8.0"></script>
-    <script src="assets/tikz-nn.js?v=8.8.0"></script>
-    <script src="assets/bib.js?v=8.8.0"></script>
+    <script src="assets/latex.js?v=8.8.1"></script>
+    <script src="assets/latex-complete.js?v=8.8.1"></script>
+    <script src="assets/vim.js?v=8.8.1"></script>
+    <script src="assets/lint.js?v=8.8.1"></script>
+    <script src="assets/tikz-nn.js?v=8.8.1"></script>
+    <script src="assets/bib.js?v=8.8.1"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -6947,13 +6947,24 @@
         if (sc && pv) syncKnot = { src: sc.scrollTop, pv: pv.scrollTop };
       }
       function clearSyncKnot() { syncKnot = null; }
-      // Between the fixed point and each end, proportionally.
+      // Proportional, shifted by however far a jump left the panes from
+      // proportion, and that shift is simply kept.
+      //
+      // Something has to give after a jump: it lines the panes up on one
+      // thing, which is not where proportion would have them. Bending the
+      // mapping back — in two straight pieces, or fading the shift out over a
+      // screen or two — pays the difference back through the scrolling speed,
+      // and that is exactly what reads as wrong: measured, the follower's
+      // speed swung between 26 and 192px per step against a mean of 109.
+      // Keeping the shift costs nothing in speed — it is proportional
+      // everywhere — and the only place it shows is the very end, where one
+      // pane reaches its limit while the other still has a little to go.
       function mapThroughKnot(value, fMax, tMax, fromIsSource) {
-        if (!syncKnot) return fMax > 0 ? (value / fMax) * tMax : 0;
+        const base = fMax > 0 ? (value / fMax) * tMax : 0;
+        if (!syncKnot || fMax <= 0) return base;
         const f = fromIsSource ? syncKnot.src : syncKnot.pv;
         const t = fromIsSource ? syncKnot.pv : syncKnot.src;
-        if (value <= f) return f > 0 ? (value / f) * t : t;
-        return fMax > f ? t + ((value - f) / (fMax - f)) * (tMax - t) : tMax;
+        return base + (t - (f / fMax) * tMax);
       }
 
       // ── Pairing the two panes ──
@@ -6986,10 +6997,13 @@
           const fMax = from.scrollHeight - from.clientHeight;
           const tMax = to.scrollHeight - to.clientHeight;
           if (fMax <= 0 || tMax <= 0) return;
-          const next = Math.max(0, Math.min(tMax,
-            mapThroughKnot(from.scrollTop, fMax, tMax, from === sc)));
+          const wanted = mapThroughKnot(from.scrollTop, fMax, tMax, from === sc);
+          const next = Math.max(0, Math.min(tMax, wanted));
           to.scrollTop = next;
           written.set(to, to.scrollTop);            // as the browser stored it
+          // At the very end the follower runs out of room while the leader
+          // still has some; rebase the shift there so coming back is smooth.
+          if (syncKnot && Math.abs(wanted - next) > 0.5) rememberSyncPoint();
           wroteThisFrame = true;
           requestAnimationFrame(() => { wroteThisFrame = false; });
         };
