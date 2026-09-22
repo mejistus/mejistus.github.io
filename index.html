@@ -53,12 +53,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.5.0"></script>
-    <script src="assets/latex-complete.js?v=8.5.0"></script>
-    <script src="assets/vim.js?v=8.5.0"></script>
-    <script src="assets/lint.js?v=8.5.0"></script>
-    <script src="assets/tikz-nn.js?v=8.5.0"></script>
-    <script src="assets/bib.js?v=8.5.0"></script>
+    <script src="assets/latex.js?v=8.5.1"></script>
+    <script src="assets/latex-complete.js?v=8.5.1"></script>
+    <script src="assets/vim.js?v=8.5.1"></script>
+    <script src="assets/lint.js?v=8.5.1"></script>
+    <script src="assets/tikz-nn.js?v=8.5.1"></script>
+    <script src="assets/bib.js?v=8.5.1"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -346,17 +346,31 @@
       /* Keyboard focus has to be visible. These selectors match the ones that
          set outline:none for the mouse; :focus-visible keeps the ring off for
          clicks. The editor's textarea is excluded — it has its own caret. */
-      :focus-visible,
+      :focus-visible {
+        outline: 2px solid var(--rust);
+        outline-offset: 2px;
+      }
+      /* An input that sits inside a styled box has no shape of its own, so a
+         ring drawn on it is a rectangle inside a rounded one. Ring the box. */
+      .blog-search-bar:has(:focus-visible),
+      .editor-find:has(:focus-visible),
+      .section-editor-field:has(:focus-visible) {
+        outline: 2px solid var(--rust);
+        outline-offset: 2px;
+      }
       .blog-search-bar input:focus-visible,
-      .auth-input:focus-visible,
-      .editor-refs textarea:focus-visible,
-      .vim-cmdline:focus-visible,
       .editor-find input:focus-visible,
       .section-editor-field input:focus-visible,
       .section-editor-field textarea:focus-visible,
       .section-editor-field select:focus-visible {
+        outline: none;
+      }
+      /* These have their own edges, so the ring can follow them. */
+      .auth-input:focus-visible,
+      .editor-refs textarea:focus-visible,
+      .vim-cmdline:focus-visible {
         outline: 2px solid var(--rust);
-        outline-offset: 2px;
+        outline-offset: 1px;
       }
       .editor-textarea:focus-visible { outline: none; }
 
@@ -799,19 +813,21 @@
         box-shadow: 0 4px 24px rgba(0,0,0,0.08);
         gap: 0.6rem;
         opacity: 0;
-        height: 0;
+        max-height: 0;
         padding: 0 1rem;
         margin: 0;
         overflow: hidden;
         pointer-events: none;
         transform: translateY(-8px);
-        /* Only what the compositor can animate by itself: height, padding and
-           margin would each put a layout pass in every frame. */
-        transition: opacity 0.25s ease, transform 0.25s ease;
+        /* This one slides open, which means a layout pass per frame. Measured:
+           about a millisecond per toggle for one small bar — cheaper than the
+           animation is worth. */
+        transition: opacity 0.25s ease, transform 0.25s ease, max-height 0.25s ease,
+          padding 0.25s ease, margin 0.25s ease;
       }
       .blog-search-bar.visible {
         opacity: 1;
-        height: auto;
+        max-height: 3.2rem;
         padding: 0.6rem 1rem;
         margin: 1rem 0 1.2rem;
         pointer-events: auto;
@@ -4305,22 +4321,45 @@
           '<mark>$&</mark>');
       }
 
+      // Lower-cased once per post and kept, next to the stripped text itself:
+      // a keystroke used to lower-case every post's body and then build a
+      // second copy of it to search in.
+      const searchLowerCache = new Map();
+      function searchableLower(b) {
+        const text = searchableText(b);
+        let e = searchLowerCache.get(b.file);
+        if (!e || e.src !== text || e.title !== b.title) {
+          e = { src: text, title: b.title, body: text.toLowerCase(),
+                meta: `${b.title} ${b.tag} ${b.excerpt} ${b.date}`.toLowerCase() };
+          searchLowerCache.set(b.file, e);
+        }
+        return e;
+      }
+      // Counting with indexOf rather than split, which allocated one array
+      // element per hit; five is all the score uses.
+      function countUpTo(hay, needle, cap) {
+        let n = 0, at = hay.indexOf(needle);
+        while (at >= 0 && n < cap) { n++; at = hay.indexOf(needle, at + needle.length); }
+        return n;
+      }
+
       function blogSearch(query) {
         if (!query.trim()) return [];
         const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
         const scored = [];
         blogs.forEach((b, i) => {
           const body = searchableText(b);
-          const bodyLower = body.toLowerCase();
-          const haystack = `${b.title} ${b.tag} ${b.excerpt} ${b.date} ${bodyLower}`.toLowerCase();
-          if (!tokens.every(t => haystack.includes(t))) return;
+          const low = searchableLower(b);
+          const bodyLower = low.body;
+          if (!tokens.every(t => low.meta.includes(t) || bodyLower.includes(t))) return;
           let score = 0;
           tokens.forEach(t => {
-            if (b.title.toLowerCase().includes(t)) score += 8;
-            if (b.tag.toLowerCase().includes(t)) score += 4;
-            if (b.excerpt.toLowerCase().includes(t)) score += 3;
-            const hits = bodyLower.split(t).length - 1;
-            score += Math.min(hits, 5);
+            if (low.meta.includes(t)) {
+              if (b.title.toLowerCase().includes(t)) score += 8;
+              if (b.tag.toLowerCase().includes(t)) score += 4;
+              if (b.excerpt.toLowerCase().includes(t)) score += 3;
+            }
+            score += countUpTo(bodyLower, t, 5);
           });
           scored.push({ index: i, score, snippet: searchSnippet(body || b.excerpt, tokens) });
         });
@@ -4411,11 +4450,14 @@
       document.addEventListener("DOMContentLoaded", () => {
         const input = document.getElementById("blogSearchInput");
         if (input) {
+          let searchFrame = 0;
           input.addEventListener("input", (e) => {
             const q = e.target.value;
             if (q.trim()) {
-              const results = blogSearch(q);
-              renderSearchResults(results);
+              // One search per frame: holding a key down should not queue up
+              // a full pass over every post for each repeat.
+              cancelAnimationFrame(searchFrame);
+              searchFrame = requestAnimationFrame(() => renderSearchResults(blogSearch(q)));
             } else {
               const container = document.getElementById("searchResults");
               container.classList.remove("visible");
