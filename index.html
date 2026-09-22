@@ -53,12 +53,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.6.2"></script>
-    <script src="assets/latex-complete.js?v=8.6.2"></script>
-    <script src="assets/vim.js?v=8.6.2"></script>
-    <script src="assets/lint.js?v=8.6.2"></script>
-    <script src="assets/tikz-nn.js?v=8.6.2"></script>
-    <script src="assets/bib.js?v=8.6.2"></script>
+    <script src="assets/latex.js?v=8.6.3"></script>
+    <script src="assets/latex-complete.js?v=8.6.3"></script>
+    <script src="assets/vim.js?v=8.6.3"></script>
+    <script src="assets/lint.js?v=8.6.3"></script>
+    <script src="assets/tikz-nn.js?v=8.6.3"></script>
+    <script src="assets/bib.js?v=8.6.3"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -6976,20 +6976,35 @@
         });
       }
 
+      // Respect a reader who has asked for less movement.
+      function scrollPaneTo(el, top) {
+        const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        el.scrollTo({ top: Math.max(0, top), behavior: still ? 'auto' : 'smooth' });
+      }
       function goToLine(line) {
         const ta = document.getElementById('editorTextarea');
+        const sc = document.getElementById('editorScroll');
+        const pv = document.getElementById('editorPreview');
         const pos = sourceOffsetOfLine(ta.value, line);
         ta.focus({ preventScroll: true });
         ta.setSelectionRange(pos, pos);
-        revealCaret('center');
-        // Put the preview on the same line, then hold that pairing.
+
+        const caret = caretRectInHighlight(pos) || LatexComplete.caretRect(ta);
         const block = previewTargetForLine(line);
-        if (block) {
-          const pv = document.getElementById('editorPreview');
-          const top = block.getBoundingClientRect().top - pv.getBoundingClientRect().top + pv.scrollTop;
-          pv.scrollTop = Math.max(0, top - pv.clientHeight / 3);
+        if (caret) {
+          const srcTop = Math.max(0, sc.scrollTop + (caret.top - sc.getBoundingClientRect().top) - sc.clientHeight / 3);
+          if (block) {
+            // Set the pairing for where we are going before setting off: the
+            // preview then follows the source's own scrolling, frame by frame,
+            // and arrives exactly on the same section. One animation, not two
+            // racing each other.
+            const pvTop = Math.max(0, pv.scrollTop + (block.getBoundingClientRect().top - pv.getBoundingClientRect().top) - pv.clientHeight / 3);
+            syncKnot = { src: srcTop, pv: pvTop };
+          }
+          // Scroll to the line rather than snapping to it: a jump that
+          // teleports gives no sense of where in the document you landed.
+          scrollPaneTo(sc, srcTop);
         }
-        rememberSyncPoint();
         const lineEnd = ta.value.indexOf('\n', pos);
         ta.setSelectionRange(pos, lineEnd < 0 ? ta.value.length : lineEnd);
         flashActiveLine();
