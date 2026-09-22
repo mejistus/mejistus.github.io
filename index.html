@@ -15,12 +15,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.3.0"></script>
-    <script src="assets/latex-complete.js?v=8.3.0"></script>
-    <script src="assets/vim.js?v=8.3.0"></script>
-    <script src="assets/lint.js?v=8.3.0"></script>
-    <script src="assets/tikz-nn.js?v=8.3.0"></script>
-    <script src="assets/bib.js?v=8.3.0"></script>
+    <script src="assets/latex.js?v=8.3.1"></script>
+    <script src="assets/latex-complete.js?v=8.3.1"></script>
+    <script src="assets/vim.js?v=8.3.1"></script>
+    <script src="assets/lint.js?v=8.3.1"></script>
+    <script src="assets/tikz-nn.js?v=8.3.1"></script>
+    <script src="assets/bib.js?v=8.3.1"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -241,30 +241,6 @@
         --tok-verbatim: #a5d6ff;
         color-scheme: dark;
       }
-      /* 朴素: one ink, a few greys, no colour to speak of. */
-      :root[data-theme="plain"] {
-        --sand: #f4f4f4;
-        --cream: #ffffff;
-        --sage: #5a5a5a;
-        --rust: #3f3f3f;
-        --ink: #1a1a1a;
-        --muted: #767676;
-        --border: #e2e2e2;
-        --surface: #ffffff;
-        --nav-bg: rgba(255, 255, 255, 0.92);
-        --paper: #ffffff;
-        --danger: #8c2f2f;
-        --warn: #7a5c1e;
-        --tok-comment: #9b9b9b;
-        --tok-command: #3f3f3f;
-        --tok-env: #5f5f5f;
-        --tok-math: #2f2f2f;
-        --tok-regex: #6f6f6f;
-        --tok-punct: #a8a8a8;
-        --tok-verbatim: #555555;
-        color-scheme: light;
-      }
-
       html {
         scroll-behavior: smooth;
       }
@@ -3335,7 +3311,7 @@
     // The dark names are repeated here because the stylesheet has not run yet.
     (function () {
       const DARK = ['dark', 'onedark', 'nord', 'gruvbox', 'vscode', 'github-dark'];
-      const KNOWN = DARK.concat(['light', 'solarized', 'github', 'plain']);
+      const KNOWN = DARK.concat(['light', 'solarized', 'github']);
       let saved = null;
       try { saved = localStorage.getItem('theme'); } catch (_) {}
       const name = KNOWN.includes(saved) ? saved
@@ -4405,7 +4381,6 @@
         { name: 'vscode', label: 'VS Code', dark: true, swatch: ['#1e1e1e', '#d4d4d4', '#569cd6'] },
         { name: 'github', label: 'GitHub', dark: false, swatch: ['#ffffff', '#1f2328', '#0969da'] },
         { name: 'github-dark', label: 'GitHub Dark', dark: true, swatch: ['#0d1117', '#e6edf3', '#58a6ff'] },
-        { name: 'plain', label: '朴素 Plain', dark: false, swatch: ['#ffffff', '#1a1a1a', '#3f3f3f'] },
       ];
       const themeByName = (n) => THEMES.find(t => t.name === n);
 
