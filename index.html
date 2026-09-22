@@ -15,12 +15,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.4.0"></script>
-    <script src="assets/latex-complete.js?v=8.4.0"></script>
-    <script src="assets/vim.js?v=8.4.0"></script>
-    <script src="assets/lint.js?v=8.4.0"></script>
-    <script src="assets/tikz-nn.js?v=8.4.0"></script>
-    <script src="assets/bib.js?v=8.4.0"></script>
+    <script src="assets/latex.js?v=8.4.1"></script>
+    <script src="assets/latex-complete.js?v=8.4.1"></script>
+    <script src="assets/vim.js?v=8.4.1"></script>
+    <script src="assets/lint.js?v=8.4.1"></script>
+    <script src="assets/tikz-nn.js?v=8.4.1"></script>
+    <script src="assets/bib.js?v=8.4.1"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -37,6 +37,7 @@
       * { scrollbar-width: none; }
 
       :root {
+        --on-accent: #ffffff;
         --sand: #f5f0ea;
         --cream: #fdfaf6;
         --sage: #8aaa8c;
@@ -63,6 +64,7 @@
       }
       /* Dark theme; applied by the toggle, which also follows the system. */
       :root[data-theme="dark"] {
+        --on-accent: #191817;
         --sand: #23211f;
         --cream: #191817;
         --sage: #8fae91;
@@ -89,6 +91,7 @@
          variables as the two above; --paper stays light because TikZ draws
          black ink onto it. */
       :root[data-theme="onedark"] {
+        --on-accent: #282c34;
         --sand: #21252b;
         --cream: #282c34;
         --sage: #98c379;
@@ -111,6 +114,7 @@
         color-scheme: dark;
       }
       :root[data-theme="nord"] {
+        --on-accent: #2e3440;
         --sand: #272c36;
         --cream: #2e3440;
         --sage: #a3be8c;
@@ -133,6 +137,7 @@
         color-scheme: dark;
       }
       :root[data-theme="gruvbox"] {
+        --on-accent: #282828;
         --sand: #32302f;
         --cream: #282828;
         --sage: #b8bb26;
@@ -155,29 +160,31 @@
         color-scheme: dark;
       }
       :root[data-theme="solarized"] {
+        --on-accent: #ffffff;
         --sand: #eee8d5;
         --cream: #fdf6e3;
         --sage: #859900;
         --rust: #cb4b16;
         --ink: #073642;
-        --muted: #93a1a1;
+        --muted: #657b83;
         --border: #e3dcc6;
         --surface: #fffcf2;
         --nav-bg: rgba(253, 246, 227, 0.9);
         --paper: #fdf6e3;
         --danger: #dc322f;
         --warn: #b58900;
-        --tok-comment: #93a1a1;
+        --tok-comment: #7f9191;   /* base1 is 2.2:1 on its own code background */
         --tok-command: #cb4b16;
         --tok-env: #859900;
         --tok-math: #268bd2;
         --tok-regex: #6c71c4;
-        --tok-punct: #93a1a1;
+        --tok-punct: #839496;
         --tok-verbatim: #2aa198;
         color-scheme: light;
       }
 
       :root[data-theme="vscode"] {
+        --on-accent: #1e1e1e;
         --sand: #252526;
         --cream: #1e1e1e;
         --sage: #4ec9b0;
@@ -200,6 +207,7 @@
         color-scheme: dark;
       }
       :root[data-theme="github"] {
+        --on-accent: #ffffff;
         --sand: #f6f8fa;
         --cream: #ffffff;
         --sage: #1a7f37;
@@ -222,6 +230,7 @@
         color-scheme: light;
       }
       :root[data-theme="github-dark"] {
+        --on-accent: #0d1117;
         --sand: #161b22;
         --cream: #0d1117;
         --sage: #3fb950;
@@ -248,6 +257,7 @@
          washes come out as plain greys. Errors and warnings keep a tint —
          the Problems list tells them apart by colour. */
       :root[data-theme="plain-white"] {
+        --on-accent: #ffffff;
         --cite-frame: #595959;
         --sand: #f4f4f4;
         --cream: #ffffff;
@@ -271,6 +281,7 @@
         color-scheme: light;
       }
       :root[data-theme="plain-dark"] {
+        --on-accent: #000000;
         --cite-frame: #a6a6a6;
         --sand: #121212;
         --cream: #000000;
@@ -494,7 +505,7 @@
       }
       .btn-primary {
         background: var(--rust);
-        color: #fff;
+        color: var(--on-accent);
       }
       .btn-primary:hover {
         background: color-mix(in srgb, var(--rust) 85%, #000);
@@ -545,7 +556,7 @@
         bottom: -1rem;
         right: -1rem;
         background: var(--rust);
-        color: #fff;
+        color: var(--on-accent);
         border-radius: 50%;
         width: 72px;
         height: 72px;
@@ -1022,6 +1033,24 @@
       .blog-content pre {
         position: relative;
       }
+      /* Prism ships one fixed palette; these follow the site's instead, the
+         way the editor's own highlighting does. */
+      .blog-content .token.comment, .blog-content .token.prolog,
+      .blog-content .token.doctype, .blog-content .token.cdata { color: var(--tok-comment); }
+      .blog-content .token.punctuation { color: var(--tok-punct); }
+      .blog-content .token.property, .blog-content .token.tag, .blog-content .token.boolean,
+      .blog-content .token.number, .blog-content .token.constant, .blog-content .token.symbol,
+      .blog-content .token.deleted { color: var(--tok-math); }
+      .blog-content .token.selector, .blog-content .token.attr-name, .blog-content .token.string,
+      .blog-content .token.char, .blog-content .token.builtin,
+      .blog-content .token.inserted { color: var(--tok-verbatim); }
+      .blog-content .token.operator, .blog-content .token.entity,
+      .blog-content .token.url, .blog-content .token.variable { color: var(--ink); }
+      .blog-content .token.atrule, .blog-content .token.attr-value,
+      .blog-content .token.keyword { color: var(--tok-env); }
+      .blog-content .token.function, .blog-content .token.class-name { color: var(--tok-command); }
+      .blog-content .token.regex, .blog-content .token.important { color: var(--tok-regex); }
+
       .code-copy {
         position: absolute;
         top: 0.5rem;
@@ -2488,7 +2517,7 @@
       .editor-compile-btn.on {
         border-color: var(--sage);
         background: var(--sage);
-        color: #fff;
+        color: var(--on-accent);
       }
       .editor-problems {
         position: absolute;
@@ -2530,7 +2559,7 @@
       .editor-compile-btn.has-errors {
         border-color: var(--danger);
         background: var(--danger);
-        color: #fff;
+        color: var(--on-accent);
       }
       .editor-compile-btn.has-warnings {
         border-color: var(--warn);
@@ -2560,7 +2589,7 @@
       .editor-compile-btn.stale {
         border-color: var(--rust);
         background: var(--rust);
-        color: #fff;
+        color: var(--on-accent);
       }
       .editor-mode-switch {
         display: inline-flex;
@@ -2577,10 +2606,6 @@
         letter-spacing: 0.06em;
         color: var(--muted);
         cursor: pointer;
-      }
-      .editor-mode-switch button.active {
-        background: var(--rust);
-        color: #fff;
       }
       /* Saved posts are bound to their format: the switch is shown but greyed out. */
       .editor-mode-switch.locked {
@@ -2639,7 +2664,7 @@
       .editor-find button.on {
         border-color: var(--rust);
         background: var(--rust);
-        color: #fff;
+        color: var(--on-accent);
       }
       .editor-find-count {
         flex-shrink: 0;
@@ -2877,7 +2902,7 @@
         border-radius: 2rem;
         border: none;
         background: var(--sage);
-        color: #fff;
+        color: var(--on-accent);
         font-size: 0.8rem;
         font-family: "Inter", sans-serif;
         cursor: pointer;
@@ -3173,7 +3198,7 @@
       }
       .section-editor-btn.save {
         background: var(--sage);
-        color: #fff;
+        color: var(--on-accent);
       }
       .section-editor-btn.save:hover { background: color-mix(in srgb, var(--sage) 85%, #000); }
       .section-editor-btn.save:disabled { opacity: 0.5; cursor: default; }
@@ -3239,7 +3264,7 @@
       }
       .editor-mobile-tabs button.active {
         background: var(--rust);
-        color: #fff;
+        color: var(--on-accent);
       }
 
       @media (max-width: 768px) {
