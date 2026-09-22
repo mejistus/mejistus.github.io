@@ -53,12 +53,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.7.0"></script>
-    <script src="assets/latex-complete.js?v=8.7.0"></script>
-    <script src="assets/vim.js?v=8.7.0"></script>
-    <script src="assets/lint.js?v=8.7.0"></script>
-    <script src="assets/tikz-nn.js?v=8.7.0"></script>
-    <script src="assets/bib.js?v=8.7.0"></script>
+    <script src="assets/latex.js?v=8.7.1"></script>
+    <script src="assets/latex-complete.js?v=8.7.1"></script>
+    <script src="assets/vim.js?v=8.7.1"></script>
+    <script src="assets/lint.js?v=8.7.1"></script>
+    <script src="assets/tikz-nn.js?v=8.7.1"></script>
+    <script src="assets/bib.js?v=8.7.1"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -6865,8 +6865,9 @@
         new ResizeObserver(clearSyncKnot).observe(sc);
         window.addEventListener('resize', clearSyncKnot);
         ['wheel', 'touchstart', 'keydown'].forEach(ev => {
-          sc.addEventListener(ev, () => { scrollSyncLockedUntil = 0; }, { passive: true });
-          pv.addEventListener(ev, () => { scrollSyncLockedUntil = 0; }, { passive: true });
+          const take = () => { scrollSyncLockedUntil = 0; cancelPaneTween(); };
+          sc.addEventListener(ev, take, { passive: true });
+          pv.addEventListener(ev, take, { passive: true });
         });
       })();
 
@@ -7072,10 +7073,47 @@
         });
       }
 
-      // Respect a reader who has asked for less movement.
-      function scrollPaneTo(el, top) {
+      // Both panes are moved by one clock, with one easing, so they cannot
+      // drift apart. Letting the browser animate the source and having the
+      // preview chase it through the sync looked wrong twice over: the preview
+      // jumped on the first frame to wherever the mapping put it, and the
+      // browser's own duration grows with the distance, so a long jump spent a
+      // second repainting a heavy preview frame by frame.
+      let paneTween = 0;
+      function cancelPaneTween() { cancelAnimationFrame(paneTween); paneTween = 0; }
+      function scrollPanesTo(srcTop, pvTop) {
+        const sc = document.getElementById('editorScroll');
+        const pv = document.getElementById('editorPreview');
+        if (!sc) return;
+        cancelPaneTween();
+        const cap = (el, v) => Math.max(0, Math.min(el.scrollHeight - el.clientHeight, v));
+        const s0 = sc.scrollTop, s1 = cap(sc, srcTop);
+        const movePv = pv && pvTop !== null && pvTop !== undefined;
+        const p0 = movePv ? pv.scrollTop : 0, p1 = movePv ? cap(pv, pvTop) : 0;
+        const put = (s, p) => {
+          sc.scrollTop = s; markSyncWrite(sc);
+          if (movePv) { pv.scrollTop = p; markSyncWrite(pv); }
+        };
         const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        el.scrollTo({ top: Math.max(0, top), behavior: still ? 'auto' : 'smooth' });
+        if (still || (Math.abs(s1 - s0) < 2 && Math.abs(p1 - p0) < 2)) {
+          put(s1, p1);
+          rememberSyncPoint();
+          return;
+        }
+        // Ease in as well as out: an ease-out curve is at its fastest on the
+        // first frame, which reads as a jump. Longer jumps get a little longer
+        // to travel, but not much — waiting is worse than arriving.
+        const far = Math.max(Math.abs(s1 - s0), Math.abs(p1 - p0));
+        const dur = Math.min(520, 240 + far * 0.03);
+        const t0 = performance.now();
+        const step = (now) => {
+          const t = Math.min(1, (now - t0) / dur);
+          const k = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+          put(s0 + (s1 - s0) * k, p0 + (p1 - p0) * k);
+          if (t < 1) paneTween = requestAnimationFrame(step);
+          else { paneTween = 0; rememberSyncPoint(); }
+        };
+        paneTween = requestAnimationFrame(step);
       }
       function goToLine(line) {
         const ta = document.getElementById('editorTextarea');
@@ -7088,18 +7126,13 @@
         const caret = caretRectInHighlight(pos) || LatexComplete.caretRect(ta);
         const block = previewTargetForLine(line);
         if (caret) {
-          const srcTop = Math.max(0, sc.scrollTop + (caret.top - sc.getBoundingClientRect().top) - sc.clientHeight / 3);
-          if (block) {
-            // Set the pairing for where we are going before setting off: the
-            // preview then follows the source's own scrolling, frame by frame,
-            // and arrives exactly on the same section. One animation, not two
-            // racing each other.
-            const pvTop = Math.max(0, pv.scrollTop + (block.getBoundingClientRect().top - pv.getBoundingClientRect().top) - pv.clientHeight / 3);
-            syncKnot = { src: srcTop, pv: pvTop };
-          }
           // Scroll to the line rather than snapping to it: a jump that
           // teleports gives no sense of where in the document you landed.
-          scrollPaneTo(sc, srcTop);
+          const srcTop = sc.scrollTop + (caret.top - sc.getBoundingClientRect().top) - sc.clientHeight / 3;
+          const pvTop = block
+            ? pv.scrollTop + (block.getBoundingClientRect().top - pv.getBoundingClientRect().top) - pv.clientHeight / 3
+            : null;
+          scrollPanesTo(srcTop, pvTop);
         }
         const lineEnd = ta.value.indexOf('\n', pos);
         ta.setSelectionRange(pos, lineEnd < 0 ? ta.value.length : lineEnd);
