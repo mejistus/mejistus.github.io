@@ -198,13 +198,6 @@
 
 
 \usetikzlibrary {3d}
-\begin{tikzpicture}[->]
-  \draw (0,0,0) -- (xyz spherical cs:radius=1);
-  \draw (0,0,0) -- (xyz spherical cs:radius=1,latitude=90);
-  \draw (0,0,0) -- (xyz spherical cs:radius=1,longitude=90);
-\end{tikzpicture}
-
-\usetikzlibrary {3d}
 \begin{tikzpicture}[z={(10:10mm)},x={(-45:5mm)}]
   \def\wave{
     \draw[fill,thick,fill opacity=.2]
