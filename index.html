@@ -31,6 +31,14 @@
       })();
     </script>
     <title>Xu Chen — Personal Blog</title>
+    <meta name="description" id="pageDescription"
+          content="Xu Chen's notes on diffusion models, reinforcement learning, machine learning and mathematics." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Xu Chen" />
+    <meta property="og:title" id="ogTitle" content="Xu Chen — Personal Blog" />
+    <meta property="og:description" id="ogDescription"
+          content="Xu Chen's notes on diffusion models, reinforcement learning, machine learning and mathematics." />
+    <meta property="og:url" content="https://mejistus.github.io/" />
     <!-- KaTeX for math formulas -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
           media="print" onload="this.media='all'">
@@ -45,12 +53,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.4.3"></script>
-    <script src="assets/latex-complete.js?v=8.4.3"></script>
-    <script src="assets/vim.js?v=8.4.3"></script>
-    <script src="assets/lint.js?v=8.4.3"></script>
-    <script src="assets/tikz-nn.js?v=8.4.3"></script>
-    <script src="assets/bib.js?v=8.4.3"></script>
+    <script src="assets/latex.js?v=8.5.0"></script>
+    <script src="assets/latex-complete.js?v=8.5.0"></script>
+    <script src="assets/vim.js?v=8.5.0"></script>
+    <script src="assets/lint.js?v=8.5.0"></script>
+    <script src="assets/tikz-nn.js?v=8.5.0"></script>
+    <script src="assets/bib.js?v=8.5.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -334,6 +342,23 @@
         --tok-verbatim: #c9c9c9;
         color-scheme: dark;
       }
+
+      /* Keyboard focus has to be visible. These selectors match the ones that
+         set outline:none for the mouse; :focus-visible keeps the ring off for
+         clicks. The editor's textarea is excluded — it has its own caret. */
+      :focus-visible,
+      .blog-search-bar input:focus-visible,
+      .auth-input:focus-visible,
+      .editor-refs textarea:focus-visible,
+      .vim-cmdline:focus-visible,
+      .editor-find input:focus-visible,
+      .section-editor-field input:focus-visible,
+      .section-editor-field textarea:focus-visible,
+      .section-editor-field select:focus-visible {
+        outline: 2px solid var(--rust);
+        outline-offset: 2px;
+      }
+      .editor-textarea:focus-visible { outline: none; }
 
       html {
         scroll-behavior: smooth;
@@ -1240,6 +1265,13 @@
         border: none;
         border-top: 1px solid var(--border);
         margin: 2rem 0;
+      }
+      /* A colour the author chose for text on paper is often too dark to read
+         on a dark page; there it is mixed towards the page's own ink. Nothing
+         is ever made darker, and the light themes leave it exactly as written. */
+      .latex-color { color: var(--author-color, inherit); }
+      :root[data-dark] .latex-color {
+        color: color-mix(in srgb, var(--author-color, currentColor) 62%, #fff);
       }
       .blog-content a {
         color: var(--rust);
@@ -4515,11 +4547,16 @@
         return themeFallback;
       }
       function setTheme(name) {
+        // Applying a theme redraws the menu, which destroys the button the
+        // keyboard was on; remember that so focus can be handed back.
+        const menu = document.getElementById('themeMenu');
+        const fromMenu = !!(menu && !menu.hidden && menu.contains(document.activeElement));
         themeFallback = name;
         try { localStorage.setItem(THEME_KEY, name); } catch (_) {}
         try { sessionStorage.setItem(THEME_KEY, name); } catch (_) {}
         applyTheme(name);
         closeThemeMenu();
+        if (fromMenu) document.getElementById('themeToggle').focus();
       }
       // Another tab of the site picking a theme applies here too.
       window.addEventListener('storage', (e) => {
@@ -4550,9 +4587,32 @@
       function closeThemeMenu() {
         const menu = document.getElementById('themeMenu');
         const btn = document.getElementById('themeToggle');
+        const hadFocus = menu && !menu.hidden && menu.contains(document.activeElement);
         if (menu) menu.hidden = true;
-        if (btn) { btn.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); }
+        if (btn) {
+          btn.classList.remove('open');
+          btn.setAttribute('aria-expanded', 'false');
+          if (hadFocus) btn.focus();
+        }
       }
+      // Arrow keys move through the palettes, Escape hands focus back.
+      function themeMenuKeys(e) {
+        const menu = document.getElementById('themeMenu');
+        if (menu.hidden) return;
+        const items = [...menu.querySelectorAll('button')];
+        const at = items.indexOf(document.activeElement);
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const next = (at + (e.key === 'ArrowDown' ? 1 : items.length - 1) + items.length) % items.length;
+          items[at < 0 ? 0 : next].focus();
+        } else if (e.key === 'Home' || e.key === 'End') {
+          e.preventDefault();
+          items[e.key === 'Home' ? 0 : items.length - 1].focus();
+        } else if (e.key === 'Tab') {
+          closeThemeMenu();
+        }
+      }
+
       function toggleThemeMenu(e) {
         if (e) e.stopPropagation();
         const menu = document.getElementById('themeMenu');
@@ -4567,12 +4627,21 @@
         // Right-aligned to the button, but never off the edge of a phone.
         const width = menu.offsetWidth || 176;
         menu.style.left = `${Math.max(8, Math.min(r.right - width, window.innerWidth - width - 8))}px`;
+        // Opened from the keyboard, the menu takes focus; opened by mouse it
+        // would steal it, so only do this when the button has focus.
+        if (btn.matches(':focus-visible')) {
+          const active = menu.querySelector('[aria-checked="true"]') || menu.querySelector('button');
+          if (active) active.focus();
+        }
       }
       document.addEventListener('click', (e) => {
         const menu = document.getElementById('themeMenu');
         if (menu && !menu.hidden && !menu.contains(e.target)) closeThemeMenu();
       });
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeThemeMenu(); });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeThemeMenu();
+        else themeMenuKeys(e);
+      });
       window.addEventListener('resize', closeThemeMenu);
 
       applyTheme(currentTheme());
@@ -4731,8 +4800,25 @@
         return html;
       }
 
+      // The tab, the history entry and a bookmark should say which post this
+      // is. (A crawler will not see it — it does not run this — but a reader
+      // with fifteen tabs open will.)
+      const SITE_TITLE = 'Xu Chen — Personal Blog';
+      function setPageMeta(title, description) {
+        document.title = title || SITE_TITLE;
+        const set = (id, value) => {
+          const el = document.getElementById(id);
+          if (el && value) el.setAttribute('content', value);
+        };
+        const text = description || 'Xu Chen\u2019s notes on diffusion models, reinforcement learning, machine learning and mathematics.';
+        set('pageDescription', text);
+        set('ogTitle', title || SITE_TITLE);
+        set('ogDescription', text);
+      }
+
       const renderBlog = (i) => {
         const b = blogs[i];
+        setPageMeta(`${b.title} — Xu Chen`, b.excerpt || '');
         document.getElementById("blogPanelLabel").textContent =
           `Blog · ${i + 1} of ${blogs.length}`;
         document.getElementById("blogPanelTitle").innerHTML = renderInline(b.title);
@@ -4778,6 +4864,7 @@
       }
 
       function closeAllPanels() {
+        setPageMeta();
         // Closing the panel mid-edit cancels the edit (and drops an unsaved new post).
         if (editorActive) closeEditor();
         if (/^#post=/.test(location.hash)) history.replaceState(null, '', '#posts');
@@ -4832,9 +4919,15 @@
         if (!file) return;
         history.replaceState(null, '', postHash(file, sec));
       }
+      // Posts that were renamed; a link someone saved still finds them.
+      const MOVED_POSTS = {
+        'ML/Untitled.tex': 'ML/Expectation-Maximization-Algorithm.tex',
+      };
       function parsePostHash() {
         const m = /^#post=([^&]*)(?:&sec=(.*))?$/.exec(location.hash);
-        return m ? { file: decodeURIComponent(m[1]), sec: m[2] ? decodeURIComponent(m[2]) : '' } : null;
+        if (!m) return null;
+        const file = decodeURIComponent(m[1]);
+        return { file: MOVED_POSTS[file] || file, sec: m[2] ? decodeURIComponent(m[2]) : '' };
       }
       // A section is named by its \label when it has one, else by its position.
       function sectionIdOf(heading, index) {

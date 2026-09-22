@@ -1334,7 +1334,9 @@
         const o = readOptional(s, end); if (o) end = o.end;
         const col = readGroup(s, end); const txt = col && readArg(s, col.end);
         if (!txt) break;
-        return { html: `<span style="color:${safeColor(col.content, o && o.content)}">${renderInline(ctx, txt.content)}</span>`, end: txt.end };
+        // The colour travels as a variable so the page can adapt it to a dark
+        // theme without losing what the author wrote.
+        return { html: `<span class="latex-color" style="--author-color:${safeColor(col.content, o && o.content)}">${renderInline(ctx, txt.content)}</span>`, end: txt.end };
       }
       case 'colorbox': {
         const col = readGroup(s, end); const txt = col && readArg(s, col.end);
