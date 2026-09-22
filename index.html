@@ -53,12 +53,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.6.3"></script>
-    <script src="assets/latex-complete.js?v=8.6.3"></script>
-    <script src="assets/vim.js?v=8.6.3"></script>
-    <script src="assets/lint.js?v=8.6.3"></script>
-    <script src="assets/tikz-nn.js?v=8.6.3"></script>
-    <script src="assets/bib.js?v=8.6.3"></script>
+    <script src="assets/latex.js?v=8.7.0"></script>
+    <script src="assets/latex-complete.js?v=8.7.0"></script>
+    <script src="assets/vim.js?v=8.7.0"></script>
+    <script src="assets/lint.js?v=8.7.0"></script>
+    <script src="assets/tikz-nn.js?v=8.7.0"></script>
+    <script src="assets/bib.js?v=8.7.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -2832,6 +2832,19 @@
         0%, 49% { opacity: 1; }
         50%, 100% { opacity: 0; }
       }
+      /* What a compile just added, so it is clear what changed. */
+      @keyframes preview-new-fade {
+        from { background: color-mix(in srgb, var(--rust) 26%, transparent); }
+        to { background: transparent; }
+      }
+      .preview-new {
+        animation: preview-new-fade 1.2s ease-out;
+        border-radius: 4px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .preview-new { animation: none; }
+      }
+
       /* What a jump from the preview landed on, so the eye can find it. */
       .editor-jump {
         position: absolute;
@@ -5889,14 +5902,91 @@
         }
       }
 
+      // What the preview is showing, named by the source line it came from, so
+      // the same thing can be put back at the same height after a re-render.
+      function previewAnchor() {
+        const pv = document.getElementById('editorPreview');
+        const top = pv.getBoundingClientRect().top;
+        const seen = new Map();
+        for (const el of pv.querySelectorAll('[data-line]')) {
+          const line = +el.dataset.line;
+          // Several pieces can come from one line, so the anchor records which.
+          const nth = (seen.get(line) || 0);
+          seen.set(line, nth + 1);
+          const r = el.getBoundingClientRect();
+          if (r.bottom >= top - 1) return { line, nth, offset: r.top - top };
+        }
+        return null;
+      }
+      function restorePreviewAnchor(anchor) {
+        if (!anchor) return;
+        const pv = document.getElementById('editorPreview');
+        let target = null, bestLine = -Infinity;
+        const seen = new Map();
+        pv.querySelectorAll('[data-line]').forEach(el => {
+          const n = +el.dataset.line;
+          const nth = (seen.get(n) || 0);
+          seen.set(n, nth + 1);
+          if (n === anchor.line && nth === anchor.nth) { target = el; bestLine = Infinity; return; }
+          if (bestLine !== Infinity && n <= anchor.line && n > bestLine) { bestLine = n; target = el; }
+        });
+        if (!target) return;
+        pv.scrollTop += (target.getBoundingClientRect().top - pv.getBoundingClientRect().top) - anchor.offset;
+        markSyncWrite(pv);                 // putting it back is not navigation
+      }
+      // The lines that actually changed, as a range in the new text.
+      function changedLineRange(before, after) {
+        if (!before) return null;
+        const a = before.split('\n'), b = after.split('\n');
+        let head = 0;
+        while (head < a.length && head < b.length && a[head] === b[head]) head++;
+        let tail = 0;
+        while (tail < a.length - head && tail < b.length - head &&
+               a[a.length - 1 - tail] === b[b.length - 1 - tail]) tail++;
+        const from = head + 1, to = b.length - tail;
+        return to >= from ? { from, to } : null;
+      }
+      // What is new gets a moment of colour where it appeared, instead of the
+      // whole preview silently shifting under the reader.
+      function flashPreviewRange(range) {
+        if (!range) return;
+        const pv = document.getElementById('editorPreview');
+        const seen = new Set();
+        pv.querySelectorAll('[data-line]').forEach(el => {
+          const n = +el.dataset.line;
+          if (n < range.from || n > range.to) return;
+          const block = el.closest('p, li, figure, table, pre, blockquote, h1, h2, h3, h4, h5, h6, .latex-tikz, .katex-display') || el;
+          if (!block || seen.has(block)) return;
+          seen.add(block);
+          block.classList.remove('preview-new');
+          void block.offsetWidth;
+          block.classList.add('preview-new');
+          block.addEventListener('animationend', () => block.classList.remove('preview-new'), { once: true });
+        });
+      }
+
+      let lastCompiledSource = '';
       function updatePreview() {
         clearSyncKnot();
         document.getElementById('editorCompileBtn').classList.remove('stale');
         const md = document.getElementById('editorTextarea').value;
-        document.getElementById('editorPreview').innerHTML = renderPost(md);
-        applyStagedImages(document.getElementById('editorPreview'));
-        fitLatexBoxes(document.getElementById('editorPreview'));
-        loadTikzJax(document.getElementById('editorPreview'));
+        const pv = document.getElementById('editorPreview');
+        // Keep the reader where they were: the same source line stays at the
+        // same height, so a compile adds what is new without moving what is
+        // above it.
+        const anchor = pv.firstChild ? previewAnchor() : null;
+        const range = changedLineRange(lastCompiledSource, md);
+        pv.innerHTML = renderPost(md);
+        applyStagedImages(pv);
+        fitLatexBoxes(pv);
+        loadTikzJax(pv);
+        restorePreviewAnchor(anchor);
+        // Pictures arrive from their stored SVGs a moment later and change the
+        // heights above; put the reader back again once they have.
+        requestAnimationFrame(() => restorePreviewAnchor(anchor));
+        setTimeout(() => restorePreviewAnchor(anchor), 260);
+        flashPreviewRange(range);
+        lastCompiledSource = md;
       }
 
       function toggleSnippetHelp(e) {
@@ -6533,6 +6623,8 @@
       }
 
       let activeLineFrame = 0, composing = false, revealWanted = false;
+      // Compiling is not navigation: it must not chase the caret.
+      function cancelCaretReveal() { revealWanted = false; }
       function updateActiveLine(reveal) {
         revealWanted = revealWanted || reveal === true;
         cancelAnimationFrame(activeLineFrame);
@@ -6708,6 +6800,9 @@
       // where proportion would put them. Remembering that pair as a fixed
       // point — and scrolling proportionally from it to either end — keeps the
       // alignment instead of snapping back the moment the reader moves.
+      // Set by the sync below: marks a pane's current position as one we wrote
+      // ourselves, so the other pane does not chase it.
+      let markSyncWrite = () => {};
       let syncKnot = null;
       function rememberSyncPoint() {
         const sc = document.getElementById('editorScroll');
@@ -6738,6 +6833,7 @@
         // throw away the reader's own scrolling; instead, remember the position
         // written — an event at exactly that position is the echo.
         const written = new WeakMap();
+        markSyncWrite = (el) => written.set(el, el.scrollTop);
         let wroteThisFrame = false;
         const sync = (from, to) => () => {
           const echo = written.get(from);
@@ -7045,11 +7141,21 @@
       const onPhone = () => window.matchMedia('(max-width: 768px)').matches;
 
       function compileLatex() {
+        const sc = document.getElementById('editorScroll');
+        const at = sc ? sc.scrollTop : 0;
+        // The source stays exactly where it was, through the band's own
+        // measuring pass as well.
+        const keep = () => {
+          if (sc && Math.abs(sc.scrollTop - at) > 0.5) { sc.scrollTop = at; markSyncWrite(sc); }
+        };
         updatePreview();
         runLint();
+        cancelCaretReveal();
         updateActiveLine();
+        keep();
+        requestAnimationFrame(keep);
+        setTimeout(keep, 280);
         if (onPhone()) setEditorPane('preview');
-        requestAnimationFrame(() => syncSourceToPreview(false));
       }
 
       // ── Cmd/Ctrl+/ comments the selected lines (or the caret's line) with "% " ──
