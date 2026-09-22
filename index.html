@@ -15,12 +15,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.4.1"></script>
-    <script src="assets/latex-complete.js?v=8.4.1"></script>
-    <script src="assets/vim.js?v=8.4.1"></script>
-    <script src="assets/lint.js?v=8.4.1"></script>
-    <script src="assets/tikz-nn.js?v=8.4.1"></script>
-    <script src="assets/bib.js?v=8.4.1"></script>
+    <script src="assets/latex.js?v=8.4.2"></script>
+    <script src="assets/latex-complete.js?v=8.4.2"></script>
+    <script src="assets/vim.js?v=8.4.2"></script>
+    <script src="assets/lint.js?v=8.4.2"></script>
+    <script src="assets/tikz-nn.js?v=8.4.2"></script>
+    <script src="assets/bib.js?v=8.4.2"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -3392,6 +3392,8 @@
       const KNOWN = DARK.concat(['light', 'solarized', 'github', 'plain-white']);
       let saved = null;
       try { saved = localStorage.getItem('theme'); } catch (_) {}
+      // Same fallback the page uses when site data is blocked.
+      if (!saved) { try { saved = sessionStorage.getItem('theme'); } catch (_) {} }
       const name = KNOWN.includes(saved) ? saved
         : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
       if (name !== 'light') document.documentElement.dataset.theme = name;
@@ -4484,11 +4486,26 @@
         // (Guarded: this also runs before the editor's own state exists.)
         try { if (editorActive) fitLatexBoxes(document.getElementById('editorPreview')); } catch (_) {}
       }
+      // Private windows and blocked site data make localStorage throw on
+      // write; the choice should still hold for this tab.
+      let themeFallback = null;
+      function storedTheme() {
+        try { const v = localStorage.getItem(THEME_KEY); if (v) return v; } catch (_) {}
+        try { const v = sessionStorage.getItem(THEME_KEY); if (v) return v; } catch (_) {}
+        return themeFallback;
+      }
       function setTheme(name) {
+        themeFallback = name;
         try { localStorage.setItem(THEME_KEY, name); } catch (_) {}
+        try { sessionStorage.setItem(THEME_KEY, name); } catch (_) {}
         applyTheme(name);
         closeThemeMenu();
       }
+      // Another tab of the site picking a theme applies here too.
+      window.addEventListener('storage', (e) => {
+        if (e.key !== THEME_KEY || !e.newValue || e.newValue === currentTheme()) return;
+        if (themeByName(e.newValue)) applyTheme(e.newValue);
+      });
       // Kept so a keyboard shortcut or an old link still flips light/dark.
       function toggleTheme() {
         const now = themeByName(currentTheme());
@@ -4541,9 +4558,7 @@
       applyTheme(currentTheme());
       // Without a stored choice, follow the system as it changes.
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-        let saved = null;
-        try { saved = localStorage.getItem(THEME_KEY); } catch (_) {}
-        if (!saved) applyTheme(e.matches ? 'dark' : 'light');
+        if (!storedTheme()) applyTheme(e.matches ? 'dark' : 'light');
       });
 
       // ── Reading extras: copy buttons, zoomable figures, reading time ──
@@ -4949,7 +4964,16 @@
           entry.inDb = true;
           entry.bytes = Math.round(content.length * 0.75);
           stagedBlobs.set(path, content);
-          idbRun('readwrite', store => store.put(content, path)).catch(() => {});
+          idbRun('readwrite', store => store.put(content, path)).catch(() => {
+            // If that store is unavailable the bytes would be gone after a
+            // reload, so keep them with the rest of the staged text instead.
+            const d = loadStaged();
+            if (d.files[path] && d.files[path].inDb) {
+              delete d.files[path].inDb;
+              d.files[path].content = content;
+              saveStaged(d);
+            }
+          });
         } else {
           entry.content = content;
         }
@@ -5295,9 +5319,13 @@
               tree.push({ path, mode: '100644', type: 'blob', sha: null });
             } else {
               await hydrateStagedBlobs();
+              const content = stagedContent(f, path);
+              if (content === undefined || content === null) {
+                throw new Error(`${path} is staged but its contents are missing from this browser — re-add it, or discard the pending changes`);
+              }
               const blob = await ghApi('/git/blobs', {
                 method: 'POST',
-                body: JSON.stringify({ content: stagedContent(f, path), encoding: f.encoding }),
+                body: JSON.stringify({ content, encoding: f.encoding }),
               });
               tree.push({ path, mode: '100644', type: 'blob', sha: blob.sha });
             }
