@@ -53,12 +53,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.6.1"></script>
-    <script src="assets/latex-complete.js?v=8.6.1"></script>
-    <script src="assets/vim.js?v=8.6.1"></script>
-    <script src="assets/lint.js?v=8.6.1"></script>
-    <script src="assets/tikz-nn.js?v=8.6.1"></script>
-    <script src="assets/bib.js?v=8.6.1"></script>
+    <script src="assets/latex.js?v=8.6.2"></script>
+    <script src="assets/latex-complete.js?v=8.6.2"></script>
+    <script src="assets/vim.js?v=8.6.2"></script>
+    <script src="assets/lint.js?v=8.6.2"></script>
+    <script src="assets/tikz-nn.js?v=8.6.2"></script>
+    <script src="assets/bib.js?v=8.6.2"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -4797,11 +4797,9 @@
         panel.querySelectorAll('.blog-toc-item').forEach(el => {
           el.addEventListener('click', () => {
             panel.hidden = true;
-            const target = document.getElementById(el.dataset.id);
-            if (!target) return;
             setPostHash(blogs[currentBlog] && blogs[currentBlog].file, el.dataset.sec);
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            flashInPost(target);
+            // One way in, so the editor's own handling applies while it is open.
+            scrollToSection(el.dataset.sec || el.dataset.id);
           });
         });
       }
@@ -4976,8 +4974,8 @@
         const m = /^tex[a-z0-9]+-(.+)$/.exec(heading.id || '');
         return m ? m[1] : `h${index + 1}`;
       }
-      function findSection(sec) {
-        const content = document.getElementById('blogPanelContent');
+      function findSection(sec, root) {
+        const content = root || document.getElementById('blogPanelContent');
         const heads = [...content.querySelectorAll('h2, h3, h4')];
         const byIndex = /^h(\d+)$/.exec(sec);
         if (byIndex) return heads[+byIndex[1] - 1];
@@ -4990,6 +4988,18 @@
         target.classList.add('latex-flash');
       }
       function scrollToSection(sec) {
+        // While editing, the read view is hidden — scrolling it would move
+        // nothing. The same section is in the preview, and it knows which
+        // source line it came from, so the contents list lands in both panes.
+        if (editorActive) {
+          const target = findSection(sec, document.getElementById('editorPreview'));
+          if (!target) return;
+          const marker = target.matches('[data-line]') ? target : lineMarkerBefore(target);
+          if (marker) goToLine(+marker.dataset.line);
+          else target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          flashPreviewBlock(target);
+          return;
+        }
         const target = findSection(sec);
         if (!target) return;
         requestAnimationFrame(() => {
@@ -5880,6 +5890,7 @@
       }
 
       function updatePreview() {
+        clearSyncKnot();
         document.getElementById('editorCompileBtn').classList.remove('stale');
         const md = document.getElementById('editorTextarea').value;
         document.getElementById('editorPreview').innerHTML = renderPost(md);
@@ -6693,6 +6704,26 @@
       // is throttled (e.g., backgrounded tabs).
       // Source ↔ preview jumps set this so their own smooth scroll isn't mirrored.
       let scrollSyncLockedUntil = 0;
+      // A jump lines the panes up on one thing, which is by definition not
+      // where proportion would put them. Remembering that pair as a fixed
+      // point — and scrolling proportionally from it to either end — keeps the
+      // alignment instead of snapping back the moment the reader moves.
+      let syncKnot = null;
+      function rememberSyncPoint() {
+        const sc = document.getElementById('editorScroll');
+        const pv = document.getElementById('editorPreview');
+        if (sc && pv) syncKnot = { src: sc.scrollTop, pv: pv.scrollTop };
+      }
+      function clearSyncKnot() { syncKnot = null; }
+      // Between the fixed point and each end, proportionally.
+      function mapThroughKnot(value, fMax, tMax, fromIsSource) {
+        if (!syncKnot) return fMax > 0 ? (value / fMax) * tMax : 0;
+        const f = fromIsSource ? syncKnot.src : syncKnot.pv;
+        const t = fromIsSource ? syncKnot.pv : syncKnot.src;
+        if (value <= f) return f > 0 ? (value / f) * t : t;
+        return fMax > f ? t + ((value - f) / (fMax - f)) * (tMax - t) : tMax;
+      }
+
       // ── Pairing the two panes ──
       // Proportional, deliberately. Matching the panes line by line keeps them
       // exactly aligned, but a reader scrolling this far is skimming, and when
@@ -6722,7 +6753,8 @@
           const fMax = from.scrollHeight - from.clientHeight;
           const tMax = to.scrollHeight - to.clientHeight;
           if (fMax <= 0 || tMax <= 0) return;
-          const next = Math.max(0, Math.min(tMax, (from.scrollTop / fMax) * tMax));
+          const next = Math.max(0, Math.min(tMax,
+            mapThroughKnot(from.scrollTop, fMax, tMax, from === sc)));
           to.scrollTop = next;
           written.set(to, to.scrollTop);            // as the browser stored it
           wroteThisFrame = true;
@@ -6733,6 +6765,9 @@
         // The lock is there to swallow a jump's own scrolling, not to ignore
         // the reader: once they scroll a pane themselves, the panes pair up
         // again immediately.
+        new ResizeObserver(clearSyncKnot).observe(pv);
+        new ResizeObserver(clearSyncKnot).observe(sc);
+        window.addEventListener('resize', clearSyncKnot);
         ['wheel', 'touchstart', 'keydown'].forEach(ev => {
           sc.addEventListener(ev, () => { scrollSyncLockedUntil = 0; }, { passive: true });
           pv.addEventListener(ev, () => { scrollSyncLockedUntil = 0; }, { passive: true });
@@ -6798,6 +6833,7 @@
         const pv = document.getElementById('editorPreview');
         const top = target.getBoundingClientRect().top - pv.getBoundingClientRect().top + pv.scrollTop;
         pv.scrollTo({ top: Math.max(0, top - pv.clientHeight / 3), behavior: 'smooth' });
+        setTimeout(rememberSyncPoint, 450);        // once its own scroll settles
         if (flash) flashPreviewBlock(target);
         ta.focus({ preventScroll: true });
       }
@@ -6856,6 +6892,7 @@
         revealCaret('center');
         ta.setSelectionRange(selStart, selEnd);
         if (onPhone()) setEditorPane('source');
+        rememberSyncPoint();
         flashActiveLine();
         // A selection in a transparent textarea is easy to miss: pulse the
         // stretch that was matched, and the block that was double-clicked.
@@ -6945,6 +6982,14 @@
         ta.focus({ preventScroll: true });
         ta.setSelectionRange(pos, pos);
         revealCaret('center');
+        // Put the preview on the same line, then hold that pairing.
+        const block = previewTargetForLine(line);
+        if (block) {
+          const pv = document.getElementById('editorPreview');
+          const top = block.getBoundingClientRect().top - pv.getBoundingClientRect().top + pv.scrollTop;
+          pv.scrollTop = Math.max(0, top - pv.clientHeight / 3);
+        }
+        rememberSyncPoint();
         const lineEnd = ta.value.indexOf('\n', pos);
         ta.setSelectionRange(pos, lineEnd < 0 ? ta.value.length : lineEnd);
         flashActiveLine();
