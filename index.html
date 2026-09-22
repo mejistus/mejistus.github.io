@@ -53,12 +53,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.6.0"></script>
-    <script src="assets/latex-complete.js?v=8.6.0"></script>
-    <script src="assets/vim.js?v=8.6.0"></script>
-    <script src="assets/lint.js?v=8.6.0"></script>
-    <script src="assets/tikz-nn.js?v=8.6.0"></script>
-    <script src="assets/bib.js?v=8.6.0"></script>
+    <script src="assets/latex.js?v=8.6.1"></script>
+    <script src="assets/latex-complete.js?v=8.6.1"></script>
+    <script src="assets/vim.js?v=8.6.1"></script>
+    <script src="assets/lint.js?v=8.6.1"></script>
+    <script src="assets/tikz-nn.js?v=8.6.1"></script>
+    <script src="assets/bib.js?v=8.6.1"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -6444,7 +6444,6 @@
           html += `<div class="editor-gutter-line${mark ? ' ' + mark : ''}" style="top:${top}px" data-line="${i + 1}">${i + 1}</div>`;
         }
         gutter.innerHTML = html;
-        invalidateSyncAnchors();
       }
       document.getElementById('editorGutter').addEventListener('click', (e) => {
         const el = e.target.closest('.editor-gutter-line');
@@ -6694,78 +6693,21 @@
       // is throttled (e.g., backgrounded tabs).
       // Source ↔ preview jumps set this so their own smooth scroll isn't mirrored.
       let scrollSyncLockedUntil = 0;
-      // ── Pairing the two panes by content, not by proportion ──
-      // Equal fractions of two different heights do not show the same thing:
-      // three lines of TikZ become a tall picture, twenty lines of tabular
-      // become a small table. The renderer marks each rendered piece with the
-      // source line it came from, and the gutter already knows where every
-      // line sits, so the two make a table of matching points. Scrolling
-      // between two of them interpolates, which is what gives each stretch of
-      // the document its own speed.
-      let syncAnchors = null;
-      function invalidateSyncAnchors() { syncAnchors = null; }
-
-      function buildSyncAnchors() {
-        const sc = document.getElementById('editorScroll');
-        const pv = document.getElementById('editorPreview');
-        const gutter = document.getElementById('editorGutter');
-        if (!sc || !pv || !gutter) return null;
-        const srcOf = new Map();
-        gutter.querySelectorAll('.editor-gutter-line').forEach(el => {
-          srcOf.set(+el.dataset.line, parseFloat(el.style.top) || 0);
-        });
-        if (srcOf.size < 2) return null;
-        // Content-space origin of each pane.
-        const pvOrigin = pv.getBoundingClientRect().top - pv.scrollTop;
-        const src = [0], prev = [0];
-        let lastLine = 0;
-        for (const el of pv.querySelectorAll('[data-line]')) {
-          const line = +el.dataset.line;
-          if (!(line > lastLine) || !srcOf.has(line)) continue;
-          const s = srcOf.get(line);
-          const y = el.getBoundingClientRect().top - pvOrigin;
-          // Both sides must keep going forward for the mapping to be a function.
-          if (!(s > src[src.length - 1] + 0.5) || !(y > prev[prev.length - 1] + 0.5)) continue;
-          src.push(s);
-          prev.push(y);
-          lastLine = line;
-        }
-        const srcEnd = sc.scrollHeight, prevEnd = pv.scrollHeight;
-        if (srcEnd > src[src.length - 1] && prevEnd > prev[prev.length - 1]) {
-          src.push(srcEnd);
-          prev.push(prevEnd);
-        }
-        return src.length >= 3 ? { src, prev } : null;
-      }
-
-      // Where the top of one pane sits in the other.
-      function mapScrollTop(fromIsSource, value) {
-        if (!syncAnchors) syncAnchors = buildSyncAnchors();
-        const a = syncAnchors;
-        if (!a) return null;
-        const from = fromIsSource ? a.src : a.prev;
-        const to = fromIsSource ? a.prev : a.src;
-        let lo = 0, hi = from.length - 1;
-        while (hi - lo > 1) {
-          const mid = (lo + hi) >> 1;
-          if (from[mid] <= value) lo = mid; else hi = mid;
-        }
-        const span = from[hi] - from[lo];
-        const t = span > 0 ? (value - from[lo]) / span : 0;
-        return to[lo] + t * (to[hi] - to[lo]);
-      }
-
+      // ── Pairing the two panes ──
+      // Proportional, deliberately. Matching the panes line by line keeps them
+      // exactly aligned, but a reader scrolling this far is skimming, and when
+      // they do want the source for something they double-click it in the
+      // preview, which lands the caret on it. Proportional is what a fast drag
+      // should feel like.
       (function () {
         const sc = document.getElementById('editorScroll');
         const pv = document.getElementById('editorPreview');
         // Writing one pane makes it fire a scroll event of its own, which would
-        // bounce straight back. The old guard ignored every event for 80ms
-        // after a write — which also threw away the reader's own scrolling, so
-        // the other pane moved a dozen times a second. Instead, remember the
-        // position we wrote: an event that arrives at exactly that position is
-        // the echo, anything else is the reader.
+        // bounce straight back. Guarding that with a time window would also
+        // throw away the reader's own scrolling; instead, remember the position
+        // written — an event at exactly that position is the echo.
         const written = new WeakMap();
-        let frame = 0, pending = null;
+        let wroteThisFrame = false;
         const sync = (from, to) => () => {
           const echo = written.get(from);
           if (echo !== undefined && Math.abs(from.scrollTop - echo) <= 1.5) {
@@ -6773,24 +6715,18 @@
             return;
           }
           if (performance.now() < scrollSyncLockedUntil) return;
-          pending = { from, to };
-          if (frame) return;
-          // One write per frame: the preview is a big KaTeX tree and every
-          // scrollTop written to it costs a repaint.
-          frame = requestAnimationFrame(() => {
-            frame = 0;
-            const job = pending;
-            pending = null;
-            if (!job) return;
-            const fMax = job.from.scrollHeight - job.from.clientHeight;
-            const tMax = job.to.scrollHeight - job.to.clientHeight;
-            if (fMax <= 0 || tMax <= 0) return;
-            const mapped = mapScrollTop(job.from === sc, job.from.scrollTop);
-            // No table yet (a post still rendering): fall back to proportion.
-            const next = mapped === null ? (job.from.scrollTop / fMax) * tMax : mapped;
-            job.to.scrollTop = Math.max(0, Math.min(tMax, next));
-            written.set(job.to, job.to.scrollTop);   // as the browser stored it
-          });
+          // Scroll events arrive once a frame, before paint, so writing here
+          // lands in the same frame the reader's own scroll does. The flag is
+          // only there in case something fires them faster.
+          if (wroteThisFrame) return;
+          const fMax = from.scrollHeight - from.clientHeight;
+          const tMax = to.scrollHeight - to.clientHeight;
+          if (fMax <= 0 || tMax <= 0) return;
+          const next = Math.max(0, Math.min(tMax, (from.scrollTop / fMax) * tMax));
+          to.scrollTop = next;
+          written.set(to, to.scrollTop);            // as the browser stored it
+          wroteThisFrame = true;
+          requestAnimationFrame(() => { wroteThisFrame = false; });
         };
         sc.addEventListener('scroll', sync(sc, pv), { passive: true });
         pv.addEventListener('scroll', sync(pv, sc), { passive: true });
@@ -6801,14 +6737,6 @@
           sc.addEventListener(ev, () => { scrollSyncLockedUntil = 0; }, { passive: true });
           pv.addEventListener(ev, () => { scrollSyncLockedUntil = 0; }, { passive: true });
         });
-        // Anything that moves either pane's content invalidates the table.
-        new ResizeObserver(invalidateSyncAnchors).observe(pv);
-        new ResizeObserver(invalidateSyncAnchors).observe(sc);
-        window.addEventListener('resize', invalidateSyncAnchors);
-        // A box that scrolls does not resize when its content grows, so watch
-        // the content itself: a compile, or a TikZ picture arriving late.
-        new MutationObserver(invalidateSyncAnchors)
-          .observe(pv, { childList: true, subtree: true });
       })();
 
       // Tab key inserts spaces in textarea
