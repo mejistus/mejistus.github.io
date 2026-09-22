@@ -23,6 +23,10 @@
         const name = T[saved] ? saved
           : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         const root = document.documentElement;
+        let motion = null;
+        try { motion = localStorage.getItem('animations'); } catch (_) {}
+        if (!motion) { try { motion = sessionStorage.getItem('animations'); } catch (_) {} }
+        if (motion === 'off') root.setAttribute('data-still', '');
         if (name !== 'light') root.dataset.theme = name;
         if (T[name][1]) root.dataset.dark = '';
         root.style.background = T[name][0];
@@ -53,12 +57,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.7.2"></script>
-    <script src="assets/latex-complete.js?v=8.7.2"></script>
-    <script src="assets/vim.js?v=8.7.2"></script>
-    <script src="assets/lint.js?v=8.7.2"></script>
-    <script src="assets/tikz-nn.js?v=8.7.2"></script>
-    <script src="assets/bib.js?v=8.7.2"></script>
+    <script src="assets/latex.js?v=8.8.0"></script>
+    <script src="assets/latex-complete.js?v=8.8.0"></script>
+    <script src="assets/vim.js?v=8.8.0"></script>
+    <script src="assets/lint.js?v=8.8.0"></script>
+    <script src="assets/tikz-nn.js?v=8.8.0"></script>
+    <script src="assets/bib.js?v=8.8.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -343,6 +347,34 @@
         color-scheme: dark;
       }
 
+      /* Animations off: the page still changes, it just stops moving. Kept
+         next to the system preference, which does the same thing. */
+      :root[data-still] *,
+      :root[data-still] *::before,
+      :root[data-still] *::after {
+        animation-duration: 0.001ms !important;
+        animation-delay: 0ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        transition-delay: 0ms !important;
+      }
+      :root[data-still],
+      :root[data-still] .blog-panel .panel-body,
+      :root[data-still] #editorScroll,
+      :root[data-still] #editorPreview {
+        scroll-behavior: auto !important;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.001ms !important;
+          animation-delay: 0ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.001ms !important;
+          transition-delay: 0ms !important;
+        }
+        html { scroll-behavior: auto; }
+      }
+
       /* Keyboard focus has to be visible. These selectors match the ones that
          set outline:none for the mouse; :focus-visible keeps the ring off for
          clicks. The editor's textarea is excluded — it has its own caret. */
@@ -476,6 +508,35 @@
       }
       .theme-swatch i {
         flex: 1;
+      }
+      .theme-switch {
+        position: relative;
+        flex: 0 0 auto;
+        width: 2.4rem;
+        height: 0.85rem;
+        border-radius: 0.85rem;
+        border: 1px solid var(--border);
+        background: var(--sand);
+      }
+      .theme-switch::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 2px;
+        width: 0.6rem;
+        height: 0.6rem;
+        border-radius: 50%;
+        background: var(--muted);
+        transform: translateY(-50%);
+      }
+      .theme-switch.on {
+        background: color-mix(in srgb, var(--rust) 24%, transparent);
+        border-color: color-mix(in srgb, var(--rust) 55%, transparent);
+      }
+      .theme-switch.on::after {
+        left: auto;
+        right: 2px;
+        background: var(--rust);
       }
       .theme-group {
         margin: 0.35rem 0 0.15rem;
@@ -4606,6 +4667,26 @@
       }
       // Private windows and blocked site data make localStorage throw on
       // write; the choice should still hold for this tab.
+      // Animations: a setting of its own, and the system's own preference.
+      // Either one being against movement is enough to stop it.
+      const MOTION_KEY = 'animations';
+      function motionOff() {
+        return document.documentElement.hasAttribute('data-still') ||
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      }
+      function animationsOn() {
+        return !document.documentElement.hasAttribute('data-still');
+      }
+      function setAnimations(on) {
+        const root = document.documentElement;
+        if (on) root.removeAttribute('data-still');
+        else root.setAttribute('data-still', '');
+        try { localStorage.setItem(MOTION_KEY, on ? 'on' : 'off'); } catch (_) {}
+        try { sessionStorage.setItem(MOTION_KEY, on ? 'on' : 'off'); } catch (_) {}
+        renderThemeMenu();
+      }
+      function toggleAnimations() { setAnimations(!animationsOn()); }
+
       let themeFallback = null;
       function storedTheme() {
         try { const v = localStorage.getItem(THEME_KEY); if (v) return v; } catch (_) {}
@@ -4647,7 +4728,15 @@
           </button>`;
         const group = (label, list) =>
           `<p class="theme-group">${label}</p>` + list.map(row).join('');
-        menu.innerHTML = group('Light', THEMES.filter(t => !t.dark)) +
+        const on = animationsOn();
+        // First, so it is reachable without scrolling a menu of eleven palettes.
+        menu.innerHTML =
+          `<p class="theme-group">Motion</p>
+           <button type="button" role="menuitemcheckbox" aria-checked="${on}" onclick="toggleAnimations()">
+             <span class="theme-switch${on ? ' on' : ''}" aria-hidden="true"></span>
+             Animations${on ? '<span class="tick" aria-hidden="true">✓</span>' : ''}
+           </button>` +
+          group('Light', THEMES.filter(t => !t.dark)) +
           group('Dark', THEMES.filter(t => t.dark));
       }
       function closeThemeMenu() {
@@ -5961,17 +6050,28 @@
       // the heights above, and new content grows into place. Rather than one
       // late correction — which the reader sees as a jolt — hold the anchor
       // every frame for as long as things are still moving.
-      let anchorHold = 0;
-      function cancelAnchorHold() { cancelAnimationFrame(anchorHold); anchorHold = 0; }
+      // Everything a compile keeps holding for a moment afterwards — the
+      // preview's anchor and the source's position — stops the instant the
+      // reader scrolls, or the two fight and the scroll comes out in stutters.
+      let holdFrame = 0, holdTimer = 0;
+      function cancelAnchorHold() {
+        cancelAnimationFrame(holdFrame);
+        clearTimeout(holdTimer);
+        holdFrame = holdTimer = 0;
+      }
       function holdPreviewAnchor(anchor, ms) {
         if (!anchor) return;
         cancelAnchorHold();
         const until = performance.now() + ms;
         const tick = () => {
           restorePreviewAnchor(anchor);
-          anchorHold = performance.now() < until ? requestAnimationFrame(tick) : 0;
+          // Where the panes stand now is the pairing to scroll from, so the
+          // first scroll afterwards carries on from here rather than snapping
+          // back to where proportion alone would have put it.
+          rememberSyncPoint();
+          holdFrame = performance.now() < until ? requestAnimationFrame(tick) : 0;
         };
-        anchorHold = requestAnimationFrame(tick);
+        holdFrame = requestAnimationFrame(tick);
       }
 
       // What the compile added grows into place instead of appearing whole,
@@ -5979,7 +6079,7 @@
       function animatePreviewRange(range) {
         if (!range) return [];
         const pv = document.getElementById('editorPreview');
-        const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const still = motionOff();
         const seen = new Set();
         const blocks = [];
         pv.querySelectorAll('[data-line]').forEach(el => {
@@ -6020,6 +6120,7 @@
         fitLatexBoxes(pv);
         loadTikzJax(pv);
         restorePreviewAnchor(anchor);
+        rememberSyncPoint();
         animatePreviewRange(range);
         holdPreviewAnchor(anchor, 420);
         lastCompiledSource = md;
@@ -7130,7 +7231,7 @@
           sc.scrollTop = s; markSyncWrite(sc);
           if (movePv) { pv.scrollTop = p; markSyncWrite(pv); }
         };
-        const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const still = motionOff();
         if (still || (Math.abs(s1 - s0) < 2 && Math.abs(p1 - p0) < 2)) {
           put(s1, p1);
           rememberSyncPoint();
@@ -7222,8 +7323,9 @@
         cancelCaretReveal();
         updateActiveLine();
         keep();
-        requestAnimationFrame(keep);
-        setTimeout(keep, 280);
+        // These share the hold's cancellation, so a scroll ends them too.
+        holdFrame = requestAnimationFrame(() => { keep(); holdFrame = 0; });
+        holdTimer = setTimeout(() => { keep(); holdTimer = 0; }, 280);
         if (onPhone()) setEditorPane('preview');
       }
 
