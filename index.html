@@ -15,12 +15,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.3.1"></script>
-    <script src="assets/latex-complete.js?v=8.3.1"></script>
-    <script src="assets/vim.js?v=8.3.1"></script>
-    <script src="assets/lint.js?v=8.3.1"></script>
-    <script src="assets/tikz-nn.js?v=8.3.1"></script>
-    <script src="assets/bib.js?v=8.3.1"></script>
+    <script src="assets/latex.js?v=8.4.0"></script>
+    <script src="assets/latex-complete.js?v=8.4.0"></script>
+    <script src="assets/vim.js?v=8.4.0"></script>
+    <script src="assets/lint.js?v=8.4.0"></script>
+    <script src="assets/tikz-nn.js?v=8.4.0"></script>
+    <script src="assets/bib.js?v=8.4.0"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -57,6 +57,8 @@
         --tok-regex: #6a4c93;
         --tok-punct: #9c8f80;
         --tok-verbatim: #6b645b;
+        /* The frame around a citation number. */
+        --cite-frame: #3aa35b;
         color-scheme: light;
       }
       /* Dark theme; applied by the toggle, which also follows the system. */
@@ -241,6 +243,57 @@
         --tok-verbatim: #a5d6ff;
         color-scheme: dark;
       }
+      /* Black on white and white on black. The accent is the ink itself, so
+         links keep their underline to stay recognisable and the editor's
+         washes come out as plain greys. Errors and warnings keep a tint —
+         the Problems list tells them apart by colour. */
+      :root[data-theme="plain-white"] {
+        --cite-frame: #595959;
+        --sand: #f4f4f4;
+        --cream: #ffffff;
+        --sage: #333333;
+        --rust: #000000;
+        --ink: #000000;
+        --muted: #595959;
+        --border: #d9d9d9;
+        --surface: #ffffff;
+        --nav-bg: rgba(255, 255, 255, 0.93);
+        --paper: #ffffff;
+        --danger: #b00020;
+        --warn: #8a6100;
+        --tok-comment: #8c8c8c;
+        --tok-command: #000000;
+        --tok-env: #3d3d3d;
+        --tok-math: #262626;
+        --tok-regex: #595959;
+        --tok-punct: #a6a6a6;
+        --tok-verbatim: #4d4d4d;
+        color-scheme: light;
+      }
+      :root[data-theme="plain-dark"] {
+        --cite-frame: #a6a6a6;
+        --sand: #121212;
+        --cream: #000000;
+        --sage: #cccccc;
+        --rust: #ffffff;
+        --ink: #ffffff;
+        --muted: #a6a6a6;
+        --border: #2e2e2e;
+        --surface: #161616;
+        --nav-bg: rgba(0, 0, 0, 0.92);
+        --paper: #ffffff;
+        --danger: #ff9b9b;
+        --warn: #e8c07a;
+        --tok-comment: #8c8c8c;
+        --tok-command: #ffffff;
+        --tok-env: #d4d4d4;
+        --tok-math: #ededed;
+        --tok-regex: #b3b3b3;
+        --tok-punct: #6e6e6e;
+        --tok-verbatim: #c9c9c9;
+        color-scheme: dark;
+      }
+
       html {
         scroll-behavior: smooth;
       }
@@ -444,7 +497,7 @@
         color: #fff;
       }
       .btn-primary:hover {
-        background: #b36a48;
+        background: color-mix(in srgb, var(--rust) 85%, #000);
       }
       .btn-outline {
         border: 1.5px solid var(--border);
@@ -612,7 +665,7 @@
         border-radius: 2rem;
         background: var(--sand);
         color: var(--rust);
-        border: 1px solid #e8cfc4;
+        border: 1px solid color-mix(in srgb, var(--rust) 35%, var(--sand));
       }
 
       /* ── BLOG TOOLBAR (search & sort) ── */
@@ -1351,13 +1404,13 @@
         display: inline-block;
         padding: 0 0.2em;
         line-height: 1.25;
-        border: 1px solid #3aa35b;
+        border: 1px solid var(--cite-frame);
         border-radius: 2px;
         color: inherit !important;
         text-decoration: none !important;
       }
       .latex-cite-link:hover {
-        background: rgba(58, 163, 91, 0.12);
+        background: color-mix(in srgb, var(--cite-frame) 12%, transparent);
       }
       .latex-bib ol {
         list-style: none;
@@ -2831,7 +2884,7 @@
         transition: background 0.2s, color 0.2s, border-color 0.2s, opacity 0.2s;
       }
       .editor-save-btn:hover {
-        background: #6d8f6f;
+        background: color-mix(in srgb, var(--sage) 85%, #000);
       }
       .editor-save-btn:disabled {
         opacity: 0.5;
@@ -3122,7 +3175,7 @@
         background: var(--sage);
         color: #fff;
       }
-      .section-editor-btn.save:hover { background: #6d8f6f; }
+      .section-editor-btn.save:hover { background: color-mix(in srgb, var(--sage) 85%, #000); }
       .section-editor-btn.save:disabled { opacity: 0.5; cursor: default; }
 
       /* Per-card edit/delete affordances + section "+" button */
@@ -3310,8 +3363,8 @@
     // Before first paint: a stored choice wins, otherwise follow the system.
     // The dark names are repeated here because the stylesheet has not run yet.
     (function () {
-      const DARK = ['dark', 'onedark', 'nord', 'gruvbox', 'vscode', 'github-dark'];
-      const KNOWN = DARK.concat(['light', 'solarized', 'github']);
+      const DARK = ['dark', 'onedark', 'nord', 'gruvbox', 'vscode', 'github-dark', 'plain-dark'];
+      const KNOWN = DARK.concat(['light', 'solarized', 'github', 'plain-white']);
       let saved = null;
       try { saved = localStorage.getItem('theme'); } catch (_) {}
       const name = KNOWN.includes(saved) ? saved
@@ -4381,6 +4434,8 @@
         { name: 'vscode', label: 'VS Code', dark: true, swatch: ['#1e1e1e', '#d4d4d4', '#569cd6'] },
         { name: 'github', label: 'GitHub', dark: false, swatch: ['#ffffff', '#1f2328', '#0969da'] },
         { name: 'github-dark', label: 'GitHub Dark', dark: true, swatch: ['#0d1117', '#e6edf3', '#58a6ff'] },
+        { name: 'plain-white', label: 'Plain White', dark: false, swatch: ['#ffffff', '#000000', '#000000'] },
+        { name: 'plain-dark', label: 'Plain Dark', dark: true, swatch: ['#000000', '#ffffff', '#ffffff'] },
       ];
       const themeByName = (n) => THEMES.find(t => t.name === n);
 
