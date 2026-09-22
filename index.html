@@ -53,12 +53,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.7.1"></script>
-    <script src="assets/latex-complete.js?v=8.7.1"></script>
-    <script src="assets/vim.js?v=8.7.1"></script>
-    <script src="assets/lint.js?v=8.7.1"></script>
-    <script src="assets/tikz-nn.js?v=8.7.1"></script>
-    <script src="assets/bib.js?v=8.7.1"></script>
+    <script src="assets/latex.js?v=8.7.2"></script>
+    <script src="assets/latex-complete.js?v=8.7.2"></script>
+    <script src="assets/vim.js?v=8.7.2"></script>
+    <script src="assets/lint.js?v=8.7.2"></script>
+    <script src="assets/tikz-nn.js?v=8.7.2"></script>
+    <script src="assets/bib.js?v=8.7.2"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -2832,17 +2832,28 @@
         0%, 49% { opacity: 1; }
         50%, 100% { opacity: 0; }
       }
-      /* What a compile just added, so it is clear what changed. */
-      @keyframes preview-new-fade {
-        from { background: color-mix(in srgb, var(--rust) 26%, transparent); }
-        to { background: transparent; }
+      /* What a compile just added: it grows into place, so what follows is
+         pushed down rather than jumping, and carries the accent while it does. */
+      @keyframes preview-insert {
+        from {
+          height: 0;
+          opacity: 0;
+          background: color-mix(in srgb, var(--rust) 22%, transparent);
+        }
+        60% { opacity: 1; }
+        to {
+          height: var(--insert-h);
+          opacity: 1;
+          background: transparent;
+        }
       }
-      .preview-new {
-        animation: preview-new-fade 1.2s ease-out;
+      .preview-insert {
+        animation: preview-insert 0.34s cubic-bezier(0.2, 0.7, 0.3, 1);
+        overflow: hidden;
         border-radius: 4px;
       }
       @media (prefers-reduced-motion: reduce) {
-        .preview-new { animation: none; }
+        .preview-insert { animation: none; }
       }
 
       /* What a jump from the preview landed on, so the eye can find it. */
@@ -5946,23 +5957,51 @@
         const from = head + 1, to = b.length - tail;
         return to >= from ? { from, to } : null;
       }
-      // What is new gets a moment of colour where it appeared, instead of the
-      // whole preview silently shifting under the reader.
-      function flashPreviewRange(range) {
-        if (!range) return;
+      // Pictures and fonts land a frame or two after a re-render and change
+      // the heights above, and new content grows into place. Rather than one
+      // late correction — which the reader sees as a jolt — hold the anchor
+      // every frame for as long as things are still moving.
+      let anchorHold = 0;
+      function cancelAnchorHold() { cancelAnimationFrame(anchorHold); anchorHold = 0; }
+      function holdPreviewAnchor(anchor, ms) {
+        if (!anchor) return;
+        cancelAnchorHold();
+        const until = performance.now() + ms;
+        const tick = () => {
+          restorePreviewAnchor(anchor);
+          anchorHold = performance.now() < until ? requestAnimationFrame(tick) : 0;
+        };
+        anchorHold = requestAnimationFrame(tick);
+      }
+
+      // What the compile added grows into place instead of appearing whole,
+      // so it is clear where it went and what moved to make room.
+      function animatePreviewRange(range) {
+        if (!range) return [];
         const pv = document.getElementById('editorPreview');
+        const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const seen = new Set();
+        const blocks = [];
         pv.querySelectorAll('[data-line]').forEach(el => {
           const n = +el.dataset.line;
           if (n < range.from || n > range.to) return;
           const block = el.closest('p, li, figure, table, pre, blockquote, h1, h2, h3, h4, h5, h6, .latex-tikz, .katex-display') || el;
-          if (!block || seen.has(block)) return;
+          if (!block || seen.has(block) || block.parentElement !== pv) return;
           seen.add(block);
-          block.classList.remove('preview-new');
-          void block.offsetWidth;
-          block.classList.add('preview-new');
-          block.addEventListener('animationend', () => block.classList.remove('preview-new'), { once: true });
+          blocks.push(block);
         });
+        if (still) return blocks;
+        for (const block of blocks) {
+          const h = block.getBoundingClientRect().height;
+          if (!h) continue;
+          block.style.setProperty('--insert-h', `${Math.round(h)}px`);
+          block.classList.add('preview-insert');
+          block.addEventListener('animationend', () => {
+            block.classList.remove('preview-insert');
+            block.style.removeProperty('--insert-h');
+          }, { once: true });
+        }
+        return blocks;
       }
 
       let lastCompiledSource = '';
@@ -5981,11 +6020,8 @@
         fitLatexBoxes(pv);
         loadTikzJax(pv);
         restorePreviewAnchor(anchor);
-        // Pictures arrive from their stored SVGs a moment later and change the
-        // heights above; put the reader back again once they have.
-        requestAnimationFrame(() => restorePreviewAnchor(anchor));
-        setTimeout(() => restorePreviewAnchor(anchor), 260);
-        flashPreviewRange(range);
+        animatePreviewRange(range);
+        holdPreviewAnchor(anchor, 420);
         lastCompiledSource = md;
       }
 
@@ -6865,7 +6901,7 @@
         new ResizeObserver(clearSyncKnot).observe(sc);
         window.addEventListener('resize', clearSyncKnot);
         ['wheel', 'touchstart', 'keydown'].forEach(ev => {
-          const take = () => { scrollSyncLockedUntil = 0; cancelPaneTween(); };
+          const take = () => { scrollSyncLockedUntil = 0; cancelPaneTween(); cancelAnchorHold(); };
           sc.addEventListener(ev, take, { passive: true });
           pv.addEventListener(ev, take, { passive: true });
         });
