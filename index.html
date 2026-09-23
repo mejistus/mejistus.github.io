@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- First thing in the head: the page is 290KB, and until it is parsed the
          browser would paint its own white. This paints the chosen theme's own
          colour instead, and tells the browser's UI what colour to be. -->
@@ -47,22 +49,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
           media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"></noscript>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <!-- Prism.js for code highlighting -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css"
           media="print" onload="this.media='all'">
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- Bump ?v= with every release: GitHub Pages caches assets for 10 minutes,
          and a new page with an old cached renderer shows raw LaTeX. -->
-    <script src="assets/latex.js?v=8.8.1"></script>
-    <script src="assets/latex-complete.js?v=8.8.1"></script>
-    <script src="assets/vim.js?v=8.8.1"></script>
-    <script src="assets/lint.js?v=8.8.1"></script>
-    <script src="assets/tikz-nn.js?v=8.8.1"></script>
-    <script src="assets/bib.js?v=8.8.1"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap");
 
@@ -4036,6 +4027,21 @@
       <p>© 2025 Mejistus · East China University of Science and Technology</p>
     </footer>
 
+    <!-- Loaded here rather than in the head: every one of these blocks
+         rendering, and none of them is needed until the page is up. Order
+         matters (KaTeX and Prism first, then what builds on them), and the
+         inline script below runs after they have. -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+    <script src="assets/latex.js?v=9.0.0"></script>
+    <script src="assets/latex-complete.js?v=9.0.0"></script>
+    <script src="assets/vim.js?v=9.0.0"></script>
+    <script src="assets/lint.js?v=9.0.0"></script>
+    <script src="assets/tikz-nn.js?v=9.0.0"></script>
+    <script src="assets/bib.js?v=9.0.0"></script>
     <script>
       let poems = [];
       let current = 0;
@@ -4946,11 +4952,42 @@
         return parseLatex(content || '');
       }
 
+      // Bounded, most recently used last: a site with hundreds of posts should
+      // not keep every one of them rendered in memory.
+      const PARSED_CACHE_MAX = 60;
       function getParsedHtml(i) {
-        if (parsedHtmlCache.has(i)) return parsedHtmlCache.get(i);
+        if (parsedHtmlCache.has(i)) {
+          const html = parsedHtmlCache.get(i);
+          parsedHtmlCache.delete(i);
+          parsedHtmlCache.set(i, html);
+          return html;
+        }
         const html = renderPost(blogs[i].content);
         parsedHtmlCache.set(i, html);
+        while (parsedHtmlCache.size > PARSED_CACHE_MAX) {
+          parsedHtmlCache.delete(parsedHtmlCache.keys().next().value);
+        }
         return html;
+      }
+
+      // Opening a post that is not rendered yet costs its parse on top of its
+      // layout — about 70ms for the longest, against 18ms from cache. Once
+      // the contents are in, render the rest while the browser is idle, one
+      // post per idle slice, so opening any of them costs only the layout.
+      function warmParsedPosts() {
+        if (!window.requestIdleCallback) return;
+        const queue = blogs.map((b, i) => i).filter(i => blogs[i].content && !parsedHtmlCache.has(i));
+        const step = (deadline) => {
+          while (queue.length && deadline.timeRemaining() > 12) {
+            const i = queue.shift();
+            if (blogs[i] && blogs[i].content && !parsedHtmlCache.has(i)) {
+              try { getParsedHtml(i); } catch (_) {}
+            }
+            if (parsedHtmlCache.size >= PARSED_CACHE_MAX) { queue.length = 0; break; }
+          }
+          if (queue.length) requestIdleCallback(step, { timeout: 3000 });
+        };
+        requestIdleCallback(step, { timeout: 3000 });
       }
 
       // The tab, the history entry and a bookmark should say which post this
@@ -5759,6 +5796,7 @@
               if (!b.content) b.content = await loadBlogContent(b.file, { priority: 'low' });
             }
           }));
+          warmParsedPosts();
         };
         if (immediate) run();
         else if (window.requestIdleCallback) requestIdleCallback(run, { timeout: 4000 });
@@ -5953,6 +5991,7 @@
 
         // Fill textarea with full content (including front matter)
         document.getElementById('editorTextarea').value = b.content || '';
+        document.getElementById('editorTextarea').setSelectionRange(0, 0);
         syncEditorModeUI();
 
         // Show editor, hide read view
@@ -5962,6 +6001,11 @@
         document.getElementById('blogEditBtn').classList.add('active');
         document.getElementById('editorStatus').textContent = '';
         document.getElementById('editorStatus').className = 'editor-status';
+
+        // The scroller is shared between posts, and a hidden element ignores
+        // scrollTop and keeps its old offset — so reset it once it is shown.
+        const scroller = document.getElementById('editorScroll');
+        if (scroller) { scroller.scrollTop = 0; markSyncWrite(scroller); }
 
         // Initial preview
         updatePreview();
@@ -5983,6 +6027,10 @@
       }
 
       function closeEditor() {
+        // The next time the editor opens it starts fresh, even on this post.
+        lastCompiledPost = null;
+        lastCompiledSource = '';
+        clearSyncKnot();
         clearDraft();
         isNewPost = false;
         editorActive = false;
@@ -6105,25 +6153,39 @@
       }
 
       let lastCompiledSource = '';
+      let lastCompiledPost = null;
       function updatePreview() {
         clearSyncKnot();
         document.getElementById('editorCompileBtn').classList.remove('stale');
         const md = document.getElementById('editorTextarea').value;
         const pv = document.getElementById('editorPreview');
+        // Holding the reader's place only makes sense for the same post
+        // compiled again. A different post — or the first render after
+        // opening the editor — starts at the top: an anchor or a diff carried
+        // over from another document lands on an unrelated line.
+        const post = blogs[currentBlog] || null;
+        const samePost = post !== null && post === lastCompiledPost && pv.firstChild;
+        if (!samePost) lastCompiledSource = '';
         // Keep the reader where they were: the same source line stays at the
         // same height, so a compile adds what is new without moving what is
         // above it.
-        const anchor = pv.firstChild ? previewAnchor() : null;
+        const anchor = samePost ? previewAnchor() : null;
         const range = changedLineRange(lastCompiledSource, md);
         pv.innerHTML = renderPost(md);
         applyStagedImages(pv);
         fitLatexBoxes(pv);
         loadTikzJax(pv);
-        restorePreviewAnchor(anchor);
-        rememberSyncPoint();
-        animatePreviewRange(range);
-        holdPreviewAnchor(anchor, 420);
+        if (anchor) {
+          restorePreviewAnchor(anchor);
+          rememberSyncPoint();
+          animatePreviewRange(range);
+          holdPreviewAnchor(anchor, 420);
+        } else {
+          pv.scrollTop = 0;
+          markSyncWrite(pv);
+        }
         lastCompiledSource = md;
+        lastCompiledPost = post;
       }
 
       function toggleSnippetHelp(e) {
@@ -8480,6 +8542,8 @@
           document.getElementById('editorContainer').classList.add('active');
           document.getElementById('blogEditBtn').classList.add('active');
           document.getElementById('editorTextarea').value = template;
+          const scroller = document.getElementById('editorScroll');
+          if (scroller) { scroller.scrollTop = 0; markSyncWrite(scroller); }
           syncEditorModeUI();
           offerDraft();
           document.getElementById('editorStatus').textContent = '';
