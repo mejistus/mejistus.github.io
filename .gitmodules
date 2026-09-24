@@ -1,0 +1,3 @@
+[submodule "hatex/demo"]
+	path = hatex/demo
+	url = https://github.com/mejistus/hatex-demo.git
