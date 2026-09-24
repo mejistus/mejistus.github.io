@@ -1,5 +1,5 @@
 /*! hatex v1.1.1 — LaTeX to HTML in the browser. Built from src/ by scripts/build.mjs. */
-(function (window) {
+const HaTeX = (function (window) {
 // ── src/tikz-nn.js ──
 // TikZ preamble for neural-network diagrams.
 //
@@ -2268,4 +2268,7 @@
   window.HaTeX = HaTeX;
   if (typeof module === 'object' && module && module.exports) module.exports = HaTeX;
 })();
-}).call(this, typeof window !== 'undefined' ? window : globalThis);
+return window.HaTeX;
+}).call(undefined, typeof window !== 'undefined' ? window : globalThis);
+export default HaTeX;
+export const { use, parse, render, enhance, lint, images, tikzSvgs, Bib } = HaTeX;
