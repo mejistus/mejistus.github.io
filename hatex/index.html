@@ -128,7 +128,7 @@
     <a class="button" href="lib/hatex.js" download>hatex.js</a>
     <a class="button" href="lib/hatex.css" download>hatex.css</a>
   </div>
-  <p class="version">Version 1.2.1 · about 120&nbsp;KB, no dependencies besides KaTeX · MIT License · the renderer behind <a href="../">this blog</a></p>
+  <p class="version">Version 1.2.2 · about 120&nbsp;KB, no dependencies besides KaTeX · MIT License · the renderer behind <a href="../">this blog</a></p>
 </header>
 
 <section id="about" class="text">
@@ -423,7 +423,7 @@ const html = HaTeX.parse(source);   // → &lt;article class="hatex"&gt;${html}&
 </div>
 
 <footer>
-  hatex 1.2.1 · MIT License · by Mejistus · the LaTeX renderer of <a href="../">mejistus.github.io</a> ·
+  hatex 1.2.2 · MIT License · by Mejistus · the LaTeX renderer of <a href="../">mejistus.github.io</a> ·
   <a href="demo/">demos</a>: a two-column paper, a Chinese document and a slide deck
 </footer>
 
@@ -471,6 +471,7 @@ const html = HaTeX.parse(source);   // → &lt;article class="hatex"&gt;${html}&
   });
   document.getElementById('wide').addEventListener('change', (e) => {
     document.querySelector('.play').classList.toggle('preview-only', e.target.checked);
+    HaTeX.layout(out);
   });
   src.value = initial;
   update();
