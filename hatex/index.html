@@ -121,7 +121,7 @@
     <a class="button" href="lib/hatex.js" download>hatex.js</a>
     <a class="button" href="lib/hatex.css" download>hatex.css</a>
   </div>
-  <p class="version">Version 1.1.3 · about 100&nbsp;KB, no dependencies besides KaTeX · the renderer behind <a href="../">this blog</a></p>
+  <p class="version">Version 1.1.4 · about 100&nbsp;KB, no dependencies besides KaTeX · the renderer behind <a href="../">this blog</a></p>
 </header>
 
 <section id="playground">
@@ -279,7 +279,7 @@ Theorem~\ref{thm:norm}, Table~\ref{tab:moments} and Figure~\ref{fig:enc} are num
 }</code></pre>
 <p>
   Put <code>data-theme="dark"</code> on the element or any ancestor for the dark palette, or <code>data-theme="auto"</code> to follow the system.
-  In dark mode, author colours are lifted so they stay readable, and TikZ keeps a light sheet to draw on.
+  In dark mode, author colours are lifted so they stay readable, and TikZ drawings are inverted in lightness (hues kept), so black ink turns light on the dark page.
   The <code>plain</code> style in the playground above is just a handful of these variables.
 </p>
 
@@ -303,7 +303,7 @@ const html = HaTeX.parse(source);   // → &lt;article class="hatex"&gt;${html}&
 </div>
 
 <footer>
-  hatex 1.1.3 · by Mejistus · extracted from the LaTeX renderer of <a href="../">mejistus.github.io</a> ·
+  hatex 1.1.4 · by Mejistus · extracted from the LaTeX renderer of <a href="../">mejistus.github.io</a> ·
   demo: <a href="../hatex-demo/">Denoising Diffusion Models, Derived</a>
 </footer>
 
