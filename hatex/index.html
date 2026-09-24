@@ -3,118 +3,346 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Denoising Diffusion Models, Derived</title>
-<meta name="description" content="A self-contained derivation of denoising diffusion models: forward marginals, the variational bound, noise prediction, Tweedie's formula, DDIM and the SDE limit.">
+<title>hatex — LaTeX articles, rendered in the browser</title>
+<meta name="description" content="hatex turns an article written in LaTeX into a web page in the browser: numbered equations, booktabs tables, figures, TikZ, theorems, algorithms, citations and cross-references.">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <link rel="stylesheet" href="lib/hatex.css">
 <style>
   :root {
     color-scheme: light;
-    --serif: KaTeX_Main, "Latin Modern Roman", "Times New Roman", serif;
+    --line: #ddd;
+    --soft: #f6f6f6;
+    --grey: #555;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
   }
+  * { box-sizing: border-box; }
   body {
     margin: 0;
     background: #fff;
-    color: #000;
-    font: 18px/1.55 var(--serif);
+    color: #111;
+    font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
   }
-  main {
-    max-width: 44rem;
-    margin: 0 auto;
-    padding: 3.5rem 1.25rem 4rem;
+  a { color: inherit; }
+  .wrap { max-width: 64rem; margin: 0 auto; padding: 0 1.25rem; }
+  .text { max-width: 46rem; }
+
+  header { padding: 4rem 0 2rem; }
+  h1 { font-size: 2.6rem; line-height: 1.1; margin: 0; letter-spacing: -0.02em; }
+  .tagline { font-size: 1.25rem; margin: 0.6rem 0 1rem; }
+  .lead { color: var(--grey); margin: 0 0 1.5rem; }
+  .actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .button {
+    display: inline-block;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid #111;
+    border-radius: 0.3rem;
+    text-decoration: none;
+    font-size: 0.95rem;
   }
-  a { color: #000; }
+  .button.primary { background: #111; color: #fff; }
+  .version { font-size: 0.85rem; color: var(--grey); margin-top: 0.8rem; }
 
-  header { text-align: center; margin-bottom: 2.5rem; }
-  .title { font-size: 1.9rem; font-weight: normal; line-height: 1.25; margin: 0 0 1.2rem; }
-  .authors { font-size: 1.15rem; margin: 0; }
-  .venue { margin: 0.2rem 0 0; font-style: italic; }
-  .links { margin: 1rem 0 0; }
-
-  /* hatex, in black on white */
-  .hatex {
-    --hx-ink: #000;
-    --hx-muted: #000;
-    --hx-accent: #000;
-    --hx-accent-2: #000;
-    --hx-code-bg: #f6f6f6;
-    --hx-border: #bbb;
-    --hx-surface: #fff;
-    --hx-paper: #fff;
-    --hx-font-heading: var(--serif);
-    --hx-font-sans: var(--serif);
-    font-size: 1rem;
+  h2 { font-size: 1.35rem; margin: 3.2rem 0 0.8rem; }
+  #playground h2 { margin-top: 1.5rem; }
+  h3 { font-size: 1.05rem; margin: 1.6rem 0 0.4rem; }
+  p { margin: 0 0 0.9rem; }
+  code { font-family: var(--mono); font-size: 0.88em; }
+  :not(pre) > code { background: var(--soft); padding: 0.05rem 0.3rem; border-radius: 0.2rem; }
+  pre {
+    font-family: var(--mono);
+    font-size: 0.84rem;
     line-height: 1.55;
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 0.3rem;
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    margin: 0 0 1rem;
   }
-  .hatex p, .hatex li { text-align: justify; hyphens: auto; }
-  .hatex p { margin-bottom: 0.9rem; }
-  .hatex h2 { font-size: 1.3rem; border: 0; padding: 0; margin: 2.2rem 0 0.7rem; }
-  .hatex h3 { font-size: 1.1rem; }
-  .hatex .latex-secnum { margin-right: 0.8em; }
-  .hatex .latex-abstract { max-width: none; margin: 0 2.5rem 2.2rem; font-size: 0.95rem; }
-  .hatex .latex-abstract-title { font-size: 1rem; }
-  /* References read like a PDF: plain numbers, underlined on hover. */
-  .hatex a { text-decoration: none; }
-  .hatex a:hover { text-decoration: underline; }
-  .hatex .latex-cite-link { border: 0; padding: 0; }
-  .hatex .latex-cite-link:hover { background: none; }
-  .hatex code { background: none; padding: 0; font-size: 0.82em; }
-  .hatex pre { border-radius: 0; font-size: 0.95rem; }
-  .hatex .latex-float figcaption { text-align: justify; font-size: 0.9rem; max-width: 40rem; }
-  .hatex .latex-cap-label { font-weight: bold; }
-  .hatex .latex-alg { font-size: 0.95rem; }
-  .hatex .latex-bib ol { font-size: 0.9rem; }
-  .hatex .katex-display { padding: 0.25rem 0; }
+  table.ref { border-collapse: collapse; width: 100%; font-size: 0.92rem; margin: 0 0 1rem; }
+  table.ref th, table.ref td { text-align: left; vertical-align: top; padding: 0.45rem 0.8rem 0.45rem 0; border-bottom: 1px solid var(--line); }
+  table.ref th { font-weight: 600; border-bottom-color: #111; }
+  table.ref td:first-child { white-space: nowrap; }
+  ul { padding-left: 1.2rem; }
+  li { margin-bottom: 0.3rem; }
 
-  #bibtex h2 { margin-top: 3rem; }
-  footer { margin-top: 3rem; font-size: 0.85rem; text-align: center; }
+  /* Playground */
+  .play { border: 1px solid #111; border-radius: 0.3rem; overflow: hidden; }
+  .play-bar {
+    display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;
+    padding: 0.4rem 0.8rem; border-bottom: 1px solid #111; font-size: 0.85rem;
+  }
+  .play-bar b { margin-right: auto; }
+  .play-bar select { font: inherit; }
+  .play-panes { display: grid; grid-template-columns: 1fr 1fr; height: 34rem; }
+  .play textarea {
+    border: 0; border-right: 1px solid #111; padding: 0.9rem 1rem; resize: none; outline: none;
+    font: 0.8rem/1.6 var(--mono); color: #111; background: #fff; tab-size: 2;
+  }
+  .play-out { overflow: auto; padding: 0.4rem 1.5rem 2rem; background: #fff; }
+  .play-out.dark-bg { background: #191817; }
+  .play-status { border-top: 1px solid #111; padding: 0.35rem 0.8rem; font-size: 0.8rem; color: var(--grey); min-height: 2rem; }
+  .play-status .error { color: #b3261e; }
+  /* The "plain" style of the preview: black on white, as in the demo. */
+  .hatex.plain {
+    --hx-ink: #000; --hx-muted: #000; --hx-accent: #000; --hx-accent-2: #000;
+    --hx-code-bg: #f6f6f6; --hx-border: #bbb; --hx-paper: #fff; --hx-cite: #000;
+    --hx-font-heading: KaTeX_Main, "Times New Roman", serif;
+    font-family: KaTeX_Main, "Times New Roman", serif;
+  }
+  .hatex.plain h2 { border: 0; padding: 0; }
 
-  @media (max-width: 600px) {
-    body { font-size: 16px; }
-    main { padding-top: 2rem; }
-    .title { font-size: 1.5rem; }
-    .hatex .latex-abstract { margin: 0 0 2rem; }
-    .hatex p, .hatex li { text-align: left; }
+  footer { margin: 4rem 0 3rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--grey); }
+
+  @media (max-width: 720px) {
+    header { padding-top: 2.5rem; }
+    h1 { font-size: 2.1rem; }
+    .play-panes { grid-template-columns: 1fr; grid-template-rows: 18rem 26rem; height: auto; }
+    .play textarea { border-right: 0; border-bottom: 1px solid #111; }
+    table.ref td:first-child { white-space: normal; }
   }
 </style>
 </head>
 <body>
-<main>
-  <header>
-    <h1 class="title">Denoising Diffusion Models, Derived</h1>
-    <p class="authors">Mejistus</p>
-    <p class="venue">Technical note, September 2026</p>
-    <p class="links">[<a href="diffusion.tex">LaTeX source</a>]&ensp;[<a href="#bibtex">BibTeX</a>]</p>
-  </header>
+<div class="wrap">
 
-  <article id="paper">
-    <noscript>This page is rendered from <a href="diffusion.tex">diffusion.tex</a> by JavaScript.</noscript>
-  </article>
+<header>
+  <h1>hatex</h1>
+  <p class="tagline">LaTeX articles, rendered in the browser.</p>
+  <p class="lead text">
+    One script turns a <code>.tex</code> file into a web page: numbered equations, booktabs tables,
+    figures and subfigures, TikZ, theorems and proofs, algorithms, citations and clickable cross-references.
+    No TeX installation and no build step. Unknown commands degrade to their text instead of failing.
+  </p>
+  <div class="actions">
+    <a class="button primary" href="../hatex-demo/">See it typeset a paper</a>
+    <a class="button" href="#playground">Try it</a>
+    <a class="button" href="lib/hatex.js" download>hatex.js</a>
+    <a class="button" href="lib/hatex.css" download>hatex.css</a>
+  </div>
+  <p class="version">Version 1.1.1 · about 100&nbsp;KB, no dependencies besides KaTeX · the renderer behind <a href="../">this blog</a></p>
+</header>
 
-  <section id="bibtex" class="hatex">
-    <h2>BibTeX</h2>
-<pre><code>@misc{mejistus2026diffusion,
-  title  = {Denoising Diffusion Models, Derived},
-  author = {Mejistus},
-  year   = {2026},
-  note   = {Technical note},
-  url    = {https://mejistus.github.io/hatex/}
+<section id="playground">
+  <h2>Try it</h2>
+  <p class="text">Edit the source on the left. The preview re-renders as you type, and the numbers in it are links.</p>
+  <div class="play">
+    <div class="play-bar">
+      <b>Playground</b>
+      <label>Style
+        <select id="style">
+          <option value="default">default</option>
+          <option value="plain">plain</option>
+          <option value="dark">dark</option>
+        </select>
+      </label>
+      <button id="reset" type="button">Reset</button>
+    </div>
+    <div class="play-panes">
+      <textarea id="src" spellcheck="false" aria-label="LaTeX source"></textarea>
+      <div class="play-out" id="outWrap"><article id="out"></article></div>
+    </div>
+    <div class="play-status" id="status"></div>
+  </div>
+</section>
+
+<script type="text/x-latex" id="initial">
+\section{Gaussian integral}\label{sec:gauss}
+Squaring the integral and switching to polar coordinates gives
+\begin{equation}\label{eq:gauss}
+  \int_{-\infty}^{\infty} e^{-x^2}\,\mathrm{d}x = \sqrt{\pi}.
+\end{equation}
+
+\begin{theorem}[Normalisation]\label{thm:norm}
+For every $\sigma > 0$, $\int \frac{1}{\sqrt{2\pi}\,\sigma}\, e^{-x^2/2\sigma^2}\,\mathrm{d}x = 1$.
+\end{theorem}
+
+\begin{proof}
+Substitute $x = \sqrt{2}\,\sigma u$ in \eqref{eq:gauss}.
+\end{proof}
+
+\begin{table}[h]
+  \centering
+  \caption{Moments of $\mathcal{N}(0, 1)$.}\label{tab:moments}
+  \begin{tabular}{lcc}
+    \toprule
+    Moment & Symbol & Value \\
+    \midrule
+    Mean     & $\mathbb{E}[x]$   & $0$ \\
+    Variance & $\mathbb{E}[x^2]$ & $1$ \\
+    Kurtosis & $\mathbb{E}[x^4]$ & $3$ \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[nn]
+    \node[nndata] (x) {x};
+    \node[nnconv, right=of x] (e) {Encoder};
+    \node[nnout, right=of e] (z) {z};
+    \draw[nnflow] (x) -- (e);
+    \draw[nnflow] (e) -- (z);
+  \end{tikzpicture}
+  \caption{TikZ, drawn with the built-in \texttt{nn} styles.}\label{fig:enc}
+\end{figure}
+
+Theorem~\ref{thm:norm}, Table~\ref{tab:moments} and Figure~\ref{fig:enc} are numbered and linked, and so are footnotes\footnote{Like this one.} and citations~\cite{gauss1809}.
+
+\begin{thebibliography}{9}
+  \bibitem{gauss1809} C. F. Gauss. \emph{Theoria motus corporum coelestium}. 1809.
+\end{thebibliography}
+</script>
+
+<div class="text">
+
+<h2 id="start">Quick start</h2>
+<p>Load KaTeX (for the maths) and hatex, then render a source into an element:</p>
+<pre><code>&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"&gt;&lt;/script&gt;
+&lt;link rel="stylesheet" href="https://mejistus.github.io/hatex/lib/hatex.css"&gt;
+&lt;script src="https://mejistus.github.io/hatex/lib/hatex.js"&gt;&lt;/script&gt;
+
+&lt;article id="paper"&gt;&lt;/article&gt;
+&lt;script&gt;
+  fetch('paper.tex')
+    .then(r =&gt; r.text())
+    .then(tex =&gt; HaTeX.render('#paper', tex));
+&lt;/script&gt;</code></pre>
+<p>
+  The source can be a whole document (<code>\documentclass</code> … <code>\begin{document}</code>) or just its body.
+  The preamble is read for <code>\newcommand</code>, <code>\definecolor</code>, <code>\newtheorem</code> and
+  <code>\usetikzlibrary</code>. Serve the page over HTTP, not <code>file://</code>, so the <code>.tex</code> file and TikZ SVGs can be fetched.
+  For highlighted code, add Prism and its language components; don't add a Prism theme.
+</p>
+
+<h2 id="features">What it renders</h2>
+<table class="ref">
+  <tr><th>Area</th><th>Supported</th></tr>
+  <tr><td>Structure</td><td><code>\section</code> … <code>\subsubsection</code> (numbered, <code>*</code> for unnumbered), <code>\paragraph</code>, <code>abstract</code>, nested <code>itemize</code> / <code>enumerate</code> / <code>description</code>, <code>quote</code>, <code>center</code>, <code>\footnote</code></td></tr>
+  <tr><td>Maths (KaTeX)</td><td><code>$…$</code>, <code>\(…\)</code>, <code>\[…\]</code>; <code>equation</code>, <code>align</code>, <code>gather</code>, <code>multline</code>, … numbered per row, <code>\nonumber</code>, <code>\label</code> / <code>\eqref</code>; <code>\newcommand</code> and <code>\DeclareMathOperator</code></td></tr>
+  <tr><td>Tables</td><td><code>tabular</code> with <code>\toprule</code> / <code>\midrule</code> / <code>\bottomrule</code>, <code>\hline</code>, <code>|</code>, <code>\multicolumn</code>, <code>\multirow</code>, <code>\cmidrule(lr)</code>, <code>\rowcolor</code> / <code>\cellcolor</code>; <code>\resizebox{\linewidth}{!}{…}</code> shrinks a wide table to fit</td></tr>
+  <tr><td>Figures</td><td><code>\includegraphics[width=…\linewidth]</code>, <code>subfigure</code> (a), (b), side-by-side <code>minipage</code>, <code>\caption</code>; click an image to zoom</td></tr>
+  <tr><td>TikZ</td><td><code>tikzpicture</code>, <code>tikzcd</code>, pgfplots <code>axis</code>; libraries detected from the code; <code>nn*</code> styles for network diagrams</td></tr>
+  <tr><td>Theorems</td><td><code>theorem</code>, <code>lemma</code>, <code>proposition</code>, <code>definition</code>, … and <code>proof</code>; your own with <code>\newtheorem</code></td></tr>
+  <tr><td>Algorithms</td><td><code>algorithm</code> + <code>algorithmic</code>: <code>\State</code>, <code>\If</code>, <code>\For</code>, <code>\While</code>, <code>\Repeat</code>, <code>\Function</code>, <code>\Comment</code>, …</td></tr>
+  <tr><td>Code</td><td><code>lstlisting</code>, <code>minted</code>, <code>verbatim</code>, <code>\verb</code>; highlighted when Prism is loaded</td></tr>
+  <tr><td>References</td><td><code>\ref</code>, <code>\eqref</code>, <code>\autoref</code>, <code>\cref</code>, <code>\cite{a,b}</code>, <code>thebibliography</code>; each link scrolls to its target</td></tr>
+  <tr><td>Text</td><td><code>\textbf</code>, <code>\emph</code>, <code>\texttt</code>, <code>\sout</code>, <code>\hl</code>, <code>\textcolor</code>, <code>\href</code>, <code>\url</code>, sizes, accents, dashes and quotes</td></tr>
+  <tr><td>Chinese</td><td>captions and names switch to 图 / 表 / 定理 / 证明 / 参考文献; no stray spaces at CJK line breaks</td></tr>
+</table>
+
+<h2 id="api">API</h2>
+<table class="ref">
+  <tr><th>Call</th><th>What it does</th></tr>
+  <tr><td><code>HaTeX.render(el, source, options)</code></td><td>Parses <code>source</code> into <code>el</code> (an element or a selector) and wires up TikZ, links, table fitting, copy buttons and zoom.</td></tr>
+  <tr><td><code>HaTeX.parse(source)</code></td><td>Returns the HTML string. It needs no DOM, so it also runs in Node for static sites.</td></tr>
+  <tr><td><code>HaTeX.enhance(el, options)</code></td><td>Does the wiring for HTML that was rendered earlier, for example by <code>parse</code> at build time.</td></tr>
+  <tr><td><code>HaTeX.lint(source)</code></td><td>Returns problems as <code>[{ line, severity, message }]</code>: unclosed environments, unbalanced braces or <code>$</code>, unknown labels and citations, duplicate labels, wrong cell counts.</td></tr>
+  <tr><td><code>HaTeX.tikzSvgs(el)</code></td><td>Returns the pictures compiled in this session as <code>{ file, svg }</code>, ready to save for pre-rendering.</td></tr>
+  <tr><td><code>HaTeX.Bib</code></td><td>BibTeX <code>parse</code> and <code>format</code> (to <code>\bibitem</code>), and <code>lookup</code> of a DOI or arXiv id.</td></tr>
+</table>
+<p>Options for <code>render</code> and <code>enhance</code>:</p>
+<table class="ref">
+  <tr><th>Option</th><th>Default</th><th></th></tr>
+  <tr><td><code>tikzSvgBase</code></td><td><code>'tikz/'</code></td><td>Where pre-rendered pictures live, as <code>&lt;base&gt;&lt;hash&gt;.svg</code>. <code>null</code> skips the lookup.</td></tr>
+  <tr><td><code>tikzLive</code></td><td><code>true</code></td><td>Compile pictures that have no SVG in the browser.</td></tr>
+  <tr><td><code>tikzErrors</code></td><td><code>false</code></td><td>Show TeX errors in place of a failed picture (for editors).</td></tr>
+  <tr><td><code>animate</code></td><td><code>true</code></td><td><code>false</code>: links jump without scrolling or flashing.</td></tr>
+  <tr><td><code>copyButtons</code>, <code>zoom</code></td><td><code>true</code></td><td>Copy buttons on code blocks; click-to-zoom on figures.</td></tr>
+</table>
+
+<h2 id="tikz">TikZ</h2>
+<p>
+  Pictures are compiled by real TeX running in WebAssembly (<a href="https://github.com/drgrice1/tikzjax">TikZJax</a>).
+  That is about 6&nbsp;MB and a few seconds per picture the first time, so for readers you compile once and ship SVGs:
+</p>
+<ol>
+  <li>Render your page with <code>tikzSvgBase: null</code> and let the pictures compile.</li>
+  <li>Save each <code>{ file, svg }</code> from <code>HaTeX.tikzSvgs(el)</code> into your <code>tikz/</code> folder.</li>
+  <li>Deploy. Each picture now loads from <code>tikz/&lt;hash&gt;.svg</code>. The hash covers the picture's code, so editing a picture falls back to compiling it until you save it again.</li>
+</ol>
+<p>
+  Labels inside a picture must be ASCII (plain TeX has no CJK fonts); maths in labels is fine.
+  Any <code>nn*</code> style (<code>nnconv</code>, <code>nnpool</code>, <code>nnattn</code>, <code>nnflow</code>, <code>nnskip</code>, …)
+  pulls in a set of definitions for neural-network diagrams.
+</p>
+
+<h2 id="theming">Theming</h2>
+<p>Output is scoped to <code>.hatex</code> and coloured with CSS variables, so a page restyles it without touching the rules:</p>
+<pre><code>.hatex {
+  --hx-ink: #000;         /* headings, tables, rules */
+  --hx-muted: #222;       /* paragraphs, captions */
+  --hx-accent: #0b57d0;   /* links, section numbers, inline code */
+  --hx-font-heading: Georgia, serif;
 }</code></pre>
-  </section>
+<p>
+  Put <code>data-theme="dark"</code> on the element or any ancestor for the dark palette, or <code>data-theme="auto"</code> to follow the system.
+  In dark mode, author colours are lifted so they stay readable, and TikZ keeps a light sheet to draw on.
+  The <code>plain</code> style in the playground above is just a handful of these variables.
+</p>
 
-  <footer>Typeset in your browser from <a href="diffusion.tex">diffusion.tex</a> by hatex.</footer>
-</main>
+<h2 id="node">Node and static sites</h2>
+<p><code>parse</code> needs no DOM, so you can render at build time and ship plain HTML. Use the ES module build, <a href="lib/hatex.mjs" download>hatex.mjs</a>:</p>
+<pre><code>import katex from 'katex';
+import HaTeX from './hatex.mjs';
+
+HaTeX.use({ katex });
+const html = HaTeX.parse(source);   // → &lt;article class="hatex"&gt;${html}&lt;/article&gt;</code></pre>
+
+<h2 id="limits">Limitations</h2>
+<ul>
+  <li>It is not a TeX engine. It covers the subset articles use, and has no page layout: <code>\vspace</code>, <code>\newpage</code> and float placement are ignored.</li>
+  <li><code>\title</code>, <code>\author</code> and <code>\maketitle</code> produce nothing, so put the title block in your HTML.</li>
+  <li>Maths is whatever KaTeX supports; <code>siunitx</code> and similar packages are not available.</li>
+  <li>One file per document: no <code>\input</code> or <code>.bib</code> files. Write <code>thebibliography</code> instead (<code>HaTeX.Bib</code> can generate the entries).</li>
+  <li>The output is meant for your own writing. Sanitise it before rendering sources from other people.</li>
+</ul>
+
+</div>
+
+<footer>
+  hatex 1.1.1 · by Mejistus · extracted from the LaTeX renderer of <a href="../">mejistus.github.io</a> ·
+  demo: <a href="../hatex-demo/">Denoising Diffusion Models, Derived</a>
+</footer>
+
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script src="lib/hatex.js"></script>
 <script>
-  fetch('diffusion.tex')
-    .then(r => r.text())
-    .then(tex => {
-      HaTeX.render('#paper', tex, { tikzSvgBase: 'tikz/', animate: false });
-      HaTeX.enhance(document.getElementById('bibtex'), { tikzSvgBase: null, animate: false });
+  const src = document.getElementById('src');
+  const out = document.getElementById('out');
+  const wrap = document.getElementById('outWrap');
+  const status = document.getElementById('status');
+  const style = document.getElementById('style');
+  const initial = document.getElementById('initial').textContent.trim() + '\n';
+
+  function update() {
+    const keep = wrap.scrollTop;
+    HaTeX.render(out, src.value, { tikzSvgBase: 'tikz/' });
+    out.classList.toggle('plain', style.value === 'plain');
+    out.dataset.theme = style.value === 'dark' ? 'dark' : 'light';
+    wrap.classList.toggle('dark-bg', style.value === 'dark');
+    wrap.scrollTop = keep;
+    const problems = HaTeX.lint(src.value);
+    status.innerHTML = '';
+    if (!problems.length) { status.textContent = 'No problems.'; return; }
+    problems.slice(0, 3).forEach(p => {
+      const row = document.createElement('div');
+      row.className = p.severity;
+      row.textContent = `line ${p.line}: ${p.message}`;
+      status.appendChild(row);
     });
+  }
+
+  let timer;
+  src.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(update, 250); });
+  style.addEventListener('change', update);
+  document.getElementById('reset').addEventListener('click', () => { src.value = initial; src.scrollTop = 0; wrap.scrollTop = 0; update(); });
+  src.value = initial;
+  update();
 </script>
 </body>
 </html>
