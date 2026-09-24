@@ -121,7 +121,7 @@
     <a class="button" href="lib/hatex.js" download>hatex.js</a>
     <a class="button" href="lib/hatex.css" download>hatex.css</a>
   </div>
-  <p class="version">Version 1.1.2 · about 100&nbsp;KB, no dependencies besides KaTeX · the renderer behind <a href="../">this blog</a></p>
+  <p class="version">Version 1.1.3 · about 100&nbsp;KB, no dependencies besides KaTeX · the renderer behind <a href="../">this blog</a></p>
 </header>
 
 <section id="playground">
@@ -303,13 +303,15 @@ const html = HaTeX.parse(source);   // → &lt;article class="hatex"&gt;${html}&
 </div>
 
 <footer>
-  hatex 1.1.2 · by Mejistus · extracted from the LaTeX renderer of <a href="../">mejistus.github.io</a> ·
+  hatex 1.1.3 · by Mejistus · extracted from the LaTeX renderer of <a href="../">mejistus.github.io</a> ·
   demo: <a href="../hatex-demo/">Denoising Diffusion Models, Derived</a>
 </footer>
 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
 <script src="lib/hatex.js"></script>
 <script>
   const src = document.getElementById('src');
