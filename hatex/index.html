@@ -128,7 +128,7 @@
     <a class="button" href="lib/hatex.js" download>hatex.js</a>
     <a class="button" href="lib/hatex.css" download>hatex.css</a>
   </div>
-  <p class="version">Version 1.3.0 · about 120&nbsp;KB, no dependencies besides KaTeX · MIT License · the renderer behind <a href="../">this blog</a></p>
+  <p class="version">Version 1.3.1 · about 120&nbsp;KB, no dependencies besides KaTeX · MIT License · the renderer behind <a href="../">this blog</a></p>
 </header>
 
 <section id="about" class="text">
@@ -342,7 +342,7 @@ A \verb|\columnbreak| sends what follows to the next column. On a narrow screen 
   <tr><td>Text</td><td><code>\textbf</code>, <code>\emph</code>, <code>\texttt</code>, <code>\sout</code>, <code>\hl</code>, <code>\textcolor</code>, <code>\href</code>, <code>\url</code>, sizes, accents, dashes and quotes</td></tr>
   <tr><td>Chinese</td><td>captions and names switch to 图 / 表 / 定理 / 证明 / 参考文献; no stray spaces at CJK line breaks</td></tr>
   <tr><td>Layout</td><td><code>\documentclass[twocolumn]</code> and <code>multicols</code>: balanced columns on a wide screen, one column on a phone; headings, the abstract and <code>figure*</code> / <code>table*</code> span both columns, and equations too wide for a column are scaled to fit</td></tr>
-  <tr><td>Slides</td><td><code>\documentclass{beamer}</code>: <code>frame</code>, <code>\titlepage</code>, <code>\tableofcontents</code>, <code>block</code> / <code>alertblock</code> / <code>exampleblock</code>, <code>columns</code>; a full-screen <b>Present</b> mode; overlays (<code>\pause</code>, <code>&lt;2-&gt;</code>) show every step at once</td></tr>
+  <tr><td>Slides</td><td><code>\documentclass{beamer}</code>: <code>frame</code>, <code>\titlepage</code>, <code>\tableofcontents</code>, <code>block</code> / <code>alertblock</code> / <code>exampleblock</code>, <code>columns</code>; any aspect ratio (16:9, 4:3, 1:1, …); a full-screen <b>Present</b> mode; overlays (<code>\pause</code>, <code>&lt;2-&gt;</code>) show every step at once</td></tr>
 </table>
 
 <h2 id="api">API</h2>
@@ -423,7 +423,7 @@ const html = HaTeX.parse(source);   // → &lt;article class="hatex"&gt;${html}&
 </div>
 
 <footer>
-  hatex 1.3.0 · MIT License · by Mejistus · the LaTeX renderer of <a href="../">mejistus.github.io</a> ·
+  hatex 1.3.1 · MIT License · by Mejistus · the LaTeX renderer of <a href="../">mejistus.github.io</a> ·
   <a href="demo/">demos</a>: a two-column paper, a Chinese document and a slide deck
 </footer>
 
