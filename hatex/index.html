@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Denoising Diffusion Models, Derived</title>
+<meta name="description" content="A self-contained derivation of denoising diffusion models: forward marginals, the variational bound, noise prediction, Tweedie's formula, DDIM and the SDE limit.">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<link rel="stylesheet" href="lib/hatex.css">
+<style>
+  :root {
+    color-scheme: light;
+    --serif: KaTeX_Main, "Latin Modern Roman", "Times New Roman", serif;
+  }
+  body {
+    margin: 0;
+    background: #fff;
+    color: #000;
+    font: 18px/1.55 var(--serif);
+  }
+  main {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 3.5rem 1.25rem 4rem;
+  }
+  a { color: #000; }
+
+  header { text-align: center; margin-bottom: 2.5rem; }
+  .title { font-size: 1.9rem; font-weight: normal; line-height: 1.25; margin: 0 0 1.2rem; }
+  .authors { font-size: 1.15rem; margin: 0; }
+  .venue { margin: 0.2rem 0 0; font-style: italic; }
+  .links { margin: 1rem 0 0; }
+
+  /* hatex, in black on white */
+  .hatex {
+    --hx-ink: #000;
+    --hx-muted: #000;
+    --hx-accent: #000;
+    --hx-accent-2: #000;
+    --hx-code-bg: #f6f6f6;
+    --hx-border: #bbb;
+    --hx-surface: #fff;
+    --hx-paper: #fff;
+    --hx-font-heading: var(--serif);
+    --hx-font-sans: var(--serif);
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+  .hatex p, .hatex li { text-align: justify; hyphens: auto; }
+  .hatex p { margin-bottom: 0.9rem; }
+  .hatex h2 { font-size: 1.3rem; border: 0; padding: 0; margin: 2.2rem 0 0.7rem; }
+  .hatex h3 { font-size: 1.1rem; }
+  .hatex .latex-secnum { margin-right: 0.8em; }
+  .hatex .latex-abstract { max-width: none; margin: 0 2.5rem 2.2rem; font-size: 0.95rem; }
+  .hatex .latex-abstract-title { font-size: 1rem; }
+  /* References read like a PDF: plain numbers, underlined on hover. */
+  .hatex a { text-decoration: none; }
+  .hatex a:hover { text-decoration: underline; }
+  .hatex .latex-cite-link { border: 0; padding: 0; }
+  .hatex .latex-cite-link:hover { background: none; }
+  .hatex code { background: none; padding: 0; font-size: 0.82em; }
+  .hatex pre { border-radius: 0; font-size: 0.95rem; }
+  .hatex .latex-float figcaption { text-align: justify; font-size: 0.9rem; max-width: 40rem; }
+  .hatex .latex-cap-label { font-weight: bold; }
+  .hatex .latex-alg { font-size: 0.95rem; }
+  .hatex .latex-bib ol { font-size: 0.9rem; }
+  .hatex .katex-display { padding: 0.25rem 0; }
+
+  #bibtex h2 { margin-top: 3rem; }
+  footer { margin-top: 3rem; font-size: 0.85rem; text-align: center; }
+
+  @media (max-width: 600px) {
+    body { font-size: 16px; }
+    main { padding-top: 2rem; }
+    .title { font-size: 1.5rem; }
+    .hatex .latex-abstract { margin: 0 0 2rem; }
+    .hatex p, .hatex li { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 class="title">Denoising Diffusion Models, Derived</h1>
+    <p class="authors">Mejistus</p>
+    <p class="venue">Technical note, September 2026</p>
+    <p class="links">[<a href="diffusion.tex">LaTeX source</a>]&ensp;[<a href="#bibtex">BibTeX</a>]</p>
+  </header>
+
+  <article id="paper">
+    <noscript>This page is rendered from <a href="diffusion.tex">diffusion.tex</a> by JavaScript.</noscript>
+  </article>
+
+  <section id="bibtex" class="hatex">
+    <h2>BibTeX</h2>
+<pre><code>@misc{mejistus2026diffusion,
+  title  = {Denoising Diffusion Models, Derived},
+  author = {Mejistus},
+  year   = {2026},
+  note   = {Technical note},
+  url    = {https://mejistus.github.io/hatex/}
+}</code></pre>
+  </section>
+
+  <footer>Typeset in your browser from <a href="diffusion.tex">diffusion.tex</a> by hatex.</footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="lib/hatex.js"></script>
+<script>
+  fetch('diffusion.tex')
+    .then(r => r.text())
+    .then(tex => {
+      HaTeX.render('#paper', tex, { tikzSvgBase: 'tikz/', animate: false });
+      HaTeX.enhance(document.getElementById('bibtex'), { tikzSvgBase: null, animate: false });
+    });
+</script>
+</body>
+</html>
