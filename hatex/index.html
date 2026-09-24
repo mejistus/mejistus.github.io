@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>hatex — LaTeX articles and slides, rendered in the browser</title>
-<meta name="description" content="hatex = html + latex: it turns LaTeX articles and beamer slides into web pages in the browser. Numbered equations, tables, figures, TikZ, theorems, algorithms, citations, two-column layouts and slides. Public domain.">
+<meta name="description" content="hatex = html + latex: it turns LaTeX articles and beamer slides into web pages in the browser. Numbered equations, tables, figures, TikZ, theorems, algorithms, citations, two-column layouts and slides. MIT licensed.">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <link rel="stylesheet" href="lib/hatex.css">
@@ -128,7 +128,7 @@
     <a class="button" href="lib/hatex.js" download>hatex.js</a>
     <a class="button" href="lib/hatex.css" download>hatex.css</a>
   </div>
-  <p class="version">Version 1.2.0 · about 120&nbsp;KB, no dependencies besides KaTeX · public domain · the renderer behind <a href="../">this blog</a></p>
+  <p class="version">Version 1.2.1 · about 120&nbsp;KB, no dependencies besides KaTeX · MIT License · the renderer behind <a href="../">this blog</a></p>
 </header>
 
 <section id="about" class="text">
@@ -414,8 +414,8 @@ const html = HaTeX.parse(source);   // → &lt;article class="hatex"&gt;${html}&
 
 <h2 id="license">License</h2>
 <p>
-  hatex is released into the public domain under the <a href="LICENSE">Unlicense</a>: use, copy, change
-  and sell it for anything, with or without credit. It is original code, not a fork of another project.
+  hatex is released under the <a href="LICENSE">MIT License</a>: use, copy, change and sell it for anything,
+  as long as the copyright notice travels with it. It is original code, not a fork of another project.
   The libraries it loads from a CDN at runtime keep their own licenses (KaTeX and Prism are MIT, TikZJax is
   GPL-3.0-or-later), and none of them is bundled into <code>hatex.js</code>.
 </p>
@@ -423,7 +423,7 @@ const html = HaTeX.parse(source);   // → &lt;article class="hatex"&gt;${html}&
 </div>
 
 <footer>
-  hatex 1.2.0 · public domain · by Mejistus · the LaTeX renderer of <a href="../">mejistus.github.io</a> ·
+  hatex 1.2.1 · MIT License · by Mejistus · the LaTeX renderer of <a href="../">mejistus.github.io</a> ·
   <a href="demo/">demos</a>: a two-column paper, a Chinese document and a slide deck
 </footer>
 
