@@ -1,0 +1,104 @@
+<!doctype html>
+<!-- Built from docs/manual/README.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li class="here"><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="the-hatex-manual"><a class="anchor" href="#the-hatex-manual" aria-hidden="true">#</a>The hatex manual</h1>
+<p>hatex turns LaTeX (articles and beamer slides) into HTML in the browser, or in Node at build time. This manual describes everything it does: what LaTeX it understands, how to put it on a page, the JavaScript API, styling, and what it deliberately leaves out.</p>
+<p>The <a href="https://github.com/mejistus/hatex/blob/main/README.md" rel="noopener">README</a> is the short tour. <a href="syntax.html"><code>docs/syntax.md</code></a> is a one-page cheat sheet of the supported LaTeX. This manual is the full reference and explains how each feature behaves and why.</p>
+<h2 id="contents"><a class="anchor" href="#contents" aria-hidden="true">#</a>Contents</h2>
+<p><strong>Using hatex</strong></p>
+<ol>
+<li><a href="getting-started.html">Getting started</a>: loading the files, a first page, where the source can come from, and serving locally</li>
+<li><a href="documents.html">How hatex reads a document</a>: the preamble, comments, paragraphs, sectioning, text formatting, lists and Chinese documents</li>
+<li><a href="maths.html">Maths</a>: inline and display maths, numbered environments, macros and what KaTeX can&#39;t do</li>
+<li><a href="tables.html">Tables</a>: <code>tabular</code> and its relatives, rules, spans, colours and fitting wide tables</li>
+<li><a href="figures.html">Figures and images</a>: <code>\includegraphics</code>, floats, captions, sub-figures and minipages</li>
+<li><a href="tikz.html">TikZ</a>: how pictures are compiled, pre-rendering, libraries, pgfplots, tikz-cd and the neural-network styles</li>
+<li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+<li><a href="code.html">Code</a>: listings, minted, verbatim and syntax highlighting</li>
+<li><a href="references.html">Cross-references, citations and footnotes</a></li>
+<li><a href="columns.html">Two columns and multicols</a></li>
+<li><a href="slides.html">Slides</a>: beamer frames, the title page, blocks, columns, aspect ratios and presenting</li>
+<li><a href="vertical-chinese.html">Vertical Chinese</a>: <code>guji</code>, <code>vertical</code> and <code>\jiazhu</code></li>
+</ol>
+<p><strong>Integrating hatex</strong></p>
+<ol start="13">
+<li><a href="api.html">JavaScript API</a>: every function, option and event</li>
+<li><a href="theming.html">Theming</a>: the CSS variables, dark mode and fonts</li>
+<li><a href="html-output.html">The HTML output</a>: the structure and class names the renderer produces, for styling and scripting</li>
+<li><a href="node.html">Node, bundlers and static sites</a></li>
+<li><a href="checking.html">Checking sources</a>: <code>HaTeX.lint</code> and <code>HaTeX.images</code></li>
+</ol>
+<p><strong>Reference</strong></p>
+<ol start="18">
+<li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+<li><a href="development.html">Developing hatex</a>: the source layout, building and syncing with the blog</li>
+</ol>
+<h2 id="conventions"><a class="anchor" href="#conventions" aria-hidden="true">#</a>Conventions</h2>
+<ul>
+<li>&quot;The source&quot; is the LaTeX text you hand to hatex. &quot;The root&quot; is the element that the output goes into; it always carries the class <code>hatex</code>.</li>
+<li>Commands are written as you would type them in LaTeX, e.g. <code>\section{…}</code>. Optional arguments are in <code>[…]</code>.</li>
+<li><strong>Degrades</strong> means that the command is not understood and hatex keeps the text of its arguments instead of failing. <strong>Ignored</strong> means that the command and its arguments produce nothing.</li>
+<li>The examples use the files in <a href="https://github.com/mejistus/hatex/tree/main/dist" rel="noopener"><code>dist/</code></a>. Everything described here is in version 1.5.1.</li>
+</ul>
+    </article>
+    <nav class="pager">
+      <span></span>
+      <a class="next" href="getting-started.html"><small>Next</small>Getting started</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/README.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

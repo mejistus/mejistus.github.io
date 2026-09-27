@@ -1,0 +1,198 @@
+<!doctype html>
+<!-- Built from docs/manual/references.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cross-references, citations and footnotes · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li class="here"><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="cross-references-citations-and-footnotes"><a class="anchor" href="#cross-references-citations-and-footnotes" aria-hidden="true">#</a>Cross-references, citations and footnotes</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#labels">Labels</a></li><li><a href="#references">References</a></li><li><a href="#clicking-a-reference">Clicking a reference</a></li><li><a href="#citations">Citations</a></li><li><a href="#the-bibliography">The bibliography</a></li><li><a href="#footnotes">Footnotes</a></li></ul></nav>
+<h2 id="labels"><a class="anchor" href="#labels" aria-hidden="true">#</a>Labels</h2>
+<p><code>\label{key}</code> names the thing it belongs to:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Where the <code>\label</code> is</th>
+<th>What <code>\ref{key}</code> shows</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Right after <code>\section</code>, <code>\subsection</code> or <code>\subsubsection</code></td>
+<td>The section number, e.g. <code>2.1</code></td>
+</tr>
+<tr>
+<td>In a numbered equation row</td>
+<td>The equation number, e.g. <code>3</code></td>
+</tr>
+<tr>
+<td>In a <code>figure</code>, <code>table</code> or <code>algorithm</code> with a caption</td>
+<td>The float number, e.g. <code>2</code></td>
+</tr>
+<tr>
+<td>In a <code>subfigure</code> or <code>subtable</code></td>
+<td>The float number and the letter, e.g. <code>2b</code></td>
+</tr>
+<tr>
+<td>In a numbered theorem-like environment</td>
+<td>Its number, e.g. <code>4</code></td>
+</tr>
+<tr>
+<td>Anywhere else</td>
+<td>The number of the enclosing section, float or sub-float, if there is one</td>
+</tr>
+</tbody></table>
+</div>
+<p>The label also puts an <code>id</code> on the page, and that is where references link to. Keys can contain any characters except <code>}</code>: <code>fig:loss</code>, <code>sec-intro</code> and <code>eq.1</code> all work.</p>
+<p>A label on something unnumbered (a starred section, a float without a caption) still works as a link target, but it has no number, so <code>\ref</code> shows <code>??</code>, as LaTeX does.</p>
+<h2 id="references"><a class="anchor" href="#references" aria-hidden="true">#</a>References</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\ref{key}</code></td>
+<td><code>2</code></td>
+</tr>
+<tr>
+<td><code>\eqref{key}</code></td>
+<td><code>(3)</code></td>
+</tr>
+<tr>
+<td><code>\autoref{key}</code>, <code>\cref{key}</code>, <code>\Cref{key}</code></td>
+<td><code>Figure 2</code>, <code>Section 1</code>, <code>Equation 3</code>, <code>Theorem 4</code></td>
+</tr>
+<tr>
+<td><code>\pageref{key}</code>, <code>\nameref{key}</code></td>
+<td><code>2</code>, the number (there are no pages or names)</td>
+</tr>
+<tr>
+<td><code>\ref{a,b}</code></td>
+<td><code>1, 2</code>: several keys at once, each linked</td>
+</tr>
+</tbody></table>
+</div>
+<p>The word that <code>\autoref</code> and <code>\cref</code> put in front comes from the kind of target: Figure, Table, Algorithm, Section, Equation, or the theorem&#39;s name, such as Theorem, Lemma or your <code>\newtheorem</code> title. In Chinese documents they are 图, 表, 算法, 节 and 式. <code>\cref</code> and <code>\Cref</code> give the same result, capitalised. A non-breaking space joins the word and the number.</p>
+<p>A reference to a label that doesn&#39;t exist shows <code>??</code>. <a href="checking.html">Lint</a> reports it.</p>
+<p>Labels can be used before they are defined: all numbers are resolved after the whole document has been rendered.</p>
+<h2 id="clicking-a-reference"><a class="anchor" href="#clicking-a-reference" aria-hidden="true">#</a>Clicking a reference</h2>
+<p>References, citations and footnote marks are ordinary <code>&lt;a href=&quot;#…&quot;&gt;</code> links, but the runtime handles clicks on them itself:</p>
+<ul>
+<li>the target is scrolled smoothly to the middle of the view;</li>
+<li>the target is briefly highlighted (the <code>latex-flash</code> class, coloured by <code>--hx-flash</code>); for an equation, the whole display flashes;</li>
+<li>the URL doesn&#39;t change, so the back button doesn&#39;t have to step through every reference.</li>
+</ul>
+<p>With <code>animate: false</code>, or when the reader&#39;s system asks for reduced motion, the page jumps without scrolling or flashing.</p>
+<p><strong>Target ids are not stable.</strong> Each call to <code>parse</code> gives its ids a random prefix (e.g. <code>tex3k9f2a-fig:loss</code>), so that two documents on one page can&#39;t clash. Don&#39;t link to them from outside the document.</p>
+<h2 id="citations"><a class="anchor" href="#citations" aria-hidden="true">#</a>Citations</h2>
+<pre><code class="language-latex">Diffusion models \cite{ho2020,song2021} generate …
+As shown by \citet[Thm.~2]{song2021}, …
+
+\begin{thebibliography}{9}
+  \bibitem{ho2020} J. Ho, A. Jain, P. Abbeel. Denoising diffusion probabilistic models. In \emph{NeurIPS}, 2020.
+  \bibitem{song2021} Y. Song et al. Score-based generative modeling through SDEs. In \emph{ICLR}, 2021.
+\end{thebibliography}</code></pre>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\cite{a}</code></td>
+<td><code>[1]</code></td>
+</tr>
+<tr>
+<td><code>\cite{a,b}</code></td>
+<td><code>[1, 2]</code></td>
+</tr>
+<tr>
+<td><code>\cite[p.~7]{a}</code></td>
+<td><code>[1, p. 7]</code></td>
+</tr>
+<tr>
+<td><code>\citep</code>, <code>\citet</code>, <code>\parencite</code>, <code>\textcite</code>, <code>\autocite</code></td>
+<td>The same as <code>\cite</code>: there are no author–year styles</td>
+</tr>
+</tbody></table>
+</div>
+<ul>
+<li>Numbers follow the order of the <code>\bibitem</code>s, not the order of citation.</li>
+<li>Each number links to its entry in the bibliography.</li>
+<li>A key without a <code>\bibitem</code> shows the key itself, e.g. <code>[smith99]</code>. <a href="checking.html">Lint</a> reports it.</li>
+<li>With two optional arguments (natbib&#39;s <code>\citep[see][p.~7]{a}</code>), only the second is shown.</li>
+<li>Citation brackets never break across lines. By default they look like plain numbers; set <code>--hx-cite</code> to draw hyperref-style boxes around them (<a href="theming.html">Theming</a>).</li>
+</ul>
+<h2 id="the-bibliography"><a class="anchor" href="#the-bibliography" aria-hidden="true">#</a>The bibliography</h2>
+<p><code>thebibliography</code> becomes a numbered list headed &quot;References&quot; (参考文献). The <code>{9}</code> argument (the widest label) is read and dropped. <code>\bibitem[label]{key}</code> is accepted, but entries are always numbered <code>[1]</code>, <code>[2]</code>, …. The entry text can contain any inline formatting, links and maths.</p>
+<p>BibTeX files are not read: <code>\bibliography{refs}</code>, <code>\addbibresource</code> and <code>\printbibliography</code> are ignored. Write the entries into the document. <code>HaTeX.Bib</code> turns BibTeX into <code>\bibitem</code> lines, and can look a reference up from its DOI or arXiv id:</p>
+<pre><code class="language-js">const [entry] = await HaTeX.Bib.lookup('2006.11239');   // or a DOI, or an arxiv.org URL
+HaTeX.Bib.format(entry);
+// e.g. &quot;\bibitem{ho2020denoising} J. Ho, A. Jain, P. Abbeel. Denoising Diffusion Probabilistic Models. arXiv:2006.11239, 2020.&quot;</code></pre>
+<p>See <a href="api.html#hatexbib"><code>HaTeX.Bib</code></a> for all the functions, and <a href="https://github.com/mejistus/hatex/blob/main/examples/editor.html" rel="noopener"><code>examples/editor.html</code></a> for an &quot;add reference&quot; box built with them.</p>
+<h2 id="footnotes"><a class="anchor" href="#footnotes" aria-hidden="true">#</a>Footnotes</h2>
+<p><code>\footnote{text}</code> puts a superscript number in the text and the note at the end of the document, in a numbered list. The number links to the note, and the note has a ↩ link back. Footnotes are numbered through the whole document. <code>\footnote[5]{…}</code> is accepted, but the number is ignored.</p>
+<p><code>\footnotemark</code> and <code>\footnotetext</code> are not supported.</p>
+<hr>
+<p>Previous: <a href="code.html">Code</a> · <a href="index.html">Contents</a> · Next: <a href="columns.html">Two columns and multicols</a></p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="code.html"><small>Previous</small>Code</a>
+      <a class="next" href="columns.html"><small>Next</small>Two columns and multicols</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/references.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

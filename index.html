@@ -1713,10 +1713,13 @@
         text-decoration: none !important;
       }
 
+      /* 2px of side padding: KaTeX's equation number carries a 2px strut past
+         the right edge, which would otherwise make every numbered equation
+         scroll. */
       .blog-content .katex-display {
         overflow-x: auto;
         overflow-y: hidden;
-        padding: 0.5rem 0;
+        padding: 0.5rem 2px;
       }
       .blog-content .katex {
         font-size: 1.05em;

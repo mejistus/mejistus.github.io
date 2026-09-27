@@ -1,0 +1,201 @@
+<!doctype html>
+<!-- Built from docs/manual/getting-started.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting started · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li class="here"><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="getting-started"><a class="anchor" href="#getting-started" aria-hidden="true">#</a>Getting started</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#what-you-need">What you need</a></li><li><a href="#a-first-page">A first page</a></li><li><a href="#where-the-source-can-come-from">Where the source can come from</a></li><li><a href="#what-the-source-may-contain">What the source may contain</a></li><li><a href="#running-the-examples">Running the examples</a></li><li><a href="#next-steps">Next steps</a></li></ul></nav>
+<h2 id="what-you-need"><a class="anchor" href="#what-you-need" aria-hidden="true">#</a>What you need</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>Required</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>katex.min.css</code> + <code>katex.min.js</code></td>
+<td>Yes, for maths</td>
+<td>Typesets <code>$…$</code> and the equation environments. Without KaTeX, maths is shown as its source in <code>&lt;code&gt;</code>.</td>
+</tr>
+<tr>
+<td><code>dist/hatex.css</code></td>
+<td>Yes</td>
+<td>Styles for the output: typography, tables, theorems, columns, slides, code tokens and dark mode.</td>
+</tr>
+<tr>
+<td><code>dist/hatex.js</code></td>
+<td>Yes</td>
+<td>The renderer and the page runtime. Defines <code>window.HaTeX</code>.</td>
+</tr>
+<tr>
+<td><code>prism.min.js</code> + language components</td>
+<td>No</td>
+<td>Highlights code blocks. Without it, code is shown as plain text.</td>
+</tr>
+<tr>
+<td>TikZJax</td>
+<td>Loaded by hatex itself</td>
+<td>Compiles TikZ pictures. It is fetched from jsDelivr the first time a picture has no pre-rendered SVG; see <a href="tikz.html">TikZ</a>.</td>
+</tr>
+</tbody></table>
+</div>
+<p>hatex has no build-time dependencies and bundles none of the libraries above. KaTeX 0.16 or later is supported.</p>
+<h2 id="a-first-page"><a class="anchor" href="#a-first-page" aria-hidden="true">#</a>A first page</h2>
+<pre><code class="language-markup">&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css&quot;&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js&quot;&gt;&lt;/script&gt;
+&lt;!-- optional: highlighting for Python code blocks --&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js&quot;&gt;&lt;/script&gt;
+
+&lt;link rel=&quot;stylesheet&quot; href=&quot;hatex.css&quot;&gt;
+&lt;script src=&quot;hatex.js&quot;&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;article id=&quot;post&quot;&gt;&lt;/article&gt;
+&lt;script&gt;
+  fetch('post.tex')
+    .then(r =&gt; r.text())
+    .then(tex =&gt; HaTeX.render('#post', tex));
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p><code>HaTeX.render</code> parses the source, puts the HTML into <code>#post</code>, adds the class <code>hatex</code> to it, and then runs the page behaviour: column layout, table fitting, TikZ, link scrolling, copy buttons and image zoom.</p>
+<p><strong>Order matters for KaTeX and Prism:</strong> they must be loaded before <code>render</code> runs, because maths and code are typeset while parsing. Loading hatex itself with <code>defer</code> is fine as long as the call to <code>render</code> comes after it.</p>
+<p><strong>Don&#39;t load a Prism theme.</strong> <code>hatex.css</code> colours code tokens from its own palette, and a Prism theme would fight it.</p>
+<h2 id="where-the-source-can-come-from"><a class="anchor" href="#where-the-source-can-come-from" aria-hidden="true">#</a>Where the source can come from</h2>
+<p><code>render</code> takes a string, so the source can come from anywhere.</p>
+<p><strong>A <code>.tex</code> file next to the page</strong> (as above). The page must be served over HTTP, because browsers refuse <code>fetch</code> from <code>file://</code>.</p>
+<p><strong>A <code>&lt;script&gt;</code> block in the page.</strong> A script element of an unknown type is not run, and its content is kept exactly as written: backslashes, <code>&lt;</code>, <code>&gt;</code> and <code>&amp;</code> need no escaping.</p>
+<pre><code class="language-markup">&lt;script type=&quot;text/x-latex&quot; id=&quot;source&quot;&gt;
+\section{Hello}
+Euler: $e^{i\pi} + 1 = 0$.
+&lt;/script&gt;
+&lt;article id=&quot;out&quot;&gt;&lt;/article&gt;
+&lt;script&gt;
+  HaTeX.render('#out', document.getElementById('source').textContent);
+&lt;/script&gt;</code></pre>
+<p>The only thing that can&#39;t appear inside it is the literal text <code>&lt;/script&gt;</code>.</p>
+<p><strong>A <code>&lt;textarea&gt;</code> in an editor.</strong> Call <code>render</code> again whenever the text changes; see <a href="https://github.com/mejistus/hatex/blob/main/examples/editor.html" rel="noopener"><code>examples/editor.html</code></a> and <a href="api.html#building-an-editor">Building an editor</a>.</p>
+<p><strong>Pre-rendered HTML.</strong> Render at build time with <code>HaTeX.parse</code> and call <code>HaTeX.enhance</code> on the page instead of <code>render</code>; see <a href="node.html">Node, bundlers and static sites</a>.</p>
+<h2 id="what-the-source-may-contain"><a class="anchor" href="#what-the-source-may-contain" aria-hidden="true">#</a>What the source may contain</h2>
+<p>Any LaTeX body, with or without a preamble:</p>
+<pre><code class="language-latex">\documentclass{article}
+\usepackage{amsmath}
+\newcommand{\R}{\mathbb{R}}
+\begin{document}
+\section{Introduction}
+Let $x \in \R$.
+\end{document}</code></pre>
+<p>and</p>
+<pre><code class="language-latex">\section{Introduction}
+Let $x \in \mathbb{R}$.</code></pre>
+<p>render the same way (apart from the macro). The preamble is read only for definitions; see <a href="documents.html">How hatex reads a document</a>.</p>
+<h2 id="running-the-examples"><a class="anchor" href="#running-the-examples" aria-hidden="true">#</a>Running the examples</h2>
+<pre><code class="language-bash">git clone https://github.com/mejistus/hatex
+cd hatex
+npm start                 # http://localhost:8000/examples/</code></pre>
+<p><code>npm start</code> runs a small static server (<code>scripts/serve.mjs</code>) with no dependencies. <code>node scripts/serve.mjs 9000</code> uses a different port.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Example</th>
+<th>Shows</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="https://github.com/mejistus/hatex/blob/main/examples/basic.html" rel="noopener"><code>examples/basic.html</code></a></td>
+<td>The smallest setup: source in a <code>&lt;script&gt;</code> block and one <code>render</code> call</td>
+</tr>
+<tr>
+<td><a href="https://github.com/mejistus/hatex/blob/main/examples/editor.html" rel="noopener"><code>examples/editor.html</code></a></td>
+<td>A live editor with a problems list, double-click to jump to the source line, DOI/arXiv import and dark mode</td>
+</tr>
+<tr>
+<td><a href="https://github.com/mejistus/hatex/blob/main/examples/tikz.html" rel="noopener"><code>examples/tikz.html</code></a></td>
+<td>TikZ, the <code>nn</code> styles and pgfplots; add <code>?live</code> to compile the pictures instead of loading SVGs</td>
+</tr>
+<tr>
+<td><a href="https://github.com/mejistus/hatex/tree/main/examples/document" rel="noopener"><code>examples/document/</code></a></td>
+<td>A full article that uses nearly every feature</td>
+</tr>
+<tr>
+<td><a href="https://github.com/mejistus/hatex/blob/main/examples/node/prerender.mjs" rel="noopener"><code>examples/node/prerender.mjs</code></a></td>
+<td>Static HTML rendered in Node</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="next-steps"><a class="anchor" href="#next-steps" aria-hidden="true">#</a>Next steps</h2>
+<ul>
+<li>Writing documents: start with <a href="documents.html">How hatex reads a document</a>.</li>
+<li>Putting hatex into a site: <a href="api.html">JavaScript API</a> and <a href="theming.html">Theming</a>.</li>
+<li>Slides: <a href="slides.html">Slides</a>.</li>
+</ul>
+<hr>
+<p><a href="index.html">Contents</a> · Next: <a href="documents.html">How hatex reads a document</a></p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="index.html"><small>Previous</small>Contents</a>
+      <a class="next" href="documents.html"><small>Next</small>How hatex reads a document</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/getting-started.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

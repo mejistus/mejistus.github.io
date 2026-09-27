@@ -1,0 +1,570 @@
+<!doctype html>
+<!-- Built from docs/manual/tikz.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TikZ · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li class="here"><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="tikz"><a class="anchor" href="#tikz" aria-hidden="true">#</a>TikZ</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#what-is-supported">What is supported</a></li><li><a href="#how-a-picture-gets-on-the-page">How a picture gets on the page</a></li><li><a href="#pre-rendering">Pre-rendering</a></li><li><a href="#libraries">Libraries</a></li><li><a href="#packages">Packages</a></li><li><a href="#what-a-picture-can-see">What a picture can see</a></li><li><a href="#rules-for-picture-text">Rules for picture text</a></li><li><a href="#errors">Errors</a></li><li><a href="#dark-mode">Dark mode</a></li><li><a href="#self-hosting-tikzjax">Self-hosting TikZJax</a></li><li><a href="#neural-network-diagrams">Neural-network diagrams</a></li></ul></nav>
+<p>hatex doesn&#39;t reimplement TikZ. Each picture is compiled by real TeX: <a href="https://github.com/drgrice1/tikzjax" rel="noopener">TikZJax</a> runs TeX in WebAssembly in the browser and produces an SVG. Because compiling is slow, hatex can instead load the SVG from a file that you saved earlier, so readers never wait.</p>
+<pre><code class="language-latex">\usetikzlibrary{arrows.meta,positioning}
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[node distance=15mm]
+    \node[draw] (a) {A};
+    \node[draw, right=of a] (b) {B};
+    \draw[-Stealth] (a) -- node[above] {$f$} (b);
+  \end{tikzpicture}
+  \caption{A map.}\label{fig:ab}
+\end{figure}</code></pre>
+<h2 id="what-is-supported"><a class="anchor" href="#what-is-supported" aria-hidden="true">#</a>What is supported</h2>
+<ul>
+<li><code>tikzpicture</code> and <code>tikzcd</code> (commutative diagrams, with the <code>tikz-cd</code> package loaded for you);</li>
+<li>pgfplots: <code>axis</code>, <code>semilogxaxis</code>, <code>semilogyaxis</code>, <code>loglogaxis</code> and <code>polaraxis</code>, and <code>\addplot</code>, with the <code>pgfplots</code> package loaded for you;</li>
+<li>any TikZ library, declared with <code>\usetikzlibrary</code> or detected from the code;</li>
+<li><code>\tikzset</code>, <code>\tikzstyle</code>, <code>\pgfplotsset</code> and <code>\usepgfplotslibrary</code> from the document;</li>
+<li>your <code>\definecolor</code> colours and <code>\newcommand</code> macros;</li>
+<li>maths in labels: <code>node {$x_t$}</code>;</li>
+<li>the built-in <a href="#neural-network-diagrams">neural-network styles</a>.</li>
+</ul>
+<h2 id="how-a-picture-gets-on-the-page"><a class="anchor" href="#how-a-picture-gets-on-the-page" aria-hidden="true">#</a>How a picture gets on the page</h2>
+<p>When parsing, each picture becomes</p>
+<pre><code class="language-markup">&lt;div class=&quot;latex-tikz&quot; data-tikz-hash=&quot;751aa11b&quot;&gt;
+  &lt;script type=&quot;text/x-tikz&quot; data-tikz-libraries=&quot;…&quot; data-tex-packages=&quot;…&quot; data-add-to-preamble=&quot;…&quot;&gt;
+    \begin{tikzpicture} … \end{tikzpicture}
+  &lt;/script&gt;
+&lt;/div&gt;</code></pre>
+<p>The script is inert: browsers don&#39;t run a script of an unknown type. The hash is a 32-bit FNV-1a hash of the picture&#39;s code together with its libraries, packages and preamble, written as 8 hex digits. It changes only when something that affects the drawing changes.</p>
+<p>When the page is enhanced (<code>render</code> or <code>enhance</code>), the runtime tries these for each picture, in order:</p>
+<ol>
+<li><strong>This session&#39;s cache.</strong> A picture compiled earlier on the same page (e.g. before an editor re-rendered) is put back at once. Re-rendering never compiles the same picture twice.</li>
+<li><strong>A pre-rendered file</strong> at <code>&lt;tikzSvgBase&gt;&lt;hash&gt;.svg</code>, by default <code>tikz/&lt;hash&gt;.svg</code> relative to the page. A response counts only if it is OK and starts with <code>&lt;svg</code>, and a missing file is remembered, so it isn&#39;t requested again.</li>
+<li><strong>Compiling live</strong> with TikZJax, if <code>tikzLive</code> is true (the default). The TikZJax script (about 6 MB on first use, then cached by the browser) is loaded the first time it is needed. Pictures compile one at a time and take 1–10 s each, and a label under each one says &quot;Compiling with TeX… 2 of 5&quot;.</li>
+</ol>
+<p>If none of these works (no file and <code>tikzLive: false</code>), the box stays empty with <code>data-tikz-state=&quot;missing&quot;</code>.</p>
+<h3 id="picture-states"><a class="anchor" href="#picture-states" aria-hidden="true">#</a>Picture states</h3>
+<p>The box&#39;s <code>data-tikz-state</code> attribute says where a picture is, which is useful for styling or tests:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>State</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>loading</code></td>
+<td>Looking for an SVG</td>
+</tr>
+<tr>
+<td><code>static</code></td>
+<td>Shown from a pre-rendered file or the session cache</td>
+</tr>
+<tr>
+<td><code>live</code></td>
+<td>Waiting for or being compiled by TikZJax</td>
+</tr>
+<tr>
+<td><code>compiled</code></td>
+<td>Compiled live in this session</td>
+</tr>
+<tr>
+<td><code>failed</code></td>
+<td>TeX reported an error (only with <code>tikzErrors: true</code>)</td>
+</tr>
+<tr>
+<td><code>missing</code></td>
+<td>No SVG and live compiling is off</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="pre-rendering"><a class="anchor" href="#pre-rendering" aria-hidden="true">#</a>Pre-rendering</h2>
+<p>Compile once while writing, save the SVGs next to the page, and readers only download small files:</p>
+<ol>
+<li><p>Open the page with live compiling and without looking up files: <code>HaTeX.render(el, source, { tikzSvgBase: null })</code>. <a href="https://github.com/mejistus/hatex/blob/main/examples/editor.html" rel="noopener"><code>examples/editor.html</code></a> does this, and so does <a href="https://github.com/mejistus/hatex/blob/main/examples/tikz.html" rel="noopener"><code>examples/tikz.html?live</code></a>.</p>
+</li>
+<li><p>When the pictures have compiled, call <code>HaTeX.tikzSvgs(el)</code>. It returns <code>[{ hash, file, svg }]</code> for every picture in <code>el</code> that was compiled in this session, where <code>file</code> is <code>&lt;hash&gt;.svg</code>. Save each <code>svg</code> under that name in your <code>tikz/</code> folder. The editor example shows them as download links:</p>
+<pre><code class="language-js">HaTeX.tikzSvgs(out).forEach(({ file, svg }) =&gt; {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+  a.download = file;
+  a.textContent = file;
+  document.body.append(a);
+});</code></pre>
+</li>
+<li><p>Deploy the page with its <code>tikz/</code> folder. Readers get <code>tikz/&lt;hash&gt;.svg</code>, and TikZJax is never loaded for them.</p>
+</li>
+</ol>
+<p>The <code>hatex:tikz</code> event fires on each picture&#39;s box when it compiles (see <a href="api.html#events">Events</a>), so you can collect the files as they come in.</p>
+<p>When you edit a picture, its hash changes, so the page compiles it live again until you save the new SVG. The old file is simply no longer requested and can be deleted.</p>
+<h3 id="what-changes-a-pictures-hash"><a class="anchor" href="#what-changes-a-pictures-hash" aria-hidden="true">#</a>What changes a picture&#39;s hash</h3>
+<ul>
+<li>its code, including the options on <code>\begin{tikzpicture}[…]</code>;</li>
+<li>the libraries it gets: those declared with <code>\usetikzlibrary</code> before it in the document, plus those detected in its code;</li>
+<li>the packages it gets (<code>pgfplots</code>, <code>tikz-cd</code>, <code>amsmath</code>);</li>
+<li>the preamble it gets: every <code>\tikzset</code>, <code>\tikzstyle</code>, <code>\pgfplotsset</code> and <code>\usepgfplotslibrary</code> in the document, and the <code>\definecolor</code> and <code>\newcommand</code> definitions of the colours and macros that it mentions.</li>
+</ul>
+<p>So adding a <code>\definecolor</code> for a colour that a picture doesn&#39;t use doesn&#39;t invalidate its SVG, but adding a <code>\tikzset</code> anywhere invalidates all of them. A <code>\usetikzlibrary</code> applies only to the pictures after it, as in LaTeX, so adding one near the end of a document doesn&#39;t change the pictures above it.</p>
+<h3 id="where-the-files-live"><a class="anchor" href="#where-the-files-live" aria-hidden="true">#</a>Where the files live</h3>
+<p><code>tikzSvgBase</code> is a URL prefix, and the file name is appended to it directly:</p>
+<pre><code class="language-js">HaTeX.render(el, tex, { tikzSvgBase: '/static/tikz/' });   // → /static/tikz/751aa11b.svg
+HaTeX.render(el, tex, { tikzSvgBase: 'https://cdn.example.com/p/' });
+HaTeX.render(el, tex, { tikzSvgBase: null });              // never look for files</code></pre>
+<p>Remember the trailing slash. Saved SVGs are exactly what TeX produced. On screen, hatex adds 1pt of room around the drawing (TikZJax&#39;s box cuts off the outer half of lines along its edges) and draws every line 0.2pt heavier, so that TeX&#39;s 0.4pt default lines don&#39;t vanish between pixel rows. Text is left alone.</p>
+<h2 id="libraries"><a class="anchor" href="#libraries" aria-hidden="true">#</a>Libraries</h2>
+<p><code>\usetikzlibrary{…}</code> anywhere in the document applies to the pictures after it. You rarely need it, because hatex detects the libraries that a picture obviously uses:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Library</th>
+<th>Detected from</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>positioning</code></td>
+<td><code>right=of a</code>, <code>above left=</code>, <code>node distance</code>, <code>pin</code>, <code>label distance</code></td>
+</tr>
+<tr>
+<td><code>arrows.meta</code></td>
+<td><code>-{…}</code>, <code>Stealth</code>, <code>Latex[…]</code>, <code>To[…]</code>, <code>Circle]</code>, <code>Bar]</code>, <code>Square]</code></td>
+</tr>
+<tr>
+<td><code>calc</code></td>
+<td><code>($…$)</code> coordinate calculations, <code>let \p</code>, <code>\pgfextra</code></td>
+</tr>
+<tr>
+<td><code>fit</code></td>
+<td><code>fit=</code></td>
+</tr>
+<tr>
+<td><code>backgrounds</code></td>
+<td><code>on background layer</code>, <code>background rectangle</code>, <code>show background</code></td>
+</tr>
+<tr>
+<td><code>shapes.geometric</code></td>
+<td><code>ellipse</code>, <code>diamond</code>, <code>trapezium</code>, <code>regular polygon</code>, <code>star</code>, <code>cylinder</code>, <code>semicircle</code>, <code>kite</code>, <code>dart</code></td>
+</tr>
+<tr>
+<td><code>shapes.misc</code></td>
+<td><code>rounded rectangle</code>, <code>cross out</code>, <code>strike out</code>, <code>chamfered rectangle</code></td>
+</tr>
+<tr>
+<td><code>shapes.symbols</code></td>
+<td><code>cloud</code>, <code>starburst</code>, <code>signal</code>, <code>tape</code>, <code>magnifying glass</code></td>
+</tr>
+<tr>
+<td><code>shapes.multipart</code></td>
+<td><code>rectangle split</code></td>
+</tr>
+<tr>
+<td><code>shapes.arrows</code></td>
+<td><code>single arrow</code>, <code>double arrow</code>, <code>arrow box</code></td>
+</tr>
+<tr>
+<td><code>shapes.callouts</code></td>
+<td><code>callout</code></td>
+</tr>
+<tr>
+<td><code>chains</code></td>
+<td><code>start chain</code>, <code>on chain</code>, <code>join=</code></td>
+</tr>
+<tr>
+<td><code>matrix</code></td>
+<td><code>\matrix</code>, <code>matrix of nodes</code></td>
+</tr>
+<tr>
+<td><code>decorations.pathreplacing</code></td>
+<td><code>decoration=brace</code>, <code>mirror</code>, <code>bracket</code>, <code>decorate</code></td>
+</tr>
+<tr>
+<td><code>decorations.pathmorphing</code></td>
+<td><code>decoration=snake</code>, <code>coil</code>, <code>zigzag</code>, <code>bumps</code>, <code>random steps</code>, <code>wave</code></td>
+</tr>
+<tr>
+<td><code>decorations.markings</code></td>
+<td><code>decoration=markings</code>, <code>text along path</code></td>
+</tr>
+<tr>
+<td><code>patterns</code></td>
+<td><code>pattern=</code></td>
+</tr>
+<tr>
+<td><code>intersections</code></td>
+<td><code>name path</code>, <code>name intersections</code></td>
+</tr>
+<tr>
+<td><code>3d</code></td>
+<td><code>canvas is …</code>, <code>plane origin</code></td>
+</tr>
+<tr>
+<td><code>shadows</code></td>
+<td><code>drop shadow</code>, <code>copy shadow</code></td>
+</tr>
+<tr>
+<td><code>spy</code></td>
+<td><code>spy using</code>, <code>spy scope</code></td>
+</tr>
+<tr>
+<td><code>quotes</code></td>
+<td><code>edge node</code>, <code>to[&quot;label&quot;]</code></td>
+</tr>
+<tr>
+<td><code>math</code></td>
+<td><code>\tikzmath</code>, <code>evaluate=</code></td>
+</tr>
+<tr>
+<td><code>mindmap</code></td>
+<td><code>mindmap</code>, <code>concept</code></td>
+</tr>
+<tr>
+<td><code>trees</code></td>
+<td><code>folder</code>, <code>grow via three points</code></td>
+</tr>
+<tr>
+<td><code>datavisualization</code></td>
+<td><code>barchart</code>, <code>datavisualization</code></td>
+</tr>
+</tbody></table>
+</div>
+<p>Loading a library that isn&#39;t needed does no harm, so detection errs on the side of loading.</p>
+<h2 id="packages"><a class="anchor" href="#packages" aria-hidden="true">#</a>Packages</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Added when</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>tikz-cd</code></td>
+<td>The picture is a <code>tikzcd</code></td>
+</tr>
+<tr>
+<td><code>pgfplots</code></td>
+<td>The picture has an <code>axis</code> environment or <code>\addplot</code>, or the document has any <code>\pgfplotsset</code> or <code>\usepgfplotslibrary</code></td>
+</tr>
+<tr>
+<td><code>amsmath</code>, <code>amssymb</code></td>
+<td>The picture (or its preamble) uses <code>\mathbb</code>, <code>\mathfrak</code>, <code>\text</code>, <code>\operatorname</code>, <code>\boldsymbol</code>, <code>align</code>, <code>pmatrix</code>, <code>bmatrix</code> or <code>cases</code></td>
+</tr>
+</tbody></table>
+</div>
+<p>Other packages can&#39;t be added.</p>
+<h2 id="what-a-picture-can-see"><a class="anchor" href="#what-a-picture-can-see" aria-hidden="true">#</a>What a picture can see</h2>
+<p>A picture is compiled on its own, not as part of your document. It gets:</p>
+<ul>
+<li>the colours from <code>\definecolor</code> that it mentions by name;</li>
+<li>the macros from <code>\newcommand</code>, <code>\renewcommand</code>, <code>\providecommand</code> and <code>\def</code> that it uses. <code>\DeclareMathOperator</code> operators are not passed; write <code>\operatorname{…}</code> in pictures instead;</li>
+<li>every <code>\tikzset</code>, <code>\tikzstyle</code>, <code>\pgfplotsset</code> and <code>\usepgfplotslibrary</code> in the document.</li>
+</ul>
+<p>It doesn&#39;t see the rest of your preamble, <code>\usepackage</code> lines included.</p>
+<h2 id="rules-for-picture-text"><a class="anchor" href="#rules-for-picture-text" aria-hidden="true">#</a>Rules for picture text</h2>
+<ul>
+<li><strong>Text in a picture must be ASCII.</strong> TikZJax runs plain TeX with Computer Modern fonts, which have no CJK glyphs, and a non-ASCII character stops the compile. <code>HaTeX.lint</code> warns about any non-ASCII character in a picture. To label a picture in Chinese, put the text in the caption, or draw the picture elsewhere and include it as an image.</li>
+<li>Maths in labels works: <code>node {$\nabla_\theta L$}</code>.</li>
+<li><code>\\</code> in a node needs <code>align=center</code> (or <code>left</code>/<code>right</code>) on the node, as in TikZ. The <code>nn</code> style sets it for every node.</li>
+<li>The fonts are TeX&#39;s, not the page&#39;s. hatex shows pictures 1.2× larger than their TeX size, so that a 10pt label matches the body text, and 1.8× on slides.</li>
+</ul>
+<h2 id="errors"><a class="anchor" href="#errors" aria-hidden="true">#</a>Errors</h2>
+<p>TikZ errors don&#39;t reach the page by default: a picture that fails to compile just keeps its &quot;Compiling…&quot; label. While writing, pass <code>tikzErrors: true</code>:</p>
+<pre><code class="language-js">HaTeX.render(el, tex, { tikzSvgBase: null, tikzErrors: true });
+el.addEventListener('hatex:tikz-error', e =&gt; console.warn(e.detail.hash, e.detail.message));</code></pre>
+<p>The failed picture is then replaced by &quot;TikZ: &quot; followed by TeX&#39;s first error line (e.g. <code>Undefined control sequence</code>), its state becomes <code>failed</code>, and a <code>hatex:tikz-error</code> event fires. This works by listening to the console, where TikZJax prints TeX&#39;s log, so it wraps <code>console.log</code>, <code>console.warn</code> and <code>console.error</code>. Keep it for editors and leave it off on published pages.</p>
+<h2 id="dark-mode"><a class="anchor" href="#dark-mode" aria-hidden="true">#</a>Dark mode</h2>
+<p>TikZ drawings are black ink on transparent paper. In <a href="theming.html#dark-mode">dark mode</a> they are inverted in lightness with their hues kept (<code>--hx-tikz-filter: invert(0.9) hue-rotate(180deg)</code>), so black lines become light while red stays red. To show them on a light sheet instead:</p>
+<pre><code class="language-css">[data-theme=&quot;dark&quot;] .hatex {
+  --hx-tikz-filter: none;
+  --hx-tikz-sheet: #fff;
+  --hx-tikz-sheet-pad: 0.75rem;
+}</code></pre>
+<h2 id="self-hosting-tikzjax"><a class="anchor" href="#self-hosting-tikzjax" aria-hidden="true">#</a>Self-hosting TikZJax</h2>
+<p>By default, TikZJax comes from <code>https://cdn.jsdelivr.net/npm/@drgrice1/tikzjax@1.0.0-beta24/dist/</code>. To serve it yourself, copy that <code>dist/</code> folder and point <code>tikzjaxBase</code> at it (with the trailing slash):</p>
+<pre><code class="language-js">HaTeX.render(el, tex, { tikzjaxBase: '/vendor/tikzjax/' });</code></pre>
+<p>hatex loads <code>&lt;tikzjaxBase&gt;tikzjax.js</code> for live compiling, and <code>&lt;tikzjaxBase&gt;fonts.css</code> whenever a picture is shown, pre-rendered ones included, because the SVGs use TeX&#39;s fonts for their text. TikZJax is GPL-3.0-or-later; it is loaded at runtime and not bundled into hatex.</p>
+<h2 id="neural-network-diagrams"><a class="anchor" href="#neural-network-diagrams" aria-hidden="true">#</a>Neural-network diagrams</h2>
+<p>hatex ships TikZ styles for drawing network architectures. Using any <code>nn…</code> style, or the <code>nn</code> picture option, adds their definitions and the libraries they need to the picture. Writing <code>\usennstyles</code> anywhere in a picture does the same without using a style.</p>
+<pre><code class="language-latex">\begin{tikzpicture}[nn]
+  \node[nndata] (x) {Image};
+  \node[nnconv, right=of x] (c) {Conv 3x3\\64};
+  \node[nnpool, right=of c] (p) {Max pool};
+  \node[nnfc, right=of p] (f) {FC};
+  \node[nnloss, right=of f] (l) {Loss};
+  \draw[nnflow] (x) -- (c);
+  \draw[nnflow] (c) -- (p);
+  \draw[nnflow] (p) -- (f);
+  \draw[nnflow] (f) -- (l);
+  \draw[nnskip] (c.north) to[out=30, in=150] (f.north);
+  \node[nngroup, fit=(c)(p)] {};
+  \draw[nnbrace] (c.south east) -- (c.south west) node[midway, below=3pt, nnlabel] {encoder};
+\end{tikzpicture}</code></pre>
+<h3 id="picture-style"><a class="anchor" href="#picture-style" aria-hidden="true">#</a>Picture style</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Style</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nn</code></td>
+<td><code>font=\small</code>, <code>node distance=8mm and 10mm</code>, and centred multi-line text in every node</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="layers"><a class="anchor" href="#layers" aria-hidden="true">#</a>Layers</h3>
+<p>Each layer is a rounded box, filled with a light tint of its colour and outlined in a darker shade.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Style</th>
+<th>Colour</th>
+<th>Minimum width</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nnconv</code></td>
+<td>sage <code>#8AAA8C</code></td>
+<td>16mm</td>
+</tr>
+<tr>
+<td><code>nnpool</code></td>
+<td>terracotta <code>#C47C5A</code></td>
+<td>14mm</td>
+</tr>
+<tr>
+<td><code>nnfc</code></td>
+<td>slate blue <code>#6E8CA8</code></td>
+<td>16mm</td>
+</tr>
+<tr>
+<td><code>nnact</code></td>
+<td>ochre <code>#C9A227</code></td>
+<td>12mm</td>
+</tr>
+<tr>
+<td><code>nnnorm</code></td>
+<td>mauve <code>#9B8AA6</code></td>
+<td>14mm</td>
+</tr>
+<tr>
+<td><code>nnattn</code></td>
+<td>teal <code>#4F8A8B</code></td>
+<td>18mm</td>
+</tr>
+<tr>
+<td><code>nnembed</code></td>
+<td>tan <code>#B0836A</code></td>
+<td>16mm</td>
+</tr>
+<tr>
+<td><code>nnout</code></td>
+<td>green <code>#7A9E7E</code></td>
+<td>16mm</td>
+</tr>
+<tr>
+<td><code>nnloss</code></td>
+<td>red <code>#B3524B</code></td>
+<td>14mm</td>
+</tr>
+<tr>
+<td><code>nndata</code></td>
+<td>grey <code>#8A8278</code></td>
+<td>A trapezium, 14mm</td>
+</tr>
+<tr>
+<td><code>nnsum</code></td>
+<td></td>
+<td>A 5mm circle for <code>+</code> or <code>×</code></td>
+</tr>
+</tbody></table>
+</div>
+<p><code>nnbox={colour}{width}</code> is the style behind them, for a layer type of your own: <code>\node[nnbox={teal}{20mm}] {Mixer};</code>. The colours are defined as <code>nnconvc</code>, <code>nnpoolc</code>, <code>nnencc</code>, … (the style name plus <code>c</code>), and can be used elsewhere in the picture.</p>
+<h3 id="encoders-decoders-and-feature-vectors"><a class="anchor" href="#encoders-decoders-and-feature-vectors" aria-hidden="true">#</a>Encoders, decoders and feature vectors</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Style</th>
+<th>Colour</th>
+<th>Shape</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nnenc</code></td>
+<td>steel blue <code>#5F80A6</code></td>
+<td>A trapezium that narrows along a left-to-right flow (an encoder), 16mm × 14mm</td>
+</tr>
+<tr>
+<td><code>nndec</code></td>
+<td>dusty rose <code>#A6707F</code></td>
+<td>A trapezium that widens along the flow (a decoder)</td>
+</tr>
+<tr>
+<td><code>nnfeat</code></td>
+<td>amber <code>#D29A4A</code></td>
+<td>A feature vector: a 6mm × 18mm column of 5 cells, alternately shaded</td>
+</tr>
+</tbody></table>
+</div>
+<ul>
+<li>For a flow from top to bottom, turn the trapezia: <code>\node[nnenc, shape border rotate=180]</code> and <code>\node[nndec, shape border rotate=0]</code>.</li>
+<li><code>nnfeat=7</code> draws seven cells. The count must be at least 2, and an odd count keeps a label such as <code>$z$</code> inside one cell.</li>
+<li><code>nncodec=colour</code> is the style behind <code>nnenc</code> and <code>nndec</code>, for a trapezium in another colour (add a <code>shape border rotate</code> to point it).</li>
+</ul>
+<pre><code class="language-latex">\begin{tikzpicture}[nn]
+  \node[nndata] (x) {x};
+  \node[nnenc, right=of x] (e) {Encoder};
+  \node[nnfeat, right=of e] (z) {$z$};
+  \node[nndec, right=of z] (d) {Decoder};
+  \node[nnout, right=of d] (y) {$\hat x$};
+  \draw[nnflow] (x) -- (e);
+  \draw[nnflow] (e) -- (z);
+  \draw[nnflow] (z) -- (d);
+  \draw[nnflow] (d) -- (y);
+\end{tikzpicture}</code></pre>
+<h3 id="arrows"><a class="anchor" href="#arrows" aria-hidden="true">#</a>Arrows</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Style</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nnflow</code></td>
+<td>A thick grey arrow with a Stealth tip</td>
+</tr>
+<tr>
+<td><code>nnskip</code></td>
+<td>The same, dashed with rounded corners, for residual connections</td>
+</tr>
+<tr>
+<td><code>nnback</code></td>
+<td>A dashed red arrow, for gradients</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="grouping-and-labels"><a class="anchor" href="#grouping-and-labels" aria-hidden="true">#</a>Grouping and labels</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Style</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>nngroup</code></td>
+<td>A dashed rounded frame; use with <code>fit=(a)(b)</code></td>
+</tr>
+<tr>
+<td><code>nngrouplabel</code></td>
+<td>Small italic grey text, for naming a group</td>
+</tr>
+<tr>
+<td><code>nnbrace</code></td>
+<td>A brace along a path</td>
+</tr>
+<tr>
+<td><code>nnlabel</code></td>
+<td>Small grey text, for annotating arrows</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="feature-maps"><a class="anchor" href="#feature-maps" aria-hidden="true">#</a>Feature maps</h3>
+<p><code>nnfeatmap</code> is a pic that draws a 3-D block:</p>
+<pre><code class="language-latex">\pic at (0,0) {nnfeatmap={w=1.2, h=2, d=0.5, fill=nnconvc, label=64}};</code></pre>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>w</code></td>
+<td>1.2</td>
+<td>Width of the front face</td>
+</tr>
+<tr>
+<td><code>h</code></td>
+<td>2</td>
+<td>Height of the front face</td>
+</tr>
+<tr>
+<td><code>d</code></td>
+<td>0.5</td>
+<td>Depth</td>
+</tr>
+<tr>
+<td><code>fill</code></td>
+<td><code>nnconvc</code></td>
+<td>Colour</td>
+</tr>
+<tr>
+<td><code>label</code></td>
+<td>empty</td>
+<td>Text under the block</td>
+</tr>
+</tbody></table>
+</div>
+<p>The definitions are in <a href="https://github.com/mejistus/hatex/blob/main/src/tikz-nn.js" rel="noopener"><code>src/tikz-nn.js</code></a>.</p>
+<hr>
+<p>Previous: <a href="figures.html">Figures and images</a> · <a href="index.html">Contents</a> · Next: <a href="theorems.html">Theorems, proofs and algorithms</a></p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="figures.html"><small>Previous</small>Figures and images</a>
+      <a class="next" href="theorems.html"><small>Next</small>Theorems, proofs and algorithms</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/tikz.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,359 @@
+<!doctype html>
+<!-- Built from docs/manual/theming.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theming · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li class="here"><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="theming"><a class="anchor" href="#theming" aria-hidden="true">#</a>Theming</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#the-default-look">The default look</a></li><li><a href="#colours">Colours</a></li><li><a href="#fonts">Fonts</a></li><li><a href="#code-colours">Code colours</a></li><li><a href="#dark-mode">Dark mode</a></li><li><a href="#recipes">Recipes</a></li><li><a href="#motion">Motion</a></li><li><a href="#prism-themes">Prism themes</a></li></ul></nav>
+<p>Everything in <code>hatex.css</code> is scoped to elements with the class <code>hatex</code> and coloured through CSS custom properties (<code>--hx-*</code>). To restyle the output, override the variables; you rarely need to override the rules.</p>
+<pre><code class="language-css">.hatex {
+  --hx-accent: #0b57d0;          /* blue links and section numbers */
+  --hx-cite: #3aa35b;            /* hyperref-style green boxes around citations */
+  --hx-font-body: Georgia, serif;
+}</code></pre>
+<h2 id="the-default-look"><a class="anchor" href="#the-default-look" aria-hidden="true">#</a>The default look</h2>
+<p>The default is plain, like a LaTeX article: black on white, set in KaTeX&#39;s Computer Modern (<code>KaTeX_Main</code>, which <code>katex.min.css</code> loads), with no rules under headings. <code>\ref</code> and <code>\cite</code> show as plain numbers that are underlined on hover. The body text is <code>1rem</code> with a line height of 1.7, and headings are <code>1.4rem</code> (section), <code>1.15rem</code> (subsection) and <code>1rem</code> (subsubsection).</p>
+<p>hatex doesn&#39;t set a width: the output fills its container. A comfortable measure for an article is about <code>46rem</code>; see the examples.</p>
+<h2 id="colours"><a class="anchor" href="#colours" aria-hidden="true">#</a>Colours</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Light</th>
+<th>Dark</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--hx-ink</code></td>
+<td><code>#000</code></td>
+<td><code>#eee</code></td>
+<td>Headings, rules, table text, slide text</td>
+</tr>
+<tr>
+<td><code>--hx-text</code></td>
+<td><code>#000</code></td>
+<td><code>#e6e6e6</code></td>
+<td>Paragraphs, lists, captions</td>
+</tr>
+<tr>
+<td><code>--hx-muted</code></td>
+<td><code>#666</code></td>
+<td><code>#999</code></td>
+<td>Secondary text: algorithm line numbers, comments, slide footers and subtitles</td>
+</tr>
+<tr>
+<td><code>--hx-accent</code></td>
+<td><code>#000</code></td>
+<td><code>#eee</code></td>
+<td>Links, section numbers, inline code, quote bars</td>
+</tr>
+<tr>
+<td><code>--hx-accent-2</code></td>
+<td><code>#555</code></td>
+<td><code>#bbb</code></td>
+<td>Link hover</td>
+</tr>
+<tr>
+<td><code>--hx-code-bg</code></td>
+<td><code>#f6f6f6</code></td>
+<td><code>#222</code></td>
+<td>Code blocks, inline code, block titles</td>
+</tr>
+<tr>
+<td><code>--hx-border</code></td>
+<td><code>#ccc</code></td>
+<td><code>#444</code></td>
+<td>Borders of code blocks, blocks and slides; <code>\hrule</code>; the rule above the footnotes</td>
+</tr>
+<tr>
+<td><code>--hx-surface</code></td>
+<td><code>#fff</code></td>
+<td><code>#1e1e1e</code></td>
+<td>The copy button</td>
+</tr>
+<tr>
+<td><code>--hx-paper</code></td>
+<td><code>#fff</code></td>
+<td><code>#fff</code></td>
+<td>Behind images and TikZ drawings in the zoom overlay</td>
+</tr>
+<tr>
+<td><code>--hx-danger</code></td>
+<td><code>#b3261e</code></td>
+<td><code>#e4796f</code></td>
+<td>TikZ errors, <code>alertblock</code> titles</td>
+</tr>
+<tr>
+<td><code>--hx-example</code></td>
+<td><code>#2e7d32</code></td>
+<td><code>#2e7d32</code></td>
+<td><code>exampleblock</code> titles (not defined by default; the fallback is used)</td>
+</tr>
+<tr>
+<td><code>--hx-cite</code></td>
+<td><code>transparent</code></td>
+<td><code>transparent</code></td>
+<td>The frame around citation numbers</td>
+</tr>
+<tr>
+<td><code>--hx-flash</code></td>
+<td><code>rgba(0,0,0,.08)</code></td>
+<td><code>rgba(255,255,255,.12)</code></td>
+<td>The highlight on a clicked reference&#39;s target</td>
+</tr>
+<tr>
+<td><code>--hx-slide-bg</code></td>
+<td><code>#fff</code></td>
+<td><code>#161616</code></td>
+<td>Slide background</td>
+</tr>
+<tr>
+<td><code>--hx-mark-bg</code></td>
+<td>the system <code>Mark</code> colour</td>
+<td><code>#e8d98a</code></td>
+<td><code>\hl</code> background</td>
+</tr>
+<tr>
+<td><code>--hx-on-highlight</code></td>
+<td>the current colour</td>
+<td><code>#1d1b19</code></td>
+<td>Text on author-chosen backgrounds (<code>\hl</code>, <code>\colorbox</code>, <code>\rowcolor</code>, <code>\cellcolor</code>)</td>
+</tr>
+<tr>
+<td><code>--hx-color-keep</code></td>
+<td><code>100%</code></td>
+<td><code>62%</code></td>
+<td>How much of an author&#39;s <code>\textcolor</code> is kept; the rest is white</td>
+</tr>
+<tr>
+<td><code>--hx-tikz-filter</code></td>
+<td>none</td>
+<td><code>invert(0.9) hue-rotate(180deg)</code></td>
+<td>A CSS filter on TikZ drawings</td>
+</tr>
+<tr>
+<td><code>--hx-tikz-sheet</code></td>
+<td>transparent</td>
+<td>transparent</td>
+<td>A background behind TikZ drawings</td>
+</tr>
+<tr>
+<td><code>--hx-tikz-sheet-pad</code></td>
+<td><code>0</code></td>
+<td><code>0</code></td>
+<td>Padding around TikZ drawings on that background</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="fonts"><a class="anchor" href="#fonts" aria-hidden="true">#</a>Fonts</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--hx-font-body</code></td>
+<td><code>KaTeX_Main, &quot;Latin Modern Roman&quot;, &quot;Times New Roman&quot;, serif</code></td>
+<td>All text</td>
+</tr>
+<tr>
+<td><code>--hx-font-heading</code></td>
+<td><code>var(--hx-font-body)</code></td>
+<td>Headings, slide titles, title pages</td>
+</tr>
+<tr>
+<td><code>--hx-font-sans</code></td>
+<td><code>system-ui, -apple-system, &quot;Segoe UI&quot;, sans-serif</code></td>
+<td><code>\textsf</code>, the copy button</td>
+</tr>
+<tr>
+<td><code>--hx-font-mono</code></td>
+<td><code>&quot;JetBrains Mono&quot;, &quot;Fira Code&quot;, ui-monospace, monospace</code></td>
+<td>Code</td>
+</tr>
+<tr>
+<td><code>--hx-font-guji</code></td>
+<td>Traditional-Chinese Song faces</td>
+<td><a href="vertical-chinese.html#styling">Vertical Chinese</a></td>
+</tr>
+</tbody></table>
+</div>
+<p>To use your site&#39;s font, set <code>--hx-font-body: inherit</code>. Maths always uses KaTeX&#39;s fonts, whatever the body font is.</p>
+<p>hatex loads no fonts itself: <code>KaTeX_Main</code> comes from <code>katex.min.css</code>, and the others must be installed or loaded by your page. The fallbacks in each list take over otherwise.</p>
+<h2 id="code-colours"><a class="anchor" href="#code-colours" aria-hidden="true">#</a>Code colours</h2>
+<p>Code tokens (from Prism) are coloured from these variables. The defaults are Atom&#39;s One Light, and One Dark in dark mode.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Tokens</th>
+<th>Light</th>
+<th>Dark</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--hx-tok-comment</code></td>
+<td>comments</td>
+<td><code>#a0a1a7</code></td>
+<td><code>#7f848e</code></td>
+</tr>
+<tr>
+<td><code>--hx-tok-command</code></td>
+<td>functions, class names</td>
+<td><code>#4078f2</code></td>
+<td><code>#61afef</code></td>
+</tr>
+<tr>
+<td><code>--hx-tok-env</code></td>
+<td>keywords, at-rules, attribute values</td>
+<td><code>#a626a4</code></td>
+<td><code>#c678dd</code></td>
+</tr>
+<tr>
+<td><code>--hx-tok-math</code></td>
+<td>numbers, constants, booleans, properties, tags</td>
+<td><code>#0184bc</code></td>
+<td><code>#56b6c2</code></td>
+</tr>
+<tr>
+<td><code>--hx-tok-regex</code></td>
+<td>regular expressions, <code>important</code></td>
+<td><code>#e45649</code></td>
+<td><code>#e06c75</code></td>
+</tr>
+<tr>
+<td><code>--hx-tok-punct</code></td>
+<td>punctuation</td>
+<td><code>#383a42</code></td>
+<td><code>#abb2bf</code></td>
+</tr>
+<tr>
+<td><code>--hx-tok-verbatim</code></td>
+<td>strings, characters, built-ins, selectors</td>
+<td><code>#50a14f</code></td>
+<td><code>#98c379</code></td>
+</tr>
+</tbody></table>
+</div>
+<p>Operators, variables and URLs use <code>--hx-ink</code>.</p>
+<h2 id="dark-mode"><a class="anchor" href="#dark-mode" aria-hidden="true">#</a>Dark mode</h2>
+<p>Dark mode is switched with a <code>data-theme</code> attribute, on the <code>.hatex</code> element or on any ancestor, such as <code>&lt;html&gt;</code>:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Attribute</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>data-theme=&quot;dark&quot;</code></td>
+<td>Dark palette</td>
+</tr>
+<tr>
+<td><code>data-theme=&quot;auto&quot;</code></td>
+<td>Dark palette when the system is in dark mode (<code>prefers-color-scheme: dark</code>)</td>
+</tr>
+<tr>
+<td><code>data-theme=&quot;light&quot;</code>, or none</td>
+<td>Light palette</td>
+</tr>
+</tbody></table>
+</div>
+<pre><code class="language-js">document.documentElement.dataset.theme = 'dark';</code></pre>
+<p>The dark palette does more than swap black and white, because author-chosen colours were chosen for paper:</p>
+<ul>
+<li><strong><code>\textcolor</code> colours</strong> are mixed towards white (<code>--hx-color-keep: 62%</code>), so a dark blue stays blue but becomes readable.</li>
+<li><strong>Author-chosen backgrounds</strong> (<code>\hl</code>, <code>\colorbox</code>, <code>\rowcolor</code>, <code>\cellcolor</code>) are usually light tints, so the text on them turns dark (<code>--hx-on-highlight</code>).</li>
+<li><strong>TikZ drawings</strong> are black ink on transparent paper. They are inverted in lightness with their hues kept (<code>--hx-tikz-filter</code>), so black lines become light while a red curve stays red.</li>
+</ul>
+<p>hatex doesn&#39;t colour the page background; set it on your <code>body</code> for each theme.</p>
+<h3 id="keeping-tikz-on-a-light-sheet"><a class="anchor" href="#keeping-tikz-on-a-light-sheet" aria-hidden="true">#</a>Keeping TikZ on a light sheet</h3>
+<p>If you&#39;d rather show TikZ drawings as they are, on a white card:</p>
+<pre><code class="language-css">[data-theme=&quot;dark&quot;] .hatex {
+  --hx-tikz-filter: none;
+  --hx-tikz-sheet: #fff;
+  --hx-tikz-sheet-pad: 0.75rem;
+}</code></pre>
+<h3 id="custom-dark-palettes"><a class="anchor" href="#custom-dark-palettes" aria-hidden="true">#</a>Custom dark palettes</h3>
+<p>The dark values are set on <code>.hatex[data-theme=&quot;dark&quot;]</code> and <code>[data-theme=&quot;dark&quot;] .hatex</code>. To override them, use a selector at least as specific:</p>
+<pre><code class="language-css">[data-theme=&quot;dark&quot;] .hatex { --hx-text: #d0d0d0; --hx-accent: #8ab4f8; }</code></pre>
+<h2 id="recipes"><a class="anchor" href="#recipes" aria-hidden="true">#</a>Recipes</h2>
+<p><strong>Blue links and numbers, hyperref-style citation boxes:</strong></p>
+<pre><code class="language-css">.hatex { --hx-accent: #0b57d0; --hx-accent-2: #174ea6; --hx-cite: #3aa35b; }</code></pre>
+<p><strong>Sans-serif body with serif headings:</strong></p>
+<pre><code class="language-css">.hatex { --hx-font-body: system-ui, sans-serif; --hx-font-heading: Georgia, serif; }</code></pre>
+<p><strong>A rule under section headings:</strong></p>
+<pre><code class="language-css">.hatex h2 { border-bottom: 1px solid var(--hx-border); padding-bottom: 0.3rem; }</code></pre>
+<p><strong>A red proof mark:</strong></p>
+<pre><code class="language-css">.hatex .latex-qed { color: #b3261e; }</code></pre>
+<p>For other selectors, see <a href="html-output.html">The HTML output</a>.</p>
+<h2 id="motion"><a class="anchor" href="#motion" aria-hidden="true">#</a>Motion</h2>
+<p>The page animates three things: scrolling to a clicked reference, the flash on its target, and the fade of the zoom overlay. The reader&#39;s <code>prefers-reduced-motion: reduce</code> setting turns all three off, and so does the <code>animate: false</code> <a href="api.html#options">option</a>.</p>
+<h2 id="prism-themes"><a class="anchor" href="#prism-themes" aria-hidden="true">#</a>Prism themes</h2>
+<p>Don&#39;t load a Prism theme. It would set token colours and backgrounds that fight <code>hatex.css</code>. The <code>--hx-tok-*</code> variables are the way to change code colours.</p>
+<hr>
+<p>Previous: <a href="api.html">JavaScript API</a> · <a href="index.html">Contents</a> · Next: <a href="html-output.html">The HTML output</a></p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="api.html"><small>Previous</small>JavaScript API</a>
+      <a class="next" href="html-output.html"><small>Next</small>The HTML output</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/theming.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

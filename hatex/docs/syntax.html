@@ -1,0 +1,396 @@
+<!doctype html>
+<!-- Built from docs/syntax.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Syntax reference · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li class="here"><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="syntax-reference"><a class="anchor" href="#syntax-reference" aria-hidden="true">#</a>Syntax reference</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#document">Document</a></li><li><a href="#text">Text</a></li><li><a href="#lists">Lists</a></li><li><a href="#maths-katex">Maths (KaTeX)</a></li><li><a href="#tables">Tables</a></li><li><a href="#figures">Figures</a></li><li><a href="#tikz">TikZ</a></li><li><a href="#theorems-and-proofs">Theorems and proofs</a></li><li><a href="#algorithms">Algorithms</a></li><li><a href="#code">Code</a></li><li><a href="#references-and-citations">References and citations</a></li><li><a href="#two-columns">Two columns</a></li><li><a href="#slides-beamer">Slides (beamer)</a></li><li><a href="#vertical-chinese">Vertical Chinese</a></li><li><a href="#ignored-on-purpose">Ignored on purpose</a></li></ul></nav>
+<p>What hatex understands, grouped by what you&#39;re writing. For a working document that uses all of it, see <a href="https://github.com/mejistus/hatex/blob/main/examples/document/example.tex" rel="noopener"><code>examples/document/example.tex</code></a>.</p>
+<p>Anything not listed here is either ignored (layout commands, see the end of this page) or replaced by its argument text. The <a href="index.html">manual</a> explains each feature in detail.</p>
+<h2 id="document"><a class="anchor" href="#document" aria-hidden="true">#</a>Document</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>You write</th>
+<th>You get</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\documentclass</code>, <code>\usepackage</code>, <code>\begin{document}</code></td>
+<td>Optional. Anything before <code>\begin{document}</code> is read only for definitions.</td>
+</tr>
+<tr>
+<td><code>% comments</code></td>
+<td>Removed. A <code>% ---</code> front-matter block (<code>% title: …</code>) is ignored by the renderer; read it yourself if you want it.</td>
+</tr>
+<tr>
+<td><code>\section{…}</code> <code>\subsection</code> <code>\subsubsection</code></td>
+<td><code>&lt;h2&gt;</code> <code>&lt;h3&gt;</code> <code>&lt;h4&gt;</code>, numbered 1, 1.1, 1.1.1. Starred forms aren&#39;t numbered.</td>
+</tr>
+<tr>
+<td><code>\paragraph{Title}</code></td>
+<td>A bold run-in heading.</td>
+</tr>
+<tr>
+<td><code>\begin{abstract}</code></td>
+<td>A centred abstract block with a title.</td>
+</tr>
+<tr>
+<td><code>\label{key}</code> after a heading, float, equation, theorem or item</td>
+<td>A target for <code>\ref</code>.</td>
+</tr>
+<tr>
+<td>Blank line, <code>\par</code></td>
+<td>A new paragraph.</td>
+</tr>
+<tr>
+<td><code>\\</code>, <code>\newline</code></td>
+<td>A line break.</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="text"><a class="anchor" href="#text" aria-hidden="true">#</a>Text</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>You write</th>
+<th>You get</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\textbf</code> <code>\emph</code> <code>\textit</code> <code>\underline</code> <code>\texttt</code> <code>\textsc</code> <code>\textsf</code> <code>\sout</code> <code>\hl</code></td>
+<td>Bold, italic, underline, monospace, small caps, sans, strikethrough, highlight. The declaration forms (<code>{\bfseries …}</code>, <code>{\itshape …}</code>) work too.</td>
+</tr>
+<tr>
+<td><code>\textcolor{red}{…}</code> <code>\color{…}</code> <code>\colorbox{yellow!30}{…}</code></td>
+<td>Colour. Accepts named colours, <code>\definecolor{c}{HTML}{3AA35B}</code>, <code>rgb</code>/<code>RGB</code> and <code>red!60</code> mixes.</td>
+</tr>
+<tr>
+<td><code>\tiny</code> … <code>\Huge</code></td>
+<td>Relative font sizes.</td>
+</tr>
+<tr>
+<td><code>\footnote{…}</code></td>
+<td>A numbered footnote, collected at the end, with links both ways.</td>
+</tr>
+<tr>
+<td><code>\href{url}{text}</code> <code>\url{url}</code></td>
+<td>Links. Only <code>http(s)</code>, <code>mailto</code>, <code>tel</code> and relative URLs are allowed.</td>
+</tr>
+<tr>
+<td><code>``…&#39;&#39;</code> <code>`…&#39;</code> <code>--</code> <code>---</code> <code>~</code></td>
+<td>“…”, ‘…’, –, —, a non-breaking space.</td>
+</tr>
+<tr>
+<td><code>\&#39;e</code> <code>\&quot;o</code> <code>\c{c}</code> …</td>
+<td>Accented letters.</td>
+</tr>
+<tr>
+<td><code>\LaTeX</code> <code>\TeX</code> <code>\ldots</code> <code>\S</code> <code>\textbackslash</code> …</td>
+<td>The usual symbols and logos.</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="lists"><a class="anchor" href="#lists" aria-hidden="true">#</a>Lists</h2>
+<pre><code class="language-latex">\begin{itemize}  \item …  \end{itemize}
+\begin{enumerate} \item … \end{enumerate}      % nested levels: 1. → a. → i.
+\begin{description} \item[Term] … \end{description}
+\item[custom] …                                  % custom label in itemize/enumerate</code></pre>
+<h2 id="maths-katex"><a class="anchor" href="#maths-katex" aria-hidden="true">#</a>Maths (KaTeX)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>You write</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>$…$</code> <code>\(…\)</code></td>
+<td>Inline.</td>
+</tr>
+<tr>
+<td><code>\[…\]</code> <code>$$…$$</code></td>
+<td>Display, not numbered.</td>
+</tr>
+<tr>
+<td><code>equation</code> <code>align</code> <code>gather</code> <code>multline</code> <code>alignat</code> <code>flalign</code> <code>eqnarray</code></td>
+<td>Numbered: every row of <code>align</code>/<code>gather</code> gets its own number. The <code>*</code> forms and <code>\nonumber</code>/<code>\notag</code> turn numbering off.</td>
+</tr>
+<tr>
+<td><code>\label{eq:x}</code> + <code>\eqref{eq:x}</code></td>
+<td><code>(3)</code>, which links to the equation.</td>
+</tr>
+<tr>
+<td><code>\newcommand{\R}{\mathbb{R}}</code> <code>\DeclareMathOperator{\tr}{tr}</code> <code>\def</code></td>
+<td>Work in maths and in text. Arguments <code>[n]</code> are supported.</td>
+</tr>
+</tbody></table>
+</div>
+<p>Whatever KaTeX supports works, including <code>cases</code>, <code>pmatrix</code>, <code>\boldsymbol</code> and <code>\operatorname</code>. Packages KaTeX doesn&#39;t have, such as <code>siunitx</code>, don&#39;t.</p>
+<h2 id="tables"><a class="anchor" href="#tables" aria-hidden="true">#</a>Tables</h2>
+<pre><code class="language-latex">\begin{table}[htbp]
+  \centering
+  \caption{Results.}\label{tab:main}
+  \resizebox{\linewidth}{!}{%                  % shrink a wide table to the column
+  \begin{tabular}{l|cc}
+    \toprule
+    \multirow{2}{*}{Method} &amp; \multicolumn{2}{c}{Score} \\
+    \cmidrule(lr){2-3}
+     &amp; A &amp; B \\
+    \midrule
+    Ours &amp; \textbf{1.0} &amp; \underline{0.9} \\
+    \rowcolor{yellow!20} Base &amp; 0.5 &amp; \cellcolor{red!10} 0.4 \\
+    \bottomrule
+  \end{tabular}}
+\end{table}</code></pre>
+<ul>
+<li>The column types <code>l c r</code> and <code>|</code> are supported, and <code>p{…}</code>, <code>X</code> and <code>m{…}</code> are treated as <code>l</code>.</li>
+<li><code>tabular</code>, <code>tabular*</code>, <code>tabularx</code> and <code>longtable</code> all work.</li>
+<li>The rules are <code>\toprule</code>, <code>\midrule</code>, <code>\bottomrule</code>, <code>\hline</code>, <code>\cline{2-3}</code> and <code>\cmidrule(lr){2-3}</code>.</li>
+<li><code>\resizebox</code>, <code>\scalebox</code> and <code>\adjustbox</code> around a table scale it down to fit (not below 55%, after which it scrolls).</li>
+</ul>
+<h2 id="figures"><a class="anchor" href="#figures" aria-hidden="true">#</a>Figures</h2>
+<pre><code class="language-latex">\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.6\linewidth]{assets/plot.png}   % path relative to the page
+  \caption{…}\label{fig:plot}
+\end{figure}
+
+\begin{figure}
+  \begin{subfigure}[b]{0.45\linewidth} \includegraphics{a.png} \caption{A}\label{fig:a} \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\linewidth} \includegraphics{b.png} \caption{B}\label{fig:b} \end{subfigure}
+  \caption{Both.}\label{fig:both}              % \ref{fig:a} → 2a
+\end{figure}</code></pre>
+<ul>
+<li><code>width=</code> accepts <code>x\linewidth</code> (or <code>\textwidth</code>/<code>\columnwidth</code>) and absolute units, and <code>height=</code> and <code>scale=</code> also work.</li>
+<li><code>minipage</code>s side by side, each with its own <code>\caption</code>, are numbered separately.</li>
+<li><code>wrapfigure</code> renders as an ordinary figure.</li>
+<li>Figures, tables and algorithms each keep their own counters.</li>
+</ul>
+<h2 id="tikz"><a class="anchor" href="#tikz" aria-hidden="true">#</a>TikZ</h2>
+<pre><code class="language-latex">\usetikzlibrary{arrows.meta,positioning}
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[node distance=15mm]
+    \node[draw] (a) {A};
+    \node[draw, right=of a] (b) {B};
+    \draw[-Stealth] (a) -- node[above] {$f$} (b);
+  \end{tikzpicture}
+  \caption{…}\label{fig:ab}
+\end{figure}</code></pre>
+<ul>
+<li><code>tikzpicture</code> and <code>tikzcd</code> work, and so does <code>axis</code>, which loads pgfplots.</li>
+<li><code>\tikzset</code>, <code>\pgfplotsset</code>, <code>\definecolor</code> and <code>\newcommand</code> from the document are passed into the picture.</li>
+<li>Common libraries are detected from the code, and any others you declare with <code>\usetikzlibrary</code>.</li>
+<li><strong>Labels must be ASCII.</strong> Maths inside <code>$…$</code> is fine.</li>
+<li>The <code>nn*</code> styles for architecture diagrams are listed in the manual&#39;s <a href="tikz.html#neural-network-diagrams">TikZ chapter</a>.</li>
+</ul>
+<h2 id="theorems-and-proofs"><a class="anchor" href="#theorems-and-proofs" aria-hidden="true">#</a>Theorems and proofs</h2>
+<pre><code class="language-latex">\newtheorem{hyp}{Hypothesis}                 % your own environment
+\begin{theorem}[Name]\label{thm:x} … \end{theorem}
+\begin{proof} … \end{proof}                  % ends with ∎</code></pre>
+<p>The built-in environments are <code>theorem</code>, <code>lemma</code>, <code>corollary</code>, <code>proposition</code>, <code>definition</code>, <code>remark</code>, <code>example</code> and <code>proof</code>. <code>\newtheorem{a}[b]{…}</code>, which shares <code>b</code>&#39;s counter, is supported.</p>
+<h2 id="algorithms"><a class="anchor" href="#algorithms" aria-hidden="true">#</a>Algorithms</h2>
+<pre><code class="language-latex">\begin{algorithm}
+  \caption{Training}\label{alg:train}
+  \begin{algorithmic}[1]                     % [1] numbers every line
+    \Require data $x$
+    \For{$t = 1, \dots, T$}
+      \State $\theta \gets \theta - \eta \nabla L$ \Comment{step}
+    \EndFor
+    \State \Return $\theta$
+  \end{algorithmic}
+\end{algorithm}</code></pre>
+<p>The supported commands are <code>\State</code>, <code>\Statex</code>, <code>\If</code>/<code>\ElsIf</code>/<code>\Else</code>/<code>\EndIf</code>, <code>\For</code>/<code>\ForAll</code>/<code>\EndFor</code>, <code>\While</code>/<code>\EndWhile</code>, <code>\Repeat</code>/<code>\Until</code>, <code>\Loop</code>/<code>\EndLoop</code>, <code>\Function</code>/<code>\Procedure</code> with their <code>\End…</code>, <code>\Require</code>, <code>\Ensure</code>, <code>\Return</code>, <code>\Call</code> and <code>\Comment</code>.</p>
+<h2 id="code"><a class="anchor" href="#code" aria-hidden="true">#</a>Code</h2>
+<pre><code class="language-latex">\begin{lstlisting}[language=python] … \end{lstlisting}
+\begin{minted}{js} … \end{minted}
+\begin{verbatim} … \end{verbatim}
+\verb|inline| \lstinline|inline| \mintinline{py}{inline}</code></pre>
+<p>Code is highlighted when Prism and the language&#39;s component are loaded, and shown as plain text otherwise.</p>
+<h2 id="references-and-citations"><a class="anchor" href="#references-and-citations" aria-hidden="true">#</a>References and citations</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>You write</th>
+<th>You get</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\ref{key}</code></td>
+<td>The number, linked.</td>
+</tr>
+<tr>
+<td><code>\eqref{eq}</code></td>
+<td><code>(n)</code>, linked.</td>
+</tr>
+<tr>
+<td><code>\autoref{key}</code> <code>\cref{key}</code> <code>\Cref{key}</code></td>
+<td>The type word plus the number, e.g. “Figure 2” (in Chinese sources, 图 2).</td>
+</tr>
+<tr>
+<td><code>\cite{a,b}</code> <code>\citep</code> <code>\citet</code> <code>\parencite</code> <code>\textcite</code> <code>\autocite</code></td>
+<td>Framed numbers <code>[1, 2]</code>, linked to the bibliography.</td>
+</tr>
+<tr>
+<td><code>\begin{thebibliography}{9} \bibitem{key} … \end{thebibliography}</code></td>
+<td>A numbered reference list, in the order of the <code>\bibitem</code>s.</td>
+</tr>
+</tbody></table>
+</div>
+<p>Every link scrolls to its target and flashes it, and the URL doesn&#39;t change.</p>
+<h2 id="two-columns"><a class="anchor" href="#two-columns" aria-hidden="true">#</a>Two columns</h2>
+<pre><code class="language-latex">\documentclass[twocolumn]{article}   % the whole document; \twocolumn works too
+\begin{figure*} … \end{figure*}      % spans both columns (so does table*)
+\begin{multicols}{2}[Optional intro spanning the top]
+  … \columnbreak …
+\end{multicols}</code></pre>
+<ul>
+<li>Columns appear once there is room: 50rem for a two-column document and 32rem for <code>multicols</code>.</li>
+<li>Headings, the abstract, <code>figure*</code> and <code>table*</code> span all columns. Everything else stays in its column: wide equations are scaled down to fit, pictures shrink, and wide tables and code scroll.</li>
+</ul>
+<h2 id="slides-beamer"><a class="anchor" href="#slides-beamer" aria-hidden="true">#</a>Slides (beamer)</h2>
+<pre><code class="language-latex">\documentclass[aspectratio=169]{beamer}
+\title{Talk}  \subtitle{…}  \author{A \and B}  \institute{…}  \date{\today}
+\begin{document}
+\begin{frame} \titlepage \end{frame}
+\begin{frame}{Outline} \tableofcontents \end{frame}
+\section{Part one}
+\begin{frame}[t]{Title}{Subtitle}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth} \begin{itemize} \item&lt;2-&gt; … \end{itemize} \end{column}
+    \begin{column}{0.5\textwidth} \begin{alertblock}{Careful} … \end{alertblock} \end{column}
+  \end{columns}
+\end{frame}
+\end{document}</code></pre>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Supported</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>frame</code> with <code>[plain]</code>, <code>[t]</code>, <code>[b]</code>, <code>{title}{subtitle}</code>; <code>\frametitle</code>, <code>\framesubtitle</code></td>
+<td><code>fragile</code> is accepted and not needed</td>
+</tr>
+<tr>
+<td><code>\titlepage</code> / <code>\maketitle</code>, <code>\frame{\titlepage}</code></td>
+<td>from <code>\title</code>, <code>\subtitle</code>, <code>\author</code>, <code>\institute</code>, <code>\date</code></td>
+</tr>
+<tr>
+<td><code>\tableofcontents</code></td>
+<td>lists the <code>\section</code>s placed between frames</td>
+</tr>
+<tr>
+<td><code>block</code>, <code>alertblock</code>, <code>exampleblock</code>; <code>columns</code>, <code>column</code></td>
+<td>usable in articles too</td>
+</tr>
+<tr>
+<td><code>\alert</code>, <code>\structure</code></td>
+<td><code>\note</code> is dropped</td>
+</tr>
+<tr>
+<td><code>\pause</code>, <code>&lt;…&gt;</code> overlay specs, <code>\only</code>, <code>\uncover</code>, <code>\visible</code>, <code>\onslide</code></td>
+<td>every step is shown at once</td>
+</tr>
+<tr>
+<td><code>aspectratio=169</code> / <code>43</code> / <code>1610</code> / <code>1</code> / … or <code>W:H</code></td>
+<td>beamer&#39;s slide sizes; 4:3 by default</td>
+</tr>
+<tr>
+<td><code>\usetheme</code>, <code>\setbeamertemplate</code>, …</td>
+<td>ignored: the look comes from the page&#39;s CSS</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="vertical-chinese"><a class="anchor" href="#vertical-chinese" aria-hidden="true">#</a>Vertical Chinese</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>You write</th>
+<th>You get</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\begin{guji}[20] … \end{guji}</code></td>
+<td>A manuscript-scroll page: columns from right to left, 20 characters each, ruled; 。！？ → 句 circles, ，、；： → 讀 dots; no quotation or title marks</td>
+</tr>
+<tr>
+<td><code>\begin{vertical}[20] … \end{vertical}</code></td>
+<td>Vertical text only, with punctuation kept</td>
+</tr>
+<tr>
+<td><code>\jiazhu{…}</code></td>
+<td>A two-line interlinear note (雙行夾注). In <code>guji</code>, it continues into the next column when it doesn&#39;t fit</td>
+</tr>
+<tr>
+<td><code>\begin{flushright} … \end{flushright}</code> inside them</td>
+<td>At the foot of the column</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="ignored-on-purpose"><a class="anchor" href="#ignored-on-purpose" aria-hidden="true">#</a>Ignored on purpose</h2>
+<p>These produce nothing, but their arguments are still consumed so they don&#39;t leak into the text:</p>
+<p><code>\title</code> <code>\author</code> <code>\date</code> <code>\maketitle</code> <code>\tableofcontents</code> <code>\vspace</code> <code>\hspace</code> <code>\newpage</code> <code>\clearpage</code> <code>\pagestyle</code> <code>\setlength</code> <code>\setcounter</code> <code>\bibliographystyle</code> <code>\bibliography</code> <code>\printbibliography</code> <code>\addbibresource</code> <code>\input</code> <code>\include</code> <code>\hypersetup</code> <code>\geometry</code> <code>\captionsetup</code> <code>\lstset</code> <code>\newenvironment</code> <code>\index</code> <code>\phantom</code> and float placement options such as <code>[htbp]</code>.</p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="development.html"><small>Previous</small>Developing hatex</a>
+      <span></span>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/syntax.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

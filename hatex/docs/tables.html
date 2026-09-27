@@ -1,0 +1,225 @@
+<!doctype html>
+<!-- Built from docs/manual/tables.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tables · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li class="here"><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="tables"><a class="anchor" href="#tables" aria-hidden="true">#</a>Tables</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#a-complete-example">A complete example</a></li><li><a href="#table-environments">Table environments</a></li><li><a href="#column-specification">Column specification</a></li><li><a href="#rows-and-cells">Rows and cells</a></li><li><a href="#rules">Rules</a></li><li><a href="#header-rows">Header rows</a></li><li><a href="#spanning-cells">Spanning cells</a></li><li><a href="#colours">Colours</a></li><li><a href="#captions-and-numbering">Captions and numbering</a></li><li><a href="#wide-tables">Wide tables</a></li><li><a href="#what-doesnt-work">What doesn&#39;t work</a></li></ul></nav>
+<h2 id="a-complete-example"><a class="anchor" href="#a-complete-example" aria-hidden="true">#</a>A complete example</h2>
+<pre><code class="language-latex">\begin{table}[htbp]
+  \centering
+  \caption{Results on the test set.}\label{tab:main}
+  \resizebox{\linewidth}{!}{%
+  \begin{tabular}{l|cc}
+    \toprule
+    \multirow{2}{*}{Method} &amp; \multicolumn{2}{c}{Score} \\
+    \cmidrule(lr){2-3}
+     &amp; A &amp; B \\
+    \midrule
+    Ours     &amp; \textbf{1.0} &amp; \underline{0.9} \\
+    \rowcolor{yellow!20}
+    Baseline &amp; 0.5 &amp; \cellcolor{red!10} 0.4 \\
+    \bottomrule
+  \end{tabular}}
+\end{table}</code></pre>
+<p>The <code>table</code> float provides the number and the caption, <code>tabular</code> provides the grid, and <code>\resizebox</code> shrinks it when it is too wide. Each part is described below.</p>
+<h2 id="table-environments"><a class="anchor" href="#table-environments" aria-hidden="true">#</a>Table environments</h2>
+<p><code>tabular</code>, <code>tabular*</code>, <code>tabularx</code>, <code>tabulary</code> and <code>longtable</code> are all rendered as an HTML <code>&lt;table&gt;</code>. The width argument of <code>tabular*</code>, <code>tabularx</code> and <code>tabulary</code> and the position argument (<code>[t]</code>, <code>[b]</code>) are read and dropped: the table is as wide as its content.</p>
+<p>A tabular can appear on its own, in a <code>table</code> float, inside a paragraph, or inside another table&#39;s cell.</p>
+<h2 id="column-specification"><a class="anchor" href="#column-specification" aria-hidden="true">#</a>Column specification</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Spec</th>
+<th>Meaning in hatex</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>l</code>, <code>c</code>, <code>r</code></td>
+<td>Left, centred, right</td>
+</tr>
+<tr>
+<td><code>L</code>, <code>C</code>, <code>R</code></td>
+<td>Same as <code>l</code>, <code>c</code>, <code>r</code> (common custom column types)</td>
+</tr>
+<tr>
+<td><code>S</code> (siunitx)</td>
+<td>Right-aligned</td>
+</tr>
+<tr>
+<td><code>p{…}</code>, <code>m{…}</code>, <code>b{…}</code>, <code>X</code>, <code>J</code></td>
+<td>Left-aligned. The width is ignored.</td>
+</tr>
+<tr>
+<td><code>|</code></td>
+<td>A vertical rule between columns, or at the left or right edge</td>
+</tr>
+<tr>
+<td><code>*{3}{c}</code></td>
+<td>Repeats: <code>ccc</code></td>
+</tr>
+<tr>
+<td><code>@{…}</code>, <code>!{…}</code>, <code>&gt;{…}</code>, <code>&lt;{…}</code></td>
+<td>Read and dropped</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="rows-and-cells"><a class="anchor" href="#rows-and-cells" aria-hidden="true">#</a>Rows and cells</h2>
+<ul>
+<li><code>\\</code> ends a row, and so does <code>\tabularnewline</code>. <code>\\[4pt]</code> works, and the space is dropped.</li>
+<li><code>&amp;</code> separates cells, but not inside braces or a nested environment.</li>
+<li>The last row doesn&#39;t need a trailing <code>\\</code>.</li>
+<li>A cell can contain any inline content: formatting, maths, links, <code>\cite</code>, even a nested <code>tabular</code>.</li>
+</ul>
+<h2 id="rules"><a class="anchor" href="#rules" aria-hidden="true">#</a>Rules</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\toprule</code>, <code>\bottomrule</code></td>
+<td>A heavy rule</td>
+</tr>
+<tr>
+<td><code>\midrule</code>, <code>\hline</code></td>
+<td>A thin rule</td>
+</tr>
+<tr>
+<td>Two rules in a row (<code>\hline\hline</code>)</td>
+<td>A double rule</td>
+</tr>
+<tr>
+<td><code>\cline{2-3}</code></td>
+<td>A rule under columns 2 to 3</td>
+</tr>
+<tr>
+<td><code>\cmidrule{2-3}</code>, <code>\cmidrule(lr){2-3}</code></td>
+<td>The same; <code>(l)</code>, <code>(r)</code> and <code>(lr)</code> trim the rule at that end, so that adjacent <code>\cmidrule</code>s don&#39;t touch</td>
+</tr>
+<tr>
+<td><code>\specialrule{w}{a}{b}</code></td>
+<td>A heavy rule (the sizes are ignored)</td>
+</tr>
+<tr>
+<td><code>\addlinespace</code>, <code>\morecmidrules</code></td>
+<td>Ignored</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="header-rows"><a class="anchor" href="#header-rows" aria-hidden="true">#</a>Header rows</h2>
+<p>The rows above the first <code>\midrule</code> become the header: they are put in a <code>&lt;thead&gt;</code> and their cells are <code>&lt;th&gt;</code> (bold by default). When there is no <code>\midrule</code> but the table opens with a rule and has a <code>\hline</code> or <code>\midrule</code> after the first row, that first row is the header. Otherwise there is no header row.</p>
+<h2 id="spanning-cells"><a class="anchor" href="#spanning-cells" aria-hidden="true">#</a>Spanning cells</h2>
+<pre><code class="language-latex">\multicolumn{2}{c|}{Two columns, centred, with a rule on the right}
+\multirow{3}{*}{Three rows}
+\multirow{2}{*}{\multicolumn{2}{c}{…}}   % not supported: put \multicolumn outside
+\multicolumn{2}{c}{\multirow{2}{*}{…}}   % works</code></pre>
+<ul>
+<li><code>\multicolumn{n}{spec}{text}</code> spans <code>n</code> columns. Its own spec sets the alignment and the vertical rules for that cell.</li>
+<li><code>\multirow{n}{width}{text}</code> spans <code>n</code> rows. The optional <code>[vpos]</code> is accepted. Leave the corresponding cells in the next <code>n − 1</code> rows empty, as in LaTeX; they are skipped.</li>
+</ul>
+<h2 id="colours"><a class="anchor" href="#colours" aria-hidden="true">#</a>Colours</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Where</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\rowcolor{colour}</code></td>
+<td>At the start of a row</td>
+<td>The row&#39;s background</td>
+</tr>
+<tr>
+<td><code>\cellcolor{colour}</code></td>
+<td>Anywhere in a cell</td>
+<td>The cell&#39;s background</td>
+</tr>
+</tbody></table>
+</div>
+<p>Both accept an optional model, e.g. <code>\rowcolor[HTML]{EEF3FF}</code>, and the colours described in <a href="documents.html#colour">Colour</a>. In dark mode, the text on these backgrounds turns dark so that it stays readable.</p>
+<h2 id="captions-and-numbering"><a class="anchor" href="#captions-and-numbering" aria-hidden="true">#</a>Captions and numbering</h2>
+<p>A table is numbered when it has a <code>\caption</code>: <code>\begin{table}…\caption{…}…\end{table}</code> gives &quot;Table 1: …&quot;. Tables have their own counter, separate from figures and algorithms. The caption appears where you wrote it, above or below the tabular. <code>\caption*{…}</code> and the short form <code>\caption[short]{…}</code> are accepted, and both are numbered.</p>
+<p><code>longtable</code> may carry its own <code>\caption</code>, which numbers it as a table. The <code>\endhead</code>, <code>\endfirsthead</code>, <code>\endfoot</code> and <code>\endlastfoot</code> markers are dropped, because a web page doesn&#39;t break tables across pages.</p>
+<p><code>table*</code> is the same as <code>table</code>, except that in a <a href="columns.html">two-column layout</a> it spans both columns.</p>
+<h2 id="wide-tables"><a class="anchor" href="#wide-tables" aria-hidden="true">#</a>Wide tables</h2>
+<p>A table is only as wide as its content. When that is wider than the page:</p>
+<ul>
+<li><strong>By default</strong> the table scrolls sideways inside its own box (<code>.latex-table-wrap</code>), and the page doesn&#39;t.</li>
+<li><strong>Inside <code>\resizebox{\linewidth}{!}{…}</code></strong> (or <code>\resizebox*</code> or <code>\adjustbox{…}{…}</code>, or the <code>adjustbox</code> environment), it is scaled down to fit the width, to 55% at the smallest. Below that it scrolls. The fitting is redone whenever the width changes.</li>
+<li><code>\scalebox{…}{…}</code> and <code>\rotatebox{…}{…}</code> are dropped, leaving their content as it is.</li>
+</ul>
+<p>The same fitting works for anything inside <code>\resizebox</code>, not only tables.</p>
+<h2 id="what-doesnt-work"><a class="anchor" href="#what-doesnt-work" aria-hidden="true">#</a>What doesn&#39;t work</h2>
+<ul>
+<li>Column widths from <code>p{3cm}</code> or <code>X</code>, and <code>\arraystretch</code>, <code>\tabcolsep</code>: the layout is left to the browser.</li>
+<li><code>\multirow</code> wrapped around <code>\multicolumn</code> (put <code>\multicolumn</code> outside instead).</li>
+<li><code>\hhline</code> and <code>\Xhline</code> degrade to their argument text. (<code>\makecell{a\\b}</code> happens to work: it degrades to its text, and the <code>\\</code> inside it is a line break.)</li>
+<li>Cell counts that don&#39;t match the column spec: HTML tables don&#39;t mind, but it is usually a mistake, so <a href="checking.html">lint</a> warns about it.</li>
+</ul>
+<hr>
+<p>Previous: <a href="maths.html">Maths</a> · <a href="index.html">Contents</a> · Next: <a href="figures.html">Figures and images</a></p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="maths.html"><small>Previous</small>Maths</a>
+      <a class="next" href="figures.html"><small>Next</small>Figures and images</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/tables.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

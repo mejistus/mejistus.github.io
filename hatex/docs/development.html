@@ -1,0 +1,201 @@
+<!doctype html>
+<!-- Built from docs/manual/development.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Developing hatex · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li class="here"><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="developing-hatex"><a class="anchor" href="#developing-hatex" aria-hidden="true">#</a>Developing hatex</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#layout-of-the-repository">Layout of the repository</a></li><li><a href="#commands">Commands</a></li><li><a href="#how-the-build-works">How the build works</a></li><li><a href="#how-rendering-works">How rendering works</a></li><li><a href="#testing-changes">Testing changes</a></li><li><a href="#releases">Releases</a></li></ul></nav>
+<h2 id="layout-of-the-repository"><a class="anchor" href="#layout-of-the-repository" aria-hidden="true">#</a>Layout of the repository</h2>
+<pre><code>src/latex.js      the core renderer: parseLatex(source) → HTML
+src/extend.js     two columns, multicols, beamer, blocks, guji/vertical, \jiazhu
+src/tikz-nn.js    the nn* TikZ styles (a TeX preamble as a string)
+src/lint.js       lintSource(source) and referencedImages(source)
+src/bib.js        BibTeX parse / format / DOI lookup
+src/runtime.js    the HaTeX API and page behaviour
+src/hatex.css     styles for the output
+dist/             built files, committed
+docs/             syntax.md (cheat sheet) and this manual
+examples/         runnable examples
+scripts/          build.mjs, serve.mjs, sync.mjs, docs.mjs (+ docs.css)</code></pre>
+<p>hatex was taken out of the blog <a href="https://mejistus.github.io" rel="noopener">mejistus.github.io</a>, where the renderer is still developed. The four modules <code>latex.js</code>, <code>tikz-nn.js</code>, <code>lint.js</code> and <code>bib.js</code> come from the blog&#39;s <code>assets/</code> folder. <code>extend.js</code>, <code>runtime.js</code> and <code>hatex.css</code> belong to hatex.</p>
+<h2 id="commands"><a class="anchor" href="#commands" aria-hidden="true">#</a>Commands</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>npm run build</code></td>
+<td>Builds <code>dist/</code> from <code>src/</code></td>
+</tr>
+<tr>
+<td><code>npm start</code></td>
+<td>Serves the repository at <a href="http://localhost:8000/examples/" rel="noopener">http://localhost:8000/examples/</a> (<code>node scripts/serve.mjs [port]</code>)</td>
+</tr>
+<tr>
+<td><code>npm run sync [-- path/to/mejistus.github.io]</code></td>
+<td>Copies the four renderer modules from the blog&#39;s <code>assets/</code> (default <code>../mejistus.github.io</code>) and rebuilds</td>
+</tr>
+<tr>
+<td><code>npm run docs [-- path/to/out]</code></td>
+<td>Builds this manual into HTML pages (default <code>../mejistus.github.io/hatex/docs</code>)</td>
+</tr>
+<tr>
+<td><code>npm install &amp;&amp; npm run prerender</code></td>
+<td>Renders <code>examples/document/example.tex</code> to <code>examples/document/static.html</code></td>
+</tr>
+</tbody></table>
+</div>
+<p>The build has no dependencies. <code>npm install</code> only installs KaTeX, for the prerender example.</p>
+<h2 id="how-the-build-works"><a class="anchor" href="#how-the-build-works" aria-hidden="true">#</a>How the build works</h2>
+<p><code>scripts/build.mjs</code> concatenates the modules in this order:</p>
+<pre><code>src/tikz-nn.js → src/latex.js → src/extend.js → src/lint.js → src/bib.js → src/runtime.js</code></pre>
+<p>and writes:</p>
+<ul>
+<li><code>dist/hatex.js</code>: the modules inside <code>(function (window) { … }).call(this, window or globalThis)</code>. It works as a classic script and from CommonJS (<code>module.exports</code> is set by <code>runtime.js</code>).</li>
+<li><code>dist/hatex.mjs</code>: the same code in an ES module, with <code>HaTeX</code> as the default export and its functions as named exports.</li>
+<li><code>dist/hatex.css</code>: <code>src/hatex.css</code> with a banner.</li>
+</ul>
+<p>The version in <code>package.json</code> goes into the banners and replaces <code>__VERSION__</code> in <code>runtime.js</code>, which becomes <code>HaTeX.version</code>.</p>
+<p>Each module is an IIFE that reads its dependencies from <code>window</code> and puts its API on <code>window</code>. The order matters only for <code>runtime.js</code>, which picks up <code>window.Bib</code> when it loads. Everything else is looked up when it is called.</p>
+<p><strong><code>dist/</code> is committed.</strong> Rebuild and commit it with every change to <code>src/</code>, so that the examples, the CDN and <code>npm install github:…</code> get the new code.</p>
+<h2 id="how-rendering-works"><a class="anchor" href="#how-rendering-works" aria-hidden="true">#</a>How rendering works</h2>
+<h3 id="the-core-renderer-latexjs"><a class="anchor" href="#the-core-renderer-latexjs" aria-hidden="true">#</a>The core renderer (<code>latex.js</code>)</h3>
+<p><code>parseLatex(source)</code> works in passes over the source string:</p>
+<ol>
+<li>Every non-blank line gets an invisible marker, <code>\u0005&lt;line&gt;\u0005</code>, which ends up as <code>data-line</code> attributes and <code>span.latex-line</code> elements.</li>
+<li>Verbatim content (<code>verbatim</code>, <code>lstlisting</code>, <code>minted</code>, <code>\verb</code>, <code>\lstinline</code>, <code>\mintinline</code>) is rendered and replaced by a <strong>slot</strong>: a placeholder <code>\u0001&lt;n&gt;\u0001</code> that holds finished HTML, so later passes can&#39;t touch it.</li>
+<li>Comments are removed, and <code>\definecolor</code>, the TikZ setup commands and the <code>\bibitem</code> keys (for citation numbers) are collected.</li>
+<li>The body is cut out of <code>\begin{document}…\end{document}</code>, and definitions (<code>\newcommand</code>, <code>\newtheorem</code>, …) are collected from the preamble and the body.</li>
+<li>TikZ pictures become slots (before maths, since their <code>$</code> belong to TeX).</li>
+<li>Maths becomes slots, rendered with KaTeX, and equation numbers and labels are recorded.</li>
+<li>Line breaks between CJK characters are removed, and <code>\resizebox</code> and friends are unwrapped.</li>
+<li><strong>Blocks:</strong> <code>renderBlocks</code> walks the source for environments, headings, blank lines and rules, and renders each environment with <code>renderEnvironment</code>. Text between them becomes paragraphs through <code>renderInline</code>, and commands through <code>renderCommand</code>.</li>
+<li>Footnotes are appended, slots are filled in (they may nest), and references (<code>\u0002key\u0002</code>) are resolved to numbers, now that every label is known.</li>
+</ol>
+<p>To support a new command:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind of command</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A symbol or fixed text (<code>\foo</code> → &quot;…&quot;)</td>
+<td><code>SYMBOLS</code></td>
+</tr>
+<tr>
+<td>A one-argument wrapper (<code>\foo{x}</code> → <code>&lt;tag&gt;x&lt;/tag&gt;</code>)</td>
+<td><code>WRAPPERS</code></td>
+</tr>
+<tr>
+<td>A declaration (<code>{\foo x}</code>)</td>
+<td><code>DECLARATIONS</code></td>
+</tr>
+<tr>
+<td>A command to ignore with its arguments</td>
+<td><code>DROP_ARGS</code> (name → number of <code>{…}</code> arguments)</td>
+</tr>
+<tr>
+<td>Anything else</td>
+<td>The <code>switch</code> in <code>renderCommand</code></td>
+</tr>
+<tr>
+<td>An environment</td>
+<td><code>renderEnvironment</code></td>
+</tr>
+</tbody></table>
+</div>
+<p>Since <code>latex.js</code> comes from the blog, make the change there and bring it over with <code>npm run sync</code>, or port it back afterwards.</p>
+<h3 id="extensions-extendjs"><a class="anchor" href="#extensions-extendjs" aria-hidden="true">#</a>Extensions (<code>extend.js</code>)</h3>
+<p>Document classes and environments that the core doesn&#39;t know are added around it, without changing it:</p>
+<ol>
+<li><code>prepare(source)</code> rewrites the source. Every boundary (the start of a slide, a column, a block, a <code>guji</code>, …) becomes an unnumbered heading holding a marker, <code>\subsubsection*{@@HX&lt;KIND&gt; &lt;arg&gt;@@&lt;text&gt;}</code>, and document-level information (two columns, beamer, slide size, title data, sections) is collected in <code>info</code>.</li>
+<li>The core renders the whole rewritten document as one, so labels, citations, footnotes and equation numbers stay document-wide.</li>
+<li><code>finish(html, info)</code> finds the marker headings in the HTML and turns them into wrapper elements: <code>&lt;div class=&quot;hatex-block&quot;&gt;</code>, the slide deck, the column flow and so on.</li>
+</ol>
+<p>Every rewrite keeps the number of lines, so <code>data-line</code> still points at the right source lines. Searches run on a copy of the source in which comments and verbatim content are blanked out, so that nothing inside them is rewritten.</p>
+<h3 id="the-runtime-runtimejs"><a class="anchor" href="#the-runtime-runtimejs" aria-hidden="true">#</a>The runtime (<code>runtime.js</code>)</h3>
+<p><code>runtime.js</code> defines <code>HaTeX</code> and everything that needs a browser: <code>enhance</code>, <code>layout</code> (columns, fitting, slide scaling, <code>\jiazhu</code> splitting), TikZ loading, presenting, link scrolling, copy buttons and zoom. It installs three listeners on load: clicks on <code>document</code> (in-document links), window resize (layout), and TikZJax&#39;s <code>tikzjax-load-finished</code> event.</p>
+<h2 id="testing-changes"><a class="anchor" href="#testing-changes" aria-hidden="true">#</a>Testing changes</h2>
+<p>There is no automated test suite. Before committing:</p>
+<ol>
+<li><code>npm run build</code>.</li>
+<li><code>npm start</code>, and check every page under <code>examples/</code>: <code>basic.html</code>, <code>editor.html</code>, <code>tikz.html</code> and <code>tikz.html?live</code>, and <code>document/</code>, which uses nearly every feature. Resize the window across 50rem to check the columns, and try dark mode in the editor.</li>
+<li>For slides and vertical text, use the demos (a slide deck and a Chinese document), or paste them into the editor.</li>
+<li>Check at least one other browser engine: Safari (WebKit) is where the column layout and KaTeX differ most.</li>
+<li><code>node -e &quot;require(&#39;./dist/hatex.js&#39;).parse(&#39;…&#39;)&quot;</code> is a quick way to look at the HTML for a snippet.</li>
+</ol>
+<h2 id="releases"><a class="anchor" href="#releases" aria-hidden="true">#</a>Releases</h2>
+<ol>
+<li>Update <code>version</code> in <code>package.json</code> (<a href="https://semver.org" rel="noopener">semantic versioning</a>: new syntax or options are a minor release, fixes a patch).</li>
+<li><code>npm run build</code>.</li>
+<li>Update the README, <code>docs/syntax.md</code> and this manual for anything a user can see.</li>
+<li>Commit <code>src/</code>, <code>dist/</code> and the docs together, with a message in the form <code>hatex 1.4.0: vertical Chinese in the manner of old books</code>, and a body listing the changes.</li>
+<li>Publish on the project site: copy <code>dist/</code> to the site&#39;s <code>hatex/lib/</code>, and run <code>npm run docs</code> to rebuild the manual pages in its <code>hatex/docs/</code>.</li>
+</ol>
+<hr>
+<p>Previous: <a href="troubleshooting.html">Limitations and troubleshooting</a> · <a href="index.html">Contents</a></p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="troubleshooting.html"><small>Previous</small>Limitations and troubleshooting</a>
+      <a class="next" href="syntax.html"><small>Next</small>Syntax cheat sheet</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/development.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

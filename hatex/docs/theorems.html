@@ -1,0 +1,275 @@
+<!doctype html>
+<!-- Built from docs/manual/theorems.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Theorems, proofs and algorithms · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li class="here"><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="theorems-proofs-and-algorithms"><a class="anchor" href="#theorems-proofs-and-algorithms" aria-hidden="true">#</a>Theorems, proofs and algorithms</h1>
+<h2 id="theorem-like-environments"><a class="anchor" href="#theorem-like-environments" aria-hidden="true">#</a>Theorem-like environments</h2>
+<pre><code class="language-latex">\begin{theorem}[Cauchy--Schwarz]\label{thm:cs}
+For all $u, v$: $|\langle u, v\rangle| \le \|u\|\,\|v\|$.
+\end{theorem}
+
+\begin{proof}
+Expand $\|u - tv\|^2 \ge 0$ and take the discriminant.
+\end{proof}</code></pre>
+<p>This renders as <strong>Theorem 1 (Cauchy–Schwarz).</strong> <em>For all …</em>, followed by <em>Proof.</em> … ∎</p>
+<h3 id="built-in-environments"><a class="anchor" href="#built-in-environments" aria-hidden="true">#</a>Built-in environments</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>Head</th>
+<th>Head in Chinese documents</th>
+<th>Numbered</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>theorem</code></td>
+<td>Theorem</td>
+<td>定理</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>lemma</code></td>
+<td>Lemma</td>
+<td>引理</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>corollary</code></td>
+<td>Corollary</td>
+<td>推论</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>proposition</code></td>
+<td>Proposition</td>
+<td>命题</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>definition</code></td>
+<td>Definition</td>
+<td>定义</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>remark</code></td>
+<td>Remark</td>
+<td>注</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>example</code></td>
+<td>Example</td>
+<td>例</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>proof</code></td>
+<td>Proof</td>
+<td>证明</td>
+<td>No; ends with ∎</td>
+</tr>
+</tbody></table>
+</div>
+<ul>
+<li><strong>Each environment has its own counter</strong>: Theorem 1, Lemma 1, Theorem 2, Lemma 2. Numbers count through the whole document, not per section.</li>
+<li>The starred forms (<code>theorem*</code>, <code>lemma*</code>, …) are not numbered.</li>
+<li>The optional argument is a note shown in parentheses after the number: <code>\begin{theorem}[Name]</code> gives &quot;Theorem 1 (Name).&quot; On <code>proof</code> it is added the same way: <code>\begin{proof}[of Theorem 1]</code> gives &quot;Proof (of Theorem 1).&quot; It does not replace the word &quot;Proof&quot; as <code>amsthm</code> does.</li>
+<li>A <code>\label</code> anywhere inside the environment makes it the target of <code>\ref</code> (the number) and <code>\autoref</code>/<code>\cref</code> (&quot;Theorem 1&quot;).</li>
+<li>The head is set in bold, and the body continues on the same line. The body may contain several paragraphs, lists, maths and other blocks.</li>
+<li>The ∎ goes at the end of the proof&#39;s last paragraph. <code>\qedhere</code> is dropped, since the ∎ is placed automatically.</li>
+</ul>
+<h3 id="your-own-environments"><a class="anchor" href="#your-own-environments" aria-hidden="true">#</a>Your own environments</h3>
+<p><code>\newtheorem</code> works in the preamble or the body:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>You write</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\newtheorem{hyp}{Hypothesis}</code></td>
+<td><code>hyp</code> environments numbered Hypothesis 1, 2, …</td>
+</tr>
+<tr>
+<td><code>\newtheorem{conj}[theorem]{Conjecture}</code></td>
+<td>Shares <code>theorem</code>&#39;s counter: Theorem 1, Conjecture 2, Theorem 3</td>
+</tr>
+<tr>
+<td><code>\newtheorem*{claim}{Claim}</code></td>
+<td>Unnumbered</td>
+</tr>
+<tr>
+<td><code>\newtheorem{lem}{Lemma}[section]</code></td>
+<td>The <code>[section]</code> is accepted and ignored; numbering stays global</td>
+</tr>
+<tr>
+<td><code>\newtheorem{theorem}{Satz}</code></td>
+<td>Renames a built-in environment</td>
+</tr>
+</tbody></table>
+</div>
+<p><code>\theoremstyle{…}</code> degrades to nothing visible (its argument text is kept, so write it in the preamble), and every theorem-like environment looks the same. <code>amsthm</code>&#39;s <code>\newtheoremstyle</code> is not supported.</p>
+<h2 id="algorithms"><a class="anchor" href="#algorithms" aria-hidden="true">#</a>Algorithms</h2>
+<p>hatex implements the <code>algorithmicx</code> / <code>algpseudocode</code> commands:</p>
+<pre><code class="language-latex">\begin{algorithm}
+  \caption{Gradient descent}\label{alg:gd}
+  \begin{algorithmic}[1]
+    \Require step size $\eta$, iterations $T$
+    \Ensure parameters $\theta$
+    \State $\theta \gets \theta_0$
+    \For{$t = 1, \dots, T$}
+      \State $g \gets \nabla L(\theta)$ \Comment{gradient}
+      \If{$\|g\| &lt; \epsilon$}
+        \State \textbf{break}
+      \EndIf
+      \State $\theta \gets \theta - \eta g$
+    \EndFor
+    \State \Return $\theta$
+  \end{algorithmic}
+\end{algorithm}</code></pre>
+<h3 id="the-float"><a class="anchor" href="#the-float" aria-hidden="true">#</a>The float</h3>
+<p><code>algorithm</code> is a float like <code>figure</code>: with a <code>\caption</code> it is numbered &quot;Algorithm 1:&quot; (算法 1), with its own counter, and <code>\label</code> makes it a target. The caption is left-aligned above the lines. <code>algorithmic</code> also works without the float.</p>
+<h3 id="line-numbers"><a class="anchor" href="#line-numbers" aria-hidden="true">#</a>Line numbers</h3>
+<p><code>\begin{algorithmic}[1]</code> numbers every line. Any optional argument turns numbering on, since LaTeX&#39;s &quot;number every n-th line&quot; isn&#39;t supported. Lines from <code>\Statex</code>, <code>\Require</code>, <code>\Ensure</code>, <code>\Input</code>, <code>\Output</code> and <code>\Initialize</code> are not numbered.</p>
+<h3 id="commands"><a class="anchor" href="#commands" aria-hidden="true">#</a>Commands</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Line</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\State text</code></td>
+<td><em>text</em>. An empty <code>\State</code> adds no line, so <code>\State \Return x</code> is one line.</td>
+</tr>
+<tr>
+<td><code>\Statex text</code></td>
+<td><em>text</em>, unnumbered</td>
+</tr>
+<tr>
+<td><code>\If{c}</code> … <code>\ElsIf{c}</code> … <code>\Else</code> … <code>\EndIf</code></td>
+<td><strong>if</strong> c <strong>then</strong> … <strong>else if</strong> c <strong>then</strong> … <strong>else</strong> … <strong>end if</strong></td>
+</tr>
+<tr>
+<td><code>\For{c}</code> … <code>\EndFor</code></td>
+<td><strong>for</strong> c <strong>do</strong> … <strong>end for</strong></td>
+</tr>
+<tr>
+<td><code>\ForAll{c}</code> … <code>\EndFor</code></td>
+<td><strong>for all</strong> c <strong>do</strong> … <strong>end for</strong></td>
+</tr>
+<tr>
+<td><code>\While{c}</code> … <code>\EndWhile</code></td>
+<td><strong>while</strong> c <strong>do</strong> … <strong>end while</strong></td>
+</tr>
+<tr>
+<td><code>\Repeat</code> … <code>\Until{c}</code></td>
+<td><strong>repeat</strong> … <strong>until</strong> c</td>
+</tr>
+<tr>
+<td><code>\Loop</code> … <code>\EndLoop</code></td>
+<td><strong>loop</strong> … <strong>end loop</strong></td>
+</tr>
+<tr>
+<td><code>\Function{name}{args}</code> … <code>\EndFunction</code></td>
+<td><strong>function</strong> name(args) … <strong>end function</strong></td>
+</tr>
+<tr>
+<td><code>\Procedure{name}{args}</code> … <code>\EndProcedure</code></td>
+<td><strong>procedure</strong> name(args) … <strong>end procedure</strong></td>
+</tr>
+<tr>
+<td><code>\Require</code>, <code>\Ensure</code>, <code>\Input</code>, <code>\Output</code>, <code>\Initialize</code></td>
+<td><strong>Require:</strong> …, <strong>Ensure:</strong> …, and so on</td>
+</tr>
+<tr>
+<td><code>\Return x</code></td>
+<td><strong>return</strong> x</td>
+</tr>
+<tr>
+<td><code>\Call{name}{args}</code></td>
+<td>name(args), in the current line</td>
+</tr>
+<tr>
+<td><code>\Comment{text}</code></td>
+<td>▷ <em>text</em>, at the end of the current line</td>
+</tr>
+<tr>
+<td><code>\algstore</code>, <code>\algrestore</code>, <code>\algsetup</code></td>
+<td>Ignored</td>
+</tr>
+</tbody></table>
+</div>
+<p>The body of each block is indented by one level (1.4em). The text of a line runs up to the next algorithmic command, so it can contain maths, formatting and <code>\textbf</code>.</p>
+<h3 id="not-supported"><a class="anchor" href="#not-supported" aria-hidden="true">#</a>Not supported</h3>
+<ul>
+<li><code>algorithm2e</code> (<code>\KwIn</code>, <code>\eIf</code>, <code>\SetKwFunction</code>, …) and the older <code>algorithmic</code> package (<code>\STATE</code>, <code>\IF</code>): their commands degrade to text. Rewrite them with <code>algpseudocode</code> commands.</li>
+<li><code>\algnewcommand</code>, <code>\algrenewcommand</code> and custom block definitions.</li>
+</ul>
+<hr>
+<p>Previous: <a href="tikz.html">TikZ</a> · <a href="index.html">Contents</a> · Next: <a href="code.html">Code</a></p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="tikz.html"><small>Previous</small>TikZ</a>
+      <a class="next" href="code.html"><small>Next</small>Code</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/theorems.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

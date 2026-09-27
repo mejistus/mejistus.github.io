@@ -1,0 +1,529 @@
+<!doctype html>
+<!-- Built from docs/manual/html-output.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The HTML output · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li class="here"><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="the-html-output"><a class="anchor" href="#the-html-output" aria-hidden="true">#</a>The HTML output</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#ids">Ids</a></li><li><a href="#text-and-structure">Text and structure</a></li><li><a href="#maths">Maths</a></li><li><a href="#floats-and-images">Floats and images</a></li><li><a href="#tables">Tables</a></li><li><a href="#tikz">TikZ</a></li><li><a href="#theorems-and-algorithms">Theorems and algorithms</a></li><li><a href="#code">Code</a></li><li><a href="#references">References</a></li><li><a href="#columns">Columns</a></li><li><a href="#blocks-and-columns-beamer">Blocks and columns (beamer)</a></li><li><a href="#slides">Slides</a></li><li><a href="#vertical-text">Vertical text</a></li><li><a href="#added-by-the-runtime">Added by the runtime</a></li></ul></nav>
+<p>This chapter lists the HTML that <code>parse</code> produces and the elements that <code>enhance</code> adds, for styling and scripting. Classes that start with <code>latex-</code> come from the core renderer, and those that start with <code>hatex-</code> come from the extensions (columns, slides, vertical text) and the runtime.</p>
+<p>The output is a sequence of block elements, meant to go inside an element with the class <code>hatex</code>. It has no <code>&lt;html&gt;</code>, <code>&lt;head&gt;</code> or <code>&lt;body&gt;</code>, and no wrapper of its own, except in <a href="#columns">two-column documents</a> and <a href="#slides">decks</a>.</p>
+<h2 id="ids"><a class="anchor" href="#ids" aria-hidden="true">#</a>Ids</h2>
+<p>Element ids have the form <code>&lt;prefix&gt;-&lt;label&gt;</code>, where the prefix is random for each <code>parse</code> call (<code>tex</code> and six characters, e.g. <code>tex3k9f2a</code>):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Id</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Something with <code>\label{key}</code></td>
+<td><code>tex3k9f2a-key</code></td>
+</tr>
+<tr>
+<td>Bibliography entry <code>\bibitem{key}</code></td>
+<td><code>tex3k9f2a-bib-key</code></td>
+</tr>
+<tr>
+<td>Footnote <em>n</em></td>
+<td><code>tex3k9f2a-fn&lt;n&gt;</code></td>
+</tr>
+<tr>
+<td>Footnote mark <em>n</em></td>
+<td><code>tex3k9f2a-fnref&lt;n&gt;</code></td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="text-and-structure"><a class="anchor" href="#text-and-structure" aria-hidden="true">#</a>Text and structure</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>LaTeX</th>
+<th>HTML</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Paragraph</td>
+<td><code>&lt;p data-line&gt;</code></td>
+</tr>
+<tr>
+<td><code>\section</code>, <code>\part</code>, <code>\chapter</code></td>
+<td><code>&lt;h2&gt;</code>; <code>\subsection</code> <code>&lt;h3&gt;</code>; <code>\subsubsection</code> <code>&lt;h4&gt;</code></td>
+</tr>
+<tr>
+<td>Section number</td>
+<td><code>&lt;span class=&quot;latex-secnum&quot;&gt;</code> inside the heading</td>
+</tr>
+<tr>
+<td><code>\paragraph{…}</code></td>
+<td><code>&lt;strong class=&quot;latex-paragraph&quot;&gt;</code> at the start of the paragraph</td>
+</tr>
+<tr>
+<td><code>abstract</code></td>
+<td><code>&lt;div class=&quot;latex-abstract&quot;&gt;</code> with <code>&lt;p class=&quot;latex-abstract-title&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>itemize</code>, <code>enumerate</code>, <code>description</code></td>
+<td><code>&lt;ul class=&quot;latex-list&quot;&gt;</code>, <code>&lt;ol class=&quot;latex-list&quot; type=&quot;1|a|i|A&quot;&gt;</code>, <code>&lt;dl class=&quot;latex-list&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>\item[label]</code></td>
+<td><code>&lt;li class=&quot;latex-custom-label&quot;&gt;</code> with <code>&lt;span class=&quot;latex-item-label&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>quote</code>, <code>quotation</code>, <code>verse</code></td>
+<td><code>&lt;blockquote class=&quot;latex-quote&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>center</code>, <code>flushright</code></td>
+<td><code>&lt;div class=&quot;latex-center&quot;&gt;</code>, <code>&lt;div class=&quot;latex-right&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>minipage</code></td>
+<td><code>&lt;div class=&quot;latex-minipage&quot; style=&quot;width:…&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>\hrule</code>, <code>\rule</code></td>
+<td><code>&lt;hr class=&quot;latex-rule&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>\textbf</code>, <code>\emph</code>, <code>\underline</code>, <code>\sout</code>, <code>\hl</code></td>
+<td><code>&lt;strong&gt;</code>, <code>&lt;em&gt;</code>, <code>&lt;u&gt;</code>, <code>&lt;s&gt;</code>, <code>&lt;mark&gt;</code></td>
+</tr>
+<tr>
+<td><code>\texttt</code></td>
+<td><code>&lt;code class=&quot;latex-tt&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>\textsc</code>, <code>\textsf</code></td>
+<td><code>&lt;span class=&quot;latex-sc&quot;&gt;</code>, <code>&lt;span class=&quot;latex-sf&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>\fbox</code></td>
+<td><code>&lt;span class=&quot;latex-fbox&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>\textcolor</code></td>
+<td><code>&lt;span class=&quot;latex-color&quot; style=&quot;--author-color:…&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>\colorbox</code></td>
+<td><code>&lt;span class=&quot;latex-colorbox&quot; style=&quot;background:…&quot;&gt;</code></td>
+</tr>
+<tr>
+<td>Size commands</td>
+<td><code>&lt;span style=&quot;font-size:…em&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>\href</code>, <code>\url</code></td>
+<td><code>&lt;a href&gt;</code>; <code>\url</code> adds <code>class=&quot;latex-url&quot;</code></td>
+</tr>
+<tr>
+<td><code>\TeX</code>, <code>\LaTeX</code></td>
+<td><code>&lt;span class=&quot;latex-logo&quot;&gt;</code></td>
+</tr>
+<tr>
+<td>Source-line marker</td>
+<td><code>&lt;span class=&quot;latex-line&quot; data-line=&quot;n&quot;&gt;&lt;/span&gt;</code> (empty)</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="maths"><a class="anchor" href="#maths" aria-hidden="true">#</a>Maths</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>LaTeX</th>
+<th>HTML</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Inline and display maths</td>
+<td>KaTeX&#39;s <code>&lt;span class=&quot;katex&quot; role=&quot;math&quot; aria-label=&quot;…&quot;&gt;</code>; display maths is inside <code>&lt;span class=&quot;katex-display&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>\label</code> in an equation</td>
+<td><code>&lt;span class=&quot;latex-anchor&quot; id=&quot;…&quot;&gt;&lt;/span&gt;</code> directly before the display</td>
+</tr>
+<tr>
+<td>Maths without KaTeX</td>
+<td><code>&lt;code&gt;</code> with the source</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="floats-and-images"><a class="anchor" href="#floats-and-images" aria-hidden="true">#</a>Floats and images</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>LaTeX</th>
+<th>HTML</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>figure</code>, <code>table</code>, <code>algorithm</code></td>
+<td><code>&lt;figure class=&quot;latex-float latex-float-figure&quot;&gt;</code> (or <code>-table</code>, <code>-algorithm</code>)</td>
+</tr>
+<tr>
+<td><code>\caption</code></td>
+<td><code>&lt;figcaption&gt;</code> with <code>&lt;span class=&quot;latex-cap-label&quot;&gt;Figure 1:&lt;/span&gt;</code></td>
+</tr>
+<tr>
+<td><code>subfigure</code>, <code>subtable</code>, captioned <code>minipage</code></td>
+<td><code>&lt;figure class=&quot;latex-subfloat&quot; style=&quot;width:…&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>\includegraphics</code></td>
+<td><code>&lt;img class=&quot;latex-img&quot; loading=&quot;lazy&quot; alt=&quot;file.png&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>\resizebox</code>, <code>adjustbox</code></td>
+<td><code>&lt;div class=&quot;latex-fit&quot;&gt;&lt;div&gt;…&lt;/div&gt;&lt;/div&gt;</code>; the runtime sets <code>zoom</code> on the inner <code>div</code></td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="tables"><a class="anchor" href="#tables" aria-hidden="true">#</a>Tables</h2>
+<pre><code class="language-markup">&lt;div class=&quot;latex-table-wrap&quot;&gt;
+  &lt;table class=&quot;latex-table&quot;&gt;
+    &lt;thead&gt;&lt;tr class=&quot;rule-top rule-heavy&quot;&gt;&lt;th&gt;…&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+    &lt;tbody&gt;&lt;tr class=&quot;rule-top&quot;&gt;&lt;td class=&quot;a-center vl&quot;&gt;…&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;
+  &lt;/table&gt;
+&lt;/div&gt;</code></pre>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>rule-top</code>, <code>rule-bottom</code></td>
+<td>A rule above or below the row</td>
+</tr>
+<tr>
+<td><code>rule-heavy</code></td>
+<td>The rule is <code>\toprule</code>, <code>\bottomrule</code> or <code>\specialrule</code></td>
+</tr>
+<tr>
+<td><code>rule-double</code></td>
+<td>Two rules (<code>\hline\hline</code>)</td>
+</tr>
+<tr>
+<td><code>cline</code>, <code>cl-l</code>, <code>cl-r</code></td>
+<td>A partial rule above this cell, trimmed on the left or right</td>
+</tr>
+<tr>
+<td><code>vl</code>, <code>vr</code></td>
+<td>A vertical rule on the left or right of the cell</td>
+</tr>
+<tr>
+<td><code>a-center</code>, <code>a-right</code></td>
+<td>Alignment</td>
+</tr>
+</tbody></table>
+</div>
+<p><code>\rowcolor</code> and <code>\cellcolor</code> become inline <code>background-color</code> styles on the <code>&lt;tr&gt;</code> or cell.</p>
+<h2 id="tikz"><a class="anchor" href="#tikz" aria-hidden="true">#</a>TikZ</h2>
+<pre><code class="language-markup">&lt;div class=&quot;latex-tikz&quot; data-tikz-hash=&quot;751aa11b&quot; data-tikz-state=&quot;static&quot;&gt;
+  &lt;svg&gt;…&lt;/svg&gt;
+&lt;/div&gt;</code></pre>
+<p>Before it is enhanced, the box holds <code>&lt;script type=&quot;text/x-tikz&quot;&gt;</code> with the code. While compiling, it holds <code>&lt;div class=&quot;latex-tikz-status&quot;&gt;</code>, and after a failure <code>&lt;div class=&quot;latex-tikz-error&quot;&gt;</code>. The states are listed in <a href="tikz.html#picture-states">TikZ</a>.</p>
+<h2 id="theorems-and-algorithms"><a class="anchor" href="#theorems-and-algorithms" aria-hidden="true">#</a>Theorems and algorithms</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>LaTeX</th>
+<th>HTML</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Theorem-like environment</td>
+<td><code>&lt;div class=&quot;latex-theorem latex-thm&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>proof</code></td>
+<td><code>&lt;div class=&quot;latex-theorem latex-proof&quot;&gt;</code></td>
+</tr>
+<tr>
+<td>Head (&quot;Theorem 1 (Note).&quot;)</td>
+<td><code>&lt;span class=&quot;latex-thm-head&quot;&gt;</code> with <code>&lt;span class=&quot;latex-thm-note&quot;&gt;</code></td>
+</tr>
+<tr>
+<td>∎</td>
+<td><code>&lt;span class=&quot;latex-qed&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>algorithmic</code></td>
+<td><code>&lt;div class=&quot;latex-alg&quot;&gt;</code> (plus <code>numbered</code>)</td>
+</tr>
+<tr>
+<td>Each line</td>
+<td><code>&lt;div class=&quot;latex-alg-line&quot; style=&quot;padding-left:…em&quot;&gt;</code> with <code>&lt;span class=&quot;latex-alg-num&quot;&gt;</code></td>
+</tr>
+<tr>
+<td>Keywords, comments</td>
+<td><code>&lt;span class=&quot;latex-alg-kw&quot;&gt;</code>, <code>&lt;span class=&quot;latex-alg-comment&quot;&gt;</code></td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="code"><a class="anchor" href="#code" aria-hidden="true">#</a>Code</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>LaTeX</th>
+<th>HTML</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Code block</td>
+<td><code>&lt;pre class=&quot;language-x&quot;&gt;&lt;code class=&quot;language-x&quot;&gt;</code>, with Prism&#39;s <code>&lt;span class=&quot;token …&quot;&gt;</code> inside</td>
+</tr>
+<tr>
+<td>Inline code</td>
+<td><code>&lt;code&gt;</code></td>
+</tr>
+<tr>
+<td>Copy button (runtime)</td>
+<td><code>&lt;button class=&quot;hatex-copy&quot;&gt;</code> inside the <code>&lt;pre&gt;</code></td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="references"><a class="anchor" href="#references" aria-hidden="true">#</a>References</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>LaTeX</th>
+<th>HTML</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\ref</code>, <code>\eqref</code>, <code>\autoref</code>, …</td>
+<td><code>&lt;a class=&quot;latex-ref&quot; href=&quot;#…&quot;&gt;</code> (the type word of <code>\autoref</code> is outside the link)</td>
+</tr>
+<tr>
+<td><code>\cite</code></td>
+<td><code>&lt;span class=&quot;latex-cite&quot;&gt;[&lt;a class=&quot;latex-cite-link&quot;&gt;1&lt;/a&gt;]&lt;/span&gt;</code></td>
+</tr>
+<tr>
+<td><code>thebibliography</code></td>
+<td><code>&lt;div class=&quot;latex-bib&quot;&gt;&lt;h2&gt;References&lt;/h2&gt;&lt;ol&gt;&lt;li&gt;</code> with <code>&lt;span class=&quot;latex-bib-num&quot;&gt;[1]&lt;/span&gt;</code></td>
+</tr>
+<tr>
+<td><code>\footnote</code> mark</td>
+<td><code>&lt;sup class=&quot;latex-fn-ref&quot;&gt;&lt;a&gt;</code></td>
+</tr>
+<tr>
+<td>Footnotes</td>
+<td><code>&lt;div class=&quot;latex-footnotes&quot;&gt;&lt;ol&gt;&lt;li&gt;…&lt;a class=&quot;latex-fn-back&quot;&gt;↩&lt;/a&gt;</code> at the end</td>
+</tr>
+<tr>
+<td>A clicked link&#39;s target (runtime)</td>
+<td>Gets <code>latex-flash</code> for the highlight animation</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="columns"><a class="anchor" href="#columns" aria-hidden="true">#</a>Columns</h2>
+<pre><code class="language-markup">&lt;div class=&quot;hatex-cols hatex-twocolumn&quot;&gt;          &lt;!-- or: hatex-cols hatex-multicols, style=&quot;--hx-cols:3&quot; --&gt;
+  &lt;div class=&quot;hatex-cols-flow&quot;&gt;
+    &lt;h2&gt;…&lt;/h2&gt;                                     &lt;!-- full-width items stay here --&gt;
+    &lt;div class=&quot;hatex-cols-chunk&quot;&gt;                 &lt;!-- added by the runtime --&gt;
+      &lt;div class=&quot;hatex-col&quot;&gt;…&lt;/div&gt;
+      &lt;div class=&quot;hatex-col&quot;&gt;…&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>hatex-span</code></td>
+<td>Wraps <code>figure*</code> and <code>table*</code>, which span all columns</td>
+</tr>
+<tr>
+<td><code>hatex-colbreak</code></td>
+<td><code>\columnbreak</code> (hidden)</td>
+</tr>
+<tr>
+<td><code>hatex-split-before</code>, <code>hatex-split-after</code></td>
+<td>The two halves of an element split between columns</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="blocks-and-columns-beamer"><a class="anchor" href="#blocks-and-columns-beamer" aria-hidden="true">#</a>Blocks and columns (beamer)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>LaTeX</th>
+<th>HTML</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>block</code>, <code>alertblock</code>, <code>exampleblock</code></td>
+<td><code>&lt;div class=&quot;hatex-block plain|alert|example&quot;&gt;</code> with <code>&lt;div class=&quot;hatex-block-title&quot;&gt;</code> and <code>&lt;div class=&quot;hatex-block-body&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>columns</code></td>
+<td><code>&lt;div class=&quot;hatex-columns&quot;&gt;</code> (plus <code>top</code> for <code>[T]</code>)</td>
+</tr>
+<tr>
+<td><code>column</code></td>
+<td><code>&lt;div class=&quot;hatex-column&quot; style=&quot;flex:0 1 50%&quot;&gt;</code></td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="slides"><a class="anchor" href="#slides" aria-hidden="true">#</a>Slides</h2>
+<pre><code class="language-markup">&lt;div class=&quot;hatex-deck&quot; data-w=&quot;960&quot; data-h=&quot;540&quot; style=&quot;--hx-ratio:960/540&quot;&gt;
+  &lt;div class=&quot;hatex-deck-bar&quot;&gt;…&lt;button class=&quot;hatex-present&quot;&gt;Present&lt;/button&gt;&lt;/div&gt;  &lt;!-- runtime --&gt;
+  &lt;div class=&quot;hatex-slide-frame&quot;&gt;
+    &lt;div class=&quot;hatex-slide top&quot; role=&quot;group&quot; aria-roledescription=&quot;slide&quot; aria-label=&quot;2 / 12&quot; data-slide=&quot;2&quot;&gt;
+      &lt;div class=&quot;hatex-slide-title&quot; role=&quot;heading&quot; aria-level=&quot;2&quot;&gt;Title&lt;small&gt;Subtitle&lt;/small&gt;&lt;/div&gt;
+      &lt;div class=&quot;hatex-slide-body&quot;&gt;&lt;div class=&quot;hatex-slide-content&quot;&gt;…&lt;/div&gt;&lt;/div&gt;
+      &lt;div class=&quot;hatex-slide-foot&quot;&gt;&lt;span&gt;Author&lt;/span&gt;&lt;span&gt;Title&lt;/span&gt;&lt;span&gt;2 / 12&lt;/span&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>hatex-slide</code> + <code>plain</code>, <code>top</code>, <code>bottom</code>, <code>titlepage</code></td>
+<td>The frame options and title-page slides</td>
+</tr>
+<tr>
+<td><code>hatex-titlepage</code></td>
+<td>The title page, with <code>hatex-tp-title</code>, <code>hatex-tp-subtitle</code>, <code>hatex-tp-author</code>, <code>hatex-tp-institute</code> and <code>hatex-tp-date</code></td>
+</tr>
+<tr>
+<td><code>hatex-toc</code></td>
+<td><code>\tableofcontents</code></td>
+</tr>
+<tr>
+<td><code>hatex-presenting</code></td>
+<td>On the deck while presenting</td>
+</tr>
+<tr>
+<td><code>current</code></td>
+<td>On the frame being presented</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="vertical-text"><a class="anchor" href="#vertical-text" aria-hidden="true">#</a>Vertical text</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>LaTeX</th>
+<th>HTML</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>guji</code></td>
+<td><code>&lt;div class=&quot;hatex-guji-wrap&quot;&gt;&lt;div class=&quot;hatex-guji&quot; style=&quot;--hx-guji-chars:n&quot;&gt;</code></td>
+</tr>
+<tr>
+<td><code>vertical</code></td>
+<td><code>&lt;div class=&quot;hatex-vertical-wrap&quot;&gt;&lt;div class=&quot;hatex-vertical&quot;&gt;</code></td>
+</tr>
+<tr>
+<td>句 and 讀 marks</td>
+<td><code>&lt;span class=&quot;hatex-ju&quot;&gt;。&lt;/span&gt;</code>, <code>&lt;span class=&quot;hatex-dou&quot;&gt;，&lt;/span&gt;</code></td>
+</tr>
+<tr>
+<td><code>\jiazhu</code></td>
+<td><code>&lt;span class=&quot;hatex-jiazhu&quot;&gt;</code>; in <code>guji</code>, the runtime may split it into several spans with the same <code>data-jz</code></td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="added-by-the-runtime"><a class="anchor" href="#added-by-the-runtime" aria-hidden="true">#</a>Added by the runtime</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Element or class</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>hatex</code></td>
+<td>On the root</td>
+</tr>
+<tr>
+<td><code>data-hatex-tikz-errors</code></td>
+<td>On the root, with <code>tikzErrors: true</code></td>
+</tr>
+<tr>
+<td><code>hatex-zoomable</code></td>
+<td>On images and TikZ SVGs that open in the zoom overlay</td>
+</tr>
+<tr>
+<td><code>&lt;div class=&quot;hatex-zoom&quot;&gt;</code></td>
+<td>The overlay, appended to <code>&lt;body&gt;</code> (outside <code>.hatex</code>) while it is open</td>
+</tr>
+</tbody></table>
+</div>
+<hr>
+<p>Previous: <a href="theming.html">Theming</a> · <a href="index.html">Contents</a> · Next: <a href="node.html">Node, bundlers and static sites</a></p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="theming.html"><small>Previous</small>Theming</a>
+      <a class="next" href="node.html"><small>Next</small>Node, bundlers and static sites</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/html-output.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>
