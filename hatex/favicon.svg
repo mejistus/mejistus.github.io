@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>hatex</title>
+  <!-- html + latex: HTML's angle brackets around LaTeX's backslash. -->
+  <style>
+    .tile { fill: #161616; }
+    .mark { stroke: #fff; }
+    @media (prefers-color-scheme: dark) {
+      .tile { fill: #ece9e4; }
+      .mark { stroke: #191817; }
+    }
+  </style>
+  <rect class="tile" width="64" height="64" rx="14"/>
+  <g class="mark" fill="none" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 19 L10 32 L21 45"/>
+    <path d="M27 17 L37 47"/>
+    <path d="M43 19 L54 32 L43 45"/>
+  </g>
+</svg>
