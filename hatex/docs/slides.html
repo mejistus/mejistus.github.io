@@ -1,0 +1,386 @@
+<!doctype html>
+<!-- Built from docs/manual/slides.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slides · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li class="here"><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="slides"><a class="anchor" href="#slides" aria-hidden="true">#</a>Slides</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#frames">Frames</a></li><li><a href="#the-title-page">The title page</a></li><li><a href="#outline">Outline</a></li><li><a href="#blocks">Blocks</a></li><li><a href="#columns">Columns</a></li><li><a href="#overlays">Overlays</a></li><li><a href="#emphasis-and-notes">Emphasis and notes</a></li><li><a href="#themes">Themes</a></li><li><a href="#aspect-ratio">Aspect ratio</a></li><li><a href="#sizes-and-scaling">Sizes and scaling</a></li><li><a href="#footer">Footer</a></li><li><a href="#presenting">Presenting</a></li><li><a href="#styling-slides">Styling slides</a></li></ul></nav>
+<p>A source with <code>\documentclass{beamer}</code>, or with any <code>frame</code> environment, renders as a slide deck: a column of slides on the page, with a <strong>Present</strong> button that shows them full screen.</p>
+<pre><code class="language-latex">\documentclass[aspectratio=169]{beamer}
+\title[Short title]{A talk}
+\subtitle{With a subtitle}
+\author[A. Author]{Ann Author \and Bo Author}
+\institute{Some University}
+\date{\today}
+
+\begin{document}
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+\section{Motivation}
+\begin{frame}[t]{Why}{A subtitle}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item&lt;1-&gt; First point
+        \item&lt;2-&gt; Second point
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{alertblock}{Careful}
+        $x \neq y$ in general.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+\end{document}</code></pre>
+<h2 id="frames"><a class="anchor" href="#frames" aria-hidden="true">#</a>Frames</h2>
+<pre><code class="language-latex">\begin{frame}[options]{Title}{Subtitle}
+  …
+\end{frame}</code></pre>
+<ul>
+<li>The title and subtitle can also be given with <code>\frametitle{…}</code> and <code>\framesubtitle{…}</code> inside the frame. If there are several, the first one counts.</li>
+<li>An overlay specification right after <code>\begin{frame}</code> (<code>\begin{frame}&lt;2&gt;</code>) is dropped.</li>
+<li>A slide without a title has no title bar.</li>
+</ul>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Frame option</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>plain</code></td>
+<td>No footer</td>
+</tr>
+<tr>
+<td><code>t</code></td>
+<td>Content at the top of the slide</td>
+</tr>
+<tr>
+<td><code>b</code></td>
+<td>Content at the bottom</td>
+</tr>
+<tr>
+<td>(none)</td>
+<td>Content centred vertically, as in beamer</td>
+</tr>
+<tr>
+<td><code>fragile</code></td>
+<td>Accepted; it isn&#39;t needed, since code works in any frame</td>
+</tr>
+<tr>
+<td><code>allowframebreaks</code>, <code>shrink</code>, <code>squeeze</code>, <code>label=…</code></td>
+<td>Ignored. Content that is too tall is shrunk anyway (<a href="#sizes-and-scaling">below</a>).</td>
+</tr>
+</tbody></table>
+</div>
+<p><code>\frame{\titlepage}</code> is short for a frame holding only the title page.</p>
+<p>Anything between two frames other than <code>\section</code> and <code>\subsection</code> is added to the end of the frame before it. Anything before the first frame is shown above the deck, and anything after the last frame below it.</p>
+<h2 id="the-title-page"><a class="anchor" href="#the-title-page" aria-hidden="true">#</a>The title page</h2>
+<p><code>\titlepage</code> (or <code>\maketitle</code>) inside a frame shows the data from these commands, which can appear before or after <code>\begin{document}</code>:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Shown as</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\title[short]{…}</code></td>
+<td>The title, large. The short form goes in the footer.</td>
+</tr>
+<tr>
+<td><code>\subtitle{…}</code></td>
+<td>Below the title</td>
+</tr>
+<tr>
+<td><code>\author[short]{A \and B}</code></td>
+<td>The authors, with <code>\and</code> becoming a comma. The short form goes in the footer.</td>
+</tr>
+<tr>
+<td><code>\institute{…}</code></td>
+<td>Smaller, below the authors</td>
+</tr>
+<tr>
+<td><code>\date{…}</code></td>
+<td>Smaller, at the bottom. <code>\today</code> works.</td>
+</tr>
+</tbody></table>
+</div>
+<p><code>\inst{1}</code> in the author or institute becomes a superscript. Title-page slides have no footer and are centred.</p>
+<h2 id="outline"><a class="anchor" href="#outline" aria-hidden="true">#</a>Outline</h2>
+<p><code>\tableofcontents</code> in a frame lists the <code>\section</code>s of the deck as a numbered list, using the short titles if given (<code>\section[Short]{Long}</code>). <code>\section</code> and <code>\subsection</code> are not shown anywhere else: they only feed this list. The entries are not links, and the <code>[currentsection]</code>-style options are ignored.</p>
+<h2 id="blocks"><a class="anchor" href="#blocks" aria-hidden="true">#</a>Blocks</h2>
+<pre><code class="language-latex">\begin{block}{Definition}      … \end{block}
+\begin{alertblock}{Warning}    … \end{alertblock}
+\begin{exampleblock}{Example}  … \end{exampleblock}</code></pre>
+<p>A block is a titled box. The title of <code>alertblock</code> is red (<code>--hx-danger</code>), that of <code>exampleblock</code> is green (<code>--hx-example</code>), and that of <code>block</code> is the ink colour. <code>\begin{block}{}</code> has no title bar. Blocks also work in articles.</p>
+<h2 id="columns"><a class="anchor" href="#columns" aria-hidden="true">#</a>Columns</h2>
+<pre><code class="language-latex">\begin{columns}[T]
+  \begin{column}{0.6\textwidth} … \end{column}
+  \begin{column}{0.4\textwidth} … \end{column}
+\end{columns}</code></pre>
+<ul>
+<li>The width of each <code>column</code> is taken as a fraction of the slide width: <code>0.6\textwidth</code> gives 60%. <code>\linewidth</code>, <code>\columnwidth</code> and <code>\paperwidth</code> also work. A column without a readable width shares the remaining space equally.</li>
+<li><code>[T]</code> or <code>[t]</code> on <code>columns</code> aligns the columns at the top. By default they are centred vertically. The other options are ignored.</li>
+<li>Columns also work in articles.</li>
+</ul>
+<h2 id="overlays"><a class="anchor" href="#overlays" aria-hidden="true">#</a>Overlays</h2>
+<p>The web version shows every step at once:</p>
+<ul>
+<li><code>\pause</code> is removed;</li>
+<li>overlay specifications such as <code>&lt;2-&gt;</code> or <code>&lt;1-3&gt;</code> on <code>\item</code>, <code>\only</code>, <code>\uncover</code>, <code>\visible</code>, <code>\invisible</code>, <code>\onslide</code>, <code>\alt</code>, <code>\temporal</code>, <code>\alert</code>, <code>\structure</code>, <code>\action</code>, <code>\textbf</code>, <code>\textit</code>, <code>\emph</code>, <code>\color</code>, <code>\textcolor</code>, <code>\includegraphics</code>, <code>\frametitle</code> and on the <code>block</code>, <code>itemize</code> and <code>enumerate</code> environments are removed;</li>
+<li><code>\only{…}</code>, <code>\uncover{…}</code> and <code>\visible{…}</code> show their content, and <code>\onslide</code> without arguments is removed.</li>
+</ul>
+<h2 id="emphasis-and-notes"><a class="anchor" href="#emphasis-and-notes" aria-hidden="true">#</a>Emphasis and notes</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\alert{…}</code></td>
+<td>Red text (<code>#B3261E</code>)</td>
+</tr>
+<tr>
+<td><code>\structure{…}</code></td>
+<td>Bold</td>
+</tr>
+<tr>
+<td><code>\note{…}</code>, <code>\note[item]{…}</code></td>
+<td>Removed</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="themes"><a class="anchor" href="#themes" aria-hidden="true">#</a>Themes</h2>
+<p><code>\usetheme</code>, <code>\usecolortheme</code>, <code>\usefonttheme</code>, <code>\setbeamertemplate</code>, <code>\setbeamercolor</code> and the like belong in the preamble, where they are ignored. The look of the slides comes from <code>hatex.css</code> and its <a href="theming.html">variables</a>. Written in the body, these commands would degrade to their argument text.</p>
+<h2 id="aspect-ratio"><a class="anchor" href="#aspect-ratio" aria-hidden="true">#</a>Aspect ratio</h2>
+<p><code>\documentclass[aspectratio=…]{beamer}</code> accepts all of beamer&#39;s values, and any <code>W:H</code>:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th><code>aspectratio=</code></th>
+<th>Ratio</th>
+<th>Slide size</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>43</code> (default)</td>
+<td>4:3</td>
+<td>768 × 576</td>
+</tr>
+<tr>
+<td><code>169</code></td>
+<td>16:9</td>
+<td>960 × 540</td>
+</tr>
+<tr>
+<td><code>1610</code></td>
+<td>16:10</td>
+<td>960 × 600</td>
+</tr>
+<tr>
+<td><code>149</code></td>
+<td>14:9</td>
+<td>840 × 540</td>
+</tr>
+<tr>
+<td><code>141</code></td>
+<td>1.41:1 (A4)</td>
+<td>891 × 630</td>
+</tr>
+<tr>
+<td><code>54</code></td>
+<td>5:4</td>
+<td>750 × 600</td>
+</tr>
+<tr>
+<td><code>32</code></td>
+<td>3:2</td>
+<td>810 × 540</td>
+</tr>
+<tr>
+<td><code>219</code></td>
+<td>21:9</td>
+<td>1260 × 540</td>
+</tr>
+<tr>
+<td><code>2013</code></td>
+<td>20:13</td>
+<td>1200 × 780</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>1:1</td>
+<td>576 × 576</td>
+</tr>
+<tr>
+<td><code>W:H</code>, e.g. <code>1:1</code> or <code>4:5</code></td>
+<td>W:H</td>
+<td>558 × W/H wide, 558 tall</td>
+</tr>
+</tbody></table>
+</div>
+<p>The sizes are beamer&#39;s own paper sizes at 6 px per mm, so text keeps the same proportion to the slide as in the PDF: a 4:3 slide has room for less text across than a 16:9 one, just as in beamer.</p>
+<h2 id="sizes-and-scaling"><a class="anchor" href="#sizes-and-scaling" aria-hidden="true">#</a>Sizes and scaling</h2>
+<p>Each slide is laid out at its fixed size in pixels, with 24px body text and 34px titles, and then scaled to the width of its frame on the page. It therefore looks identical at any width, and the sizes in the stylesheet are in slide pixels.</p>
+<ul>
+<li><strong>A slide is never taller than the space it&#39;s shown in:</strong> the nearest scrolling ancestor (for example an editor&#39;s preview pane) or else the window, minus the deck bar and a margin. On a wide screen the slides are narrower than the page, so that a whole slide is always visible.</li>
+<li><strong>Content taller than the slide is shrunk</strong> to fit, down to half size. After that it is cut off at the bottom. Split the frame.</li>
+<li>TikZ pictures are shown 1.8× their TeX size on slides (1.2× elsewhere), so that their labels match the larger slide text.</li>
+</ul>
+<h2 id="footer"><a class="anchor" href="#footer" aria-hidden="true">#</a>Footer</h2>
+<p>Each slide except the title page and <code>plain</code> frames has a footer with three parts: the author (short form if given), the title (short form if given), and the slide number as <code>3 / 12</code>.</p>
+<h2 id="presenting"><a class="anchor" href="#presenting" aria-hidden="true">#</a>Presenting</h2>
+<p>Above the deck is a bar saying &quot;12 slides · double-click one to present from it&quot; and a <strong>Present</strong> button.</p>
+<ul>
+<li><strong>Present</strong> starts at the first slide, and a double-click on a slide starts at that slide.</li>
+<li>The deck goes full screen (if the browser allows it) and shows one slide at a time, letterboxed on black, with the mouse cursor hidden.</li>
+</ul>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Key or action</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>→ ↓ Page Down, Space, Enter</td>
+<td>Next slide</td>
+</tr>
+<tr>
+<td>← ↑ Page Up, Backspace</td>
+<td>Previous slide</td>
+</tr>
+<tr>
+<td>Home, End</td>
+<td>First, last slide</td>
+</tr>
+<tr>
+<td>Click in the right two thirds</td>
+<td>Next slide</td>
+</tr>
+<tr>
+<td>Click in the left third</td>
+<td>Previous slide</td>
+</tr>
+<tr>
+<td>Esc, or leaving full screen</td>
+<td>Stop presenting, and scroll to the slide you were on</td>
+</tr>
+</tbody></table>
+</div>
+<p>Links and buttons inside slides still work while presenting.</p>
+<h2 id="styling-slides"><a class="anchor" href="#styling-slides" aria-hidden="true">#</a>Styling slides</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--hx-slide-bg</code></td>
+<td><code>#fff</code> (dark: <code>#161616</code>)</td>
+<td>Slide background</td>
+</tr>
+<tr>
+<td><code>--hx-ink</code></td>
+<td></td>
+<td>Slide text, titles</td>
+</tr>
+<tr>
+<td><code>--hx-muted</code></td>
+<td></td>
+<td>Subtitles, footer, institute and date</td>
+</tr>
+<tr>
+<td><code>--hx-danger</code></td>
+<td><code>#b3261e</code></td>
+<td><code>alertblock</code> title</td>
+</tr>
+<tr>
+<td><code>--hx-example</code></td>
+<td><code>#2e7d32</code></td>
+<td><code>exampleblock</code> title</td>
+</tr>
+<tr>
+<td><code>--hx-font-heading</code></td>
+<td>the body font</td>
+<td>Slide titles and title page</td>
+</tr>
+</tbody></table>
+</div>
+<p>For anything else, style the classes listed in <a href="html-output.html#slides">The HTML output</a>, remembering that sizes inside <code>.hatex-slide</code> are in slide pixels.</p>
+<hr>
+<p>Previous: <a href="columns.html">Two columns and multicols</a> · <a href="index.html">Contents</a> · Next: <a href="vertical-chinese.html">Vertical Chinese</a></p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="columns.html"><small>Previous</small>Two columns and multicols</a>
+      <a class="next" href="vertical-chinese.html"><small>Next</small>Vertical Chinese (古籍)</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/slides.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

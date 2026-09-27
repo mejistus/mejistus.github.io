@@ -1,0 +1,161 @@
+<!doctype html>
+<!-- Built from docs/manual/figures.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Figures and images · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li class="here"><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="figures-and-images"><a class="anchor" href="#figures-and-images" aria-hidden="true">#</a>Figures and images</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#images">Images</a></li><li><a href="#figures">Figures</a></li><li><a href="#sub-figures">Sub-figures</a></li><li><a href="#minipages">Minipages</a></li><li><a href="#floats-in-slides-and-columns">Floats in slides and columns</a></li></ul></nav>
+<h2 id="images"><a class="anchor" href="#images" aria-hidden="true">#</a>Images</h2>
+<pre><code class="language-latex">\includegraphics[width=0.6\linewidth]{assets/plot.png}</code></pre>
+<p><code>\includegraphics</code> becomes an <code>&lt;img&gt;</code> with <code>loading=&quot;lazy&quot;</code>, and its <code>alt</code> text is the file name. The options are:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>width=0.6\linewidth</code> (also <code>\textwidth</code>, <code>\columnwidth</code>, <code>\hsize</code>)</td>
+<td><code>width: 60%</code> of the containing block</td>
+</tr>
+<tr>
+<td><code>width=5cm</code> (<code>cm</code>, <code>mm</code>, <code>in</code>, <code>pt</code>, <code>em</code>, <code>px</code>)</td>
+<td>That width</td>
+</tr>
+<tr>
+<td><code>height=3cm</code></td>
+<td>That height</td>
+</tr>
+<tr>
+<td><code>scale=0.5</code></td>
+<td><code>width: 50%</code>, if there is no <code>width</code>. The largest is 100%.</td>
+</tr>
+<tr>
+<td>Anything else (<code>angle</code>, <code>trim</code>, <code>clip</code>, <code>keepaspectratio</code>, <code>page</code>)</td>
+<td>Ignored</td>
+</tr>
+</tbody></table>
+</div>
+<p>Without options, an image is shown at its natural size, but never wider than its container.</p>
+<p><strong>Paths are relative to the page, not to the <code>.tex</code> file.</strong> hatex doesn&#39;t know where the source came from. If the page is <code>/posts/a.html</code> and it fetches <code>/posts/src/a.tex</code>, then <code>\includegraphics{fig.png}</code> loads <code>/posts/fig.png</code>. Absolute URLs (<code>https://…</code>) and <code>data:</code> URIs work too.</p>
+<p><strong>Write the file extension.</strong> <code>\includegraphics{plot}</code> requests a file called <code>plot</code>, because a browser can&#39;t try <code>.pdf</code>, <code>.png</code> and <code>.jpg</code> in turn as LaTeX does. PDF images don&#39;t display in <code>&lt;img&gt;</code>, so convert them to SVG or PNG.</p>
+<p><code>HaTeX.images(source)</code> lists the local image paths in a source, so a build step can check that they exist; see <a href="checking.html#images">Checking sources</a>.</p>
+<p>Clicking an image opens it full-size in an overlay, and a click or Esc closes it. The <code>zoom: false</code> <a href="api.html#options">option</a> turns this off.</p>
+<h2 id="figures"><a class="anchor" href="#figures" aria-hidden="true">#</a>Figures</h2>
+<pre><code class="language-latex">\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.6\linewidth]{assets/plot.png}
+  \caption{Training loss.}\label{fig:loss}
+\end{figure}</code></pre>
+<ul>
+<li>A float becomes a <code>&lt;figure&gt;</code> with centred content, and its caption becomes a <code>&lt;figcaption&gt;</code>.</li>
+<li><strong>It is numbered only if it has a <code>\caption</code>.</strong> Figures, tables and algorithms each have their own counter (&quot;Figure 1&quot;, &quot;Table 1&quot;, &quot;Algorithm 1&quot;).</li>
+<li>The caption appears where you wrote it, above or below the content.</li>
+<li><code>\caption[short]{…}</code> and <code>\caption*{…}</code> are accepted; both show the long caption with a number.</li>
+<li><code>\label</code> inside the float, before or after the caption, makes the float the target of <code>\ref</code>.</li>
+<li>The placement (<code>[htbp]</code>, <code>[H]</code>) is dropped. Floats stay exactly where they are in the source: a web page has no pages to float them to.</li>
+<li><code>wrapfigure</code> (with its <code>{r}{0.4\textwidth}</code> arguments) is rendered as an ordinary figure. Text doesn&#39;t flow around it.</li>
+<li><code>figure*</code> is the same as <code>figure</code>, except that in a <a href="columns.html">two-column layout</a> it spans both columns.</li>
+</ul>
+<p>A figure can hold anything: images, <a href="tikz.html">TikZ pictures</a>, tables, code, several of them side by side.</p>
+<h2 id="sub-figures"><a class="anchor" href="#sub-figures" aria-hidden="true">#</a>Sub-figures</h2>
+<pre><code class="language-latex">\begin{figure}
+  \centering
+  \begin{subfigure}[b]{0.45\linewidth}
+    \includegraphics[width=\linewidth]{a.png}
+    \caption{Before}\label{fig:before}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.45\linewidth}
+    \includegraphics[width=\linewidth]{b.png}
+    \caption{After}\label{fig:after}
+  \end{subfigure}
+  \caption{Before and after.}\label{fig:both}
+\end{figure}</code></pre>
+<ul>
+<li><code>subfigure</code> and <code>subtable</code> get the captions (a), (b), (c), … in order within their float.</li>
+<li><code>\ref{fig:after}</code> gives &quot;1b&quot;, and <code>\ref{fig:both}</code> gives &quot;1&quot;. <code>\autoref{fig:after}</code> gives &quot;Figure 1b&quot;.</li>
+<li>The width argument sets the sub-figure&#39;s width, e.g. <code>0.45\linewidth</code> gives 45%. The position option (<code>[b]</code>, <code>[t]</code>) is dropped, and sub-figures are aligned at the top.</li>
+<li>Sub-figures sit side by side while they fit, and wrap otherwise. <code>\hfill</code> and <code>\quad</code> between them are dropped. The space between them is fixed by the stylesheet.</li>
+</ul>
+<h2 id="minipages"><a class="anchor" href="#minipages" aria-hidden="true">#</a>Minipages</h2>
+<pre><code class="language-latex">\begin{figure}
+  \begin{minipage}{0.48\linewidth}
+    \includegraphics[width=\linewidth]{a.png}
+    \caption{First}\label{fig:first}
+  \end{minipage}\hfill
+  \begin{minipage}{0.48\linewidth}
+    \includegraphics[width=\linewidth]{b.png}
+    \caption{Second}\label{fig:second}
+  \end{minipage}
+\end{figure}</code></pre>
+<ul>
+<li>A <strong>captioned <code>minipage</code> inside a float</strong> is a float of its own, as in LaTeX: the example gives &quot;Figure 1&quot; and &quot;Figure 2&quot; side by side. The outer figure needs no caption.</li>
+<li>A <code>minipage</code> <strong>without a caption</strong>, inside or outside a float, is just a box of the given width. Two minipages side by side are an easy way to put an image next to a table.</li>
+<li>Widths are read as for sub-figures: <code>0.48\linewidth</code> gives 48%, <code>5cm</code> gives 5cm.</li>
+</ul>
+<h2 id="floats-in-slides-and-columns"><a class="anchor" href="#floats-in-slides-and-columns" aria-hidden="true">#</a>Floats in slides and columns</h2>
+<p>In <a href="slides.html">slides</a>, floats have smaller margins and captions, and their content is scaled with the slide. In <a href="columns.html">two columns</a>, a <code>figure</code> stays in its column and its pictures shrink to the column width, while <code>figure*</code> spans the page.</p>
+<hr>
+<p>Previous: <a href="tables.html">Tables</a> · <a href="index.html">Contents</a> · Next: <a href="tikz.html">TikZ</a></p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="tables.html"><small>Previous</small>Tables</a>
+      <a class="next" href="tikz.html"><small>Next</small>TikZ</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/figures.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

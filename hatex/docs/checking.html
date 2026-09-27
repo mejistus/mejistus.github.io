@@ -1,0 +1,203 @@
+<!doctype html>
+<!-- Built from docs/manual/checking.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checking sources · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li class="here"><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="checking-sources"><a class="anchor" href="#checking-sources" aria-hidden="true">#</a>Checking sources</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#the-checks">The checks</a></li><li><a href="#what-lint-doesnt-check">What lint doesn&#39;t check</a></li><li><a href="#images">Images</a></li><li><a href="#using-lint-in-a-build">Using lint in a build</a></li></ul></nav>
+<p>hatex never fails on a bad source; it renders what it can. That is convenient for readers, but it means that mistakes don&#39;t announce themselves. <code>HaTeX.lint</code> finds the structural ones before they reach a page.</p>
+<pre><code class="language-js">const problems = HaTeX.lint(source);
+// [{ line: 12, severity: 'error', message: '\\begin{itemize} is never closed' }, …]</code></pre>
+<p>It needs no DOM and no KaTeX, so it runs in an editor, in a build step, or in a pre-commit hook. It ignores comments and the contents of <code>verbatim</code>, <code>lstlisting</code>, <code>minted</code>, <code>\verb</code> and <code>\lstinline</code>, and line numbers stay correct.</p>
+<h2 id="the-checks"><a class="anchor" href="#the-checks" aria-hidden="true">#</a>The checks</h2>
+<h3 id="errors"><a class="anchor" href="#errors" aria-hidden="true">#</a>Errors</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Message</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\end{X} without \begin{X}</code></td>
+<td>An <code>\end</code> with nothing open</td>
+</tr>
+<tr>
+<td><code>\end{X} closes \begin{Y} (line n)</code></td>
+<td>Environments closed in the wrong order, or a typo in a name</td>
+</tr>
+<tr>
+<td><code>\begin{X} is never closed</code></td>
+<td>A missing <code>\end</code></td>
+</tr>
+<tr>
+<td><code>Unmatched &quot;}&quot;</code></td>
+<td>One <code>}</code> too many</td>
+</tr>
+<tr>
+<td><code>Unclosed &quot;{&quot;</code></td>
+<td>A missing <code>}</code>. At most three are reported.</td>
+</tr>
+<tr>
+<td><code>Unclosed $ math</code>, <code>Unclosed $$ math</code>, <code>Unclosed \[ … \]</code></td>
+<td>Maths that never ends; everything after it would be read as maths</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="warnings"><a class="anchor" href="#warnings" aria-hidden="true">#</a>Warnings</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Message</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Duplicate \label{key} (first on line n)</code></td>
+<td>Two labels with the same key; references go to the first one</td>
+</tr>
+<tr>
+<td><code>Reference to unknown label &quot;key&quot;</code></td>
+<td><code>\ref</code>, <code>\eqref</code>, <code>\autoref</code>, <code>\cref</code>, <code>\Cref</code>, <code>\pageref</code> or <code>\nameref</code> to a key that has no <code>\label</code>; it would show <code>??</code></td>
+</tr>
+<tr>
+<td><code>Citation &quot;key&quot; has no \bibitem</code></td>
+<td>A <code>\cite</code> (or <code>\citep</code>, <code>\citet</code>, <code>\parencite</code>, <code>\textcite</code>, <code>\autocite</code>) key missing from <code>thebibliography</code></td>
+</tr>
+<tr>
+<td><code>Citation &quot;key&quot; but the post has no thebibliography</code></td>
+<td>Citations without any bibliography</td>
+</tr>
+<tr>
+<td><code>TikZ can&#39;t typeset &quot;字&quot;: pictures are compiled by plain TeX, so labels must be ASCII</code></td>
+<td>A non-ASCII character in a <code>tikzpicture</code> or <code>tikzcd</code>; the picture would fail to compile</td>
+</tr>
+<tr>
+<td><code>Row has n cells, but the table has m columns</code></td>
+<td>A tabular row with the wrong number of <code>&amp;</code>. <code>\multicolumn{k}</code> counts as <code>k</code> cells, and rule-only rows are skipped.</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="front-matter"><a class="anchor" href="#front-matter" aria-hidden="true">#</a>Front matter</h3>
+<p>With <code>{ frontMatter: true }</code>, lint also checks the <code>% ---</code> block at the top of the source (<a href="documents.html#comments-and-front-matter">Comments and front matter</a>):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Message</th>
+<th>Cause</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>No front matter: add a &quot;% ---&quot; block with title, date and tag</code></td>
+<td>The source doesn&#39;t start with the block</td>
+</tr>
+<tr>
+<td><code>Front matter has no title</code></td>
+<td>No <code>title:</code> line</td>
+</tr>
+<tr>
+<td><code>Front matter has no date</code></td>
+<td>No <code>date:</code> line</td>
+</tr>
+<tr>
+<td><code>Date &quot;…&quot; is not YYYY-MM-DD</code></td>
+<td>The date isn&#39;t in the form <code>2024-05-01</code> (or <code>2024/5/1</code>)</td>
+</tr>
+<tr>
+<td><code>Front matter has no tag (it decides the folder)</code></td>
+<td>No <code>tag:</code> line</td>
+</tr>
+</tbody></table>
+</div>
+<p>These checks come from the blog that hatex was taken from, where the tag decides the folder a post goes into. They are off by default.</p>
+<h2 id="what-lint-doesnt-check"><a class="anchor" href="#what-lint-doesnt-check" aria-hidden="true">#</a>What lint doesn&#39;t check</h2>
+<ul>
+<li>KaTeX syntax inside maths: an unknown command in <code>$…$</code> is reported by KaTeX in red in the output, not by lint.</li>
+<li>TikZ syntax other than non-ASCII text: use the <code>tikzErrors</code> option while writing (<a href="tikz.html#errors">TikZ errors</a>).</li>
+<li>Commands that hatex doesn&#39;t support, which degrade to their text: read the output.</li>
+<li>Whether image files exist: use <code>HaTeX.images</code> (below).</li>
+</ul>
+<h2 id="images"><a class="anchor" href="#images" aria-hidden="true">#</a>Images</h2>
+<pre><code class="language-js">HaTeX.images(source);   // → [{ path: 'assets/plot.png', line: 14 }, …]</code></pre>
+<p>This lists the path of every <code>\includegraphics</code> in the source, except <code>http(s):</code> and <code>data:</code> URLs and those in comments or verbatim blocks. Since paths are relative to the page (<a href="figures.html#images">Images</a>), resolve them against the page&#39;s location before checking:</p>
+<pre><code class="language-js">import { existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+
+for (const { path, line } of HaTeX.images(source)) {
+  if (!existsSync(join(dirname(pagePath), path))) console.warn(`line ${line}: missing image ${path}`);
+}</code></pre>
+<h2 id="using-lint-in-a-build"><a class="anchor" href="#using-lint-in-a-build" aria-hidden="true">#</a>Using lint in a build</h2>
+<pre><code class="language-js">import { readFileSync } from 'node:fs';
+import HaTeX from 'hatex';
+
+let failed = false;
+for (const file of process.argv.slice(2)) {
+  for (const p of HaTeX.lint(readFileSync(file, 'utf8'))) {
+    console.log(`${file}:${p.line}: ${p.severity}: ${p.message}`);
+    if (p.severity === 'error') failed = true;
+  }
+}
+process.exit(failed ? 1 : 0);</code></pre>
+<p>The <code>file:line: severity: message</code> format is understood by most editors and CI annotators.</p>
+<hr>
+<p>Previous: <a href="node.html">Node, bundlers and static sites</a> · <a href="index.html">Contents</a> · Next: <a href="troubleshooting.html">Limitations and troubleshooting</a></p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="node.html"><small>Previous</small>Node, bundlers and static sites</a>
+      <a class="next" href="troubleshooting.html"><small>Next</small>Limitations and troubleshooting</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/checking.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,512 @@
+<!doctype html>
+<!-- Built from docs/manual/documents.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How hatex reads a document · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li class="here"><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="how-hatex-reads-a-document"><a class="anchor" href="#how-hatex-reads-a-document" aria-hidden="true">#</a>How hatex reads a document</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#the-rule-for-unknown-input">The rule for unknown input</a></li><li><a href="#the-preamble">The preamble</a></li><li><a href="#comments-and-front-matter">Comments and front matter</a></li><li><a href="#paragraphs-and-line-breaks">Paragraphs and line breaks</a></li><li><a href="#headings">Headings</a></li><li><a href="#the-abstract">The abstract</a></li><li><a href="#title-author-and-date">Title, author and date</a></li><li><a href="#text-formatting">Text formatting</a></li><li><a href="#lists">Lists</a></li><li><a href="#quotes-and-alignment">Quotes and alignment</a></li><li><a href="#macros">Macros</a></li><li><a href="#chinese-documents">Chinese documents</a></li><li><a href="#ignored-commands">Ignored commands</a></li></ul></nav>
+<p>This chapter covers the parts of LaTeX that every document uses: the preamble, comments, paragraphs, headings, text formatting and lists. Later chapters cover maths, tables, figures and the rest.</p>
+<h2 id="the-rule-for-unknown-input"><a class="anchor" href="#the-rule-for-unknown-input" aria-hidden="true">#</a>The rule for unknown input</h2>
+<p>hatex implements the subset of LaTeX that articles and blog posts use. It is not a TeX engine, and it never stops on input it doesn&#39;t understand:</p>
+<ul>
+<li>An <strong>unknown command</strong> keeps the text of the <code>{…}</code> groups directly after it and drops a leading <code>[…]</code>. <code>\foo[x]{bar}{baz}</code> becomes <code>barbaz</code>, and <code>\foo</code> alone becomes nothing.</li>
+<li>An <strong>unknown environment</strong> renders its content as if the <code>\begin</code> and <code>\end</code> weren&#39;t there.</li>
+<li>A small set of layout and preamble commands are <strong>ignored</strong> together with their arguments, so that nothing leaks into the text. They are listed <a href="#ignored-commands">at the end of this chapter</a>.</li>
+</ul>
+<p>When something looks wrong, the most likely cause is a command in the first group: it degraded to its argument text. <a href="checking.html">Checking sources</a> catches the structural mistakes (unbalanced braces, unclosed environments and so on).</p>
+<h2 id="the-preamble"><a class="anchor" href="#the-preamble" aria-hidden="true">#</a>The preamble</h2>
+<p>If the source contains <code>\begin{document}</code>, only the text between it and <code>\end{document}</code> is rendered. The part before it is read for definitions only:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Read from the preamble</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\newcommand</code>, <code>\renewcommand</code>, <code>\providecommand</code>, <code>\def</code></td>
+<td>User macros, in text and maths (<a href="#macros">below</a>)</td>
+</tr>
+<tr>
+<td><code>\DeclareMathOperator</code> (and <code>*</code>)</td>
+<td>A maths operator such as <code>\tr</code></td>
+</tr>
+<tr>
+<td><code>\newtheorem</code></td>
+<td>A new theorem-like environment (<a href="theorems.html">Theorems</a>)</td>
+</tr>
+<tr>
+<td><code>\definecolor</code></td>
+<td>A named colour for <code>\textcolor</code> and TikZ</td>
+</tr>
+<tr>
+<td><code>\usetikzlibrary</code>, <code>\tikzset</code>, <code>\pgfplotsset</code>, <code>\usepgfplotslibrary</code>, <code>\tikzstyle</code></td>
+<td>Passed to TikZ pictures (<a href="tikz.html">TikZ</a>)</td>
+</tr>
+<tr>
+<td><code>\documentclass[…]{…}</code></td>
+<td><code>twocolumn</code> switches on <a href="columns.html">two columns</a>, and <code>beamer</code> switches on <a href="slides.html">slides</a></td>
+</tr>
+</tbody></table>
+</div>
+<p>Everything else in the preamble (<code>\usepackage</code>, <code>\geometry</code>, <code>\hypersetup</code>, …) is ignored. Without <code>\begin{document}</code>, the whole source is the body, and definitions can appear anywhere in it.</p>
+<p>The definitions are collected before anything is rendered. A macro defined halfway through the document therefore also works before its definition, which is different from LaTeX.</p>
+<h2 id="comments-and-front-matter"><a class="anchor" href="#comments-and-front-matter" aria-hidden="true">#</a>Comments and front matter</h2>
+<p><code>%</code> starts a comment that runs to the end of the line, and <code>\%</code> is a literal percent sign. Comments are removed before anything else is read, apart from the contents of <code>verbatim</code>, <code>lstlisting</code>, <code>minted</code>, <code>\verb</code> and <code>\lstinline</code>, which are taken out first and kept exactly.</p>
+<p>A block of comment lines between two <code>% ---</code> lines at the top is conventionally used as <strong>front matter</strong>:</p>
+<pre><code class="language-latex">% ---
+% title: Denoising score matching
+% date: 2024-05-01
+% tag: notes
+% ---</code></pre>
+<p>The renderer ignores it, since it&#39;s a comment. Your own code can read it (the <a href="https://github.com/mejistus/hatex/blob/main/examples/node/prerender.mjs" rel="noopener">prerender example</a> takes the page title from it), and <code>HaTeX.lint(source, { frontMatter: true })</code> checks that it is there and complete; see <a href="checking.html#front-matter">Checking sources</a>.</p>
+<h2 id="paragraphs-and-line-breaks"><a class="anchor" href="#paragraphs-and-line-breaks" aria-hidden="true">#</a>Paragraphs and line breaks</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>You write</th>
+<th>You get</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A blank line, or <code>\par</code></td>
+<td>A new paragraph (<code>&lt;p&gt;</code>)</td>
+</tr>
+<tr>
+<td>A single line break</td>
+<td>A space, as in LaTeX</td>
+</tr>
+<tr>
+<td><code>\\</code>, <code>\newline</code>, <code>\linebreak</code></td>
+<td>A line break (<code>&lt;br&gt;</code>). An optional <code>\\[2mm]</code> is dropped.</td>
+</tr>
+<tr>
+<td><code>~</code></td>
+<td>A non-breaking space</td>
+</tr>
+<tr>
+<td><code>\hrule</code>, <code>\rule{w}{h}</code></td>
+<td>A horizontal rule (<code>&lt;hr&gt;</code>)</td>
+</tr>
+<tr>
+<td><code>\noindent</code>, <code>\indent</code>, <code>\centering</code>, <code>\raggedright</code>, …</td>
+<td>Nothing: web paragraphs aren&#39;t indented</td>
+</tr>
+</tbody></table>
+</div>
+<p>A paragraph made only of block elements (a table, a picture, a figure) is emitted without a <code>&lt;p&gt;</code> around it. Layout glue between blocks (<code>\hfill</code>, <code>\quad</code>, <code>\hspace{…}</code>, <code>~</code>, <code>\\</code>) is dropped, so two <code>minipage</code>s separated by <code>\hfill</code> simply sit side by side.</p>
+<h2 id="headings"><a class="anchor" href="#headings" aria-hidden="true">#</a>Headings</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Element</th>
+<th>Numbering</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\part{…}</code>, <code>\chapter{…}</code></td>
+<td><code>&lt;h2&gt;</code></td>
+<td>Never numbered</td>
+</tr>
+<tr>
+<td><code>\section{…}</code></td>
+<td><code>&lt;h2&gt;</code></td>
+<td>1, 2, 3, …</td>
+</tr>
+<tr>
+<td><code>\subsection{…}</code></td>
+<td><code>&lt;h3&gt;</code></td>
+<td>1.1, 1.2, …</td>
+</tr>
+<tr>
+<td><code>\subsubsection{…}</code></td>
+<td><code>&lt;h4&gt;</code></td>
+<td>1.1.1, …</td>
+</tr>
+<tr>
+<td><code>\paragraph{…}</code>, <code>\subparagraph{…}</code></td>
+<td>A bold run-in heading at the start of the paragraph</td>
+<td>Never numbered</td>
+</tr>
+</tbody></table>
+</div>
+<ul>
+<li>The starred forms (<code>\section*{…}</code>) are not numbered and don&#39;t advance the counters.</li>
+<li>The optional short title (<code>\section[Short]{Long title}</code>) is accepted and dropped: there is no table of contents in articles.</li>
+<li>A <code>\label{…}</code> right after the heading gives the heading an <code>id</code>, and <code>\ref</code> then shows its number (<a href="references.html">References</a>).</li>
+<li>The number is in a <code>&lt;span class=&quot;latex-secnum&quot;&gt;</code> before the title, so it can be styled separately.</li>
+<li><code>\appendix</code> is ignored: sections after it keep counting with numbers, not letters.</li>
+</ul>
+<h2 id="the-abstract"><a class="anchor" href="#the-abstract" aria-hidden="true">#</a>The abstract</h2>
+<pre><code class="language-latex">\begin{abstract}
+We show that …
+\end{abstract}</code></pre>
+<p>This becomes a centred block titled &quot;Abstract&quot; (摘要 in a Chinese document). In a <a href="columns.html">two-column document</a> it spans both columns.</p>
+<h2 id="title-author-and-date"><a class="anchor" href="#title-author-and-date" aria-hidden="true">#</a>Title, author and date</h2>
+<p>In an article, <code>\title</code>, <code>\author</code>, <code>\date</code>, <code>\thanks</code> and <code>\maketitle</code> produce nothing. The page around the output usually has its own title, so put the title block in your HTML. In a <a href="slides.html">beamer document</a>, these commands fill the title page.</p>
+<h2 id="text-formatting"><a class="anchor" href="#text-formatting" aria-hidden="true">#</a>Text formatting</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Declaration form</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\textbf{…}</code></td>
+<td><code>\bfseries</code>, <code>\bf</code></td>
+<td>Bold (<code>&lt;strong&gt;</code>)</td>
+</tr>
+<tr>
+<td><code>\emph{…}</code>, <code>\textit{…}</code>, <code>\textsl{…}</code></td>
+<td><code>\itshape</code>, <code>\it</code>, <code>\em</code>, <code>\slshape</code>, <code>\sl</code></td>
+<td>Italic (<code>&lt;em&gt;</code>)</td>
+</tr>
+<tr>
+<td><code>\underline{…}</code>, <code>\uline{…}</code></td>
+<td></td>
+<td>Underline (<code>&lt;u&gt;</code>)</td>
+</tr>
+<tr>
+<td><code>\texttt{…}</code></td>
+<td><code>\ttfamily</code>, <code>\tt</code></td>
+<td>Monospace (<code>&lt;code class=&quot;latex-tt&quot;&gt;</code>)</td>
+</tr>
+<tr>
+<td><code>\textsc{…}</code></td>
+<td><code>\scshape</code>, <code>\sc</code></td>
+<td>Small caps</td>
+</tr>
+<tr>
+<td><code>\textsf{…}</code></td>
+<td><code>\sffamily</code>, <code>\sf</code></td>
+<td>Sans serif</td>
+</tr>
+<tr>
+<td><code>\sout{…}</code>, <code>\st{…}</code></td>
+<td></td>
+<td>Strike-through (<code>&lt;s&gt;</code>)</td>
+</tr>
+<tr>
+<td><code>\hl{…}</code></td>
+<td></td>
+<td>Highlight (<code>&lt;mark&gt;</code>)</td>
+</tr>
+<tr>
+<td><code>\textsuperscript{…}</code>, <code>\textsubscript{…}</code></td>
+<td></td>
+<td><code>&lt;sup&gt;</code>, <code>&lt;sub&gt;</code></td>
+</tr>
+<tr>
+<td><code>\fbox{…}</code></td>
+<td></td>
+<td>A thin frame</td>
+</tr>
+<tr>
+<td><code>\textrm</code>, <code>\textup</code>, <code>\textmd</code>, <code>\textnormal</code>, <code>\mbox</code>, <code>\hbox</code>, <code>\text</code></td>
+<td><code>\rmfamily</code>, <code>\upshape</code>, <code>\mdseries</code>, <code>\normalfont</code>, <code>\rm</code></td>
+<td>Just the text</td>
+</tr>
+</tbody></table>
+</div>
+<p>A declaration applies to the rest of its group: <code>{\bfseries bold} normal</code>. The nesting is kept, but an &quot;upright inside italic&quot; declaration can&#39;t undo an outer <code>\emph</code>; it&#39;s just text.</p>
+<h3 id="sizes"><a class="anchor" href="#sizes" aria-hidden="true">#</a>Sizes</h3>
+<p><code>\tiny</code>, <code>\scriptsize</code>, <code>\footnotesize</code>, <code>\small</code>, <code>\normalsize</code>, <code>\large</code>, <code>\Large</code>, <code>\LARGE</code>, <code>\huge</code> and <code>\Huge</code> apply to the rest of their group. They are relative (<code>0.6em</code> up to <code>2.49em</code>), so they scale with the surrounding text.</p>
+<h3 id="colour"><a class="anchor" href="#colour" aria-hidden="true">#</a>Colour</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\textcolor{red}{…}</code>, <code>\textcolor[HTML]{3AA35B}{…}</code></td>
+<td>Coloured text</td>
+</tr>
+<tr>
+<td><code>{\color{blue} …}</code></td>
+<td>Colours the rest of the group</td>
+</tr>
+<tr>
+<td><code>\colorbox{yellow!30}{…}</code></td>
+<td>Text on a coloured background</td>
+</tr>
+<tr>
+<td><code>\definecolor{brand}{HTML}{3AA35B}</code></td>
+<td>Defines a name; also available as <code>rgb</code> (0–1) and <code>RGB</code> (0–255) models</td>
+</tr>
+</tbody></table>
+</div>
+<p>A colour can be:</p>
+<ul>
+<li>a name you defined with <code>\definecolor</code>;</li>
+<li>any CSS colour name (<code>red</code>, <code>teal</code>, <code>orange</code>, …);</li>
+<li>an xcolor tint such as <code>red!60</code>, meaning 60% red and 40% white. Only the first mix is used, so <code>red!60!blue</code> is read as <code>red!60</code>.</li>
+</ul>
+<p>Anything else becomes <code>inherit</code>, i.e. no colour.</p>
+<p>In <a href="theming.html#dark-mode">dark mode</a>, <code>\textcolor</code> colours are lifted towards white so that they stay readable, and text on a <code>\colorbox</code>, <code>\hl</code>, <code>\rowcolor</code> or <code>\cellcolor</code> background turns dark.</p>
+<h3 id="links"><a class="anchor" href="#links" aria-hidden="true">#</a>Links</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\href{https://example.com}{text}</code></td>
+<td>A link</td>
+</tr>
+<tr>
+<td><code>\url{https://example.com}</code></td>
+<td>A link that shows the URL in monospace</td>
+</tr>
+</tbody></table>
+</div>
+<p>Only <code>http:</code>, <code>https:</code>, <code>mailto:</code>, <code>tel:</code>, in-page <code>#…</code> and relative URLs are allowed. Anything else, such as <code>javascript:</code>, becomes <code>#</code>. Escaped characters (<code>\#</code>, <code>\%</code>, <code>\&amp;</code>, <code>\_</code>, <code>\~</code>, <code>\$</code>) in the URL are unescaped.</p>
+<h3 id="punctuation-symbols-and-accents"><a class="anchor" href="#punctuation-symbols-and-accents" aria-hidden="true">#</a>Punctuation, symbols and accents</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>You write</th>
+<th>You get</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>``quoted&#39;&#39;</code>, <code>`single&#39;</code></td>
+<td>“quoted”, ‘single’</td>
+</tr>
+<tr>
+<td><code>--</code>, <code>---</code></td>
+<td>– (en dash), — (em dash)</td>
+</tr>
+<tr>
+<td><code>\ldots</code>, <code>\dots</code></td>
+<td>…</td>
+</tr>
+<tr>
+<td><code>\,</code> <code>\;</code> <code>\:</code> <code>\!</code></td>
+<td>Thin space, en space, en space, nothing</td>
+</tr>
+<tr>
+<td><code>\%</code> <code>\$</code> <code>\#</code> <code>\_</code> <code>\&amp;</code> <code>\{</code> <code>\}</code></td>
+<td>The character itself</td>
+</tr>
+<tr>
+<td><code>\S</code> <code>\P</code> <code>\dag</code> <code>\ddag</code> <code>\copyright</code> <code>\textregistered</code> <code>\texttrademark</code></td>
+<td>§ ¶ † ‡ © ® ™</td>
+</tr>
+<tr>
+<td><code>\pounds</code> <code>\euro</code> <code>\textdegree</code> <code>\textbullet</code> <code>\textperiodcentered</code></td>
+<td>£ € ° • ·</td>
+</tr>
+<tr>
+<td><code>\textbackslash</code> <code>\textasciitilde</code> <code>\textasciicircum</code> <code>\textbar</code> <code>\textless</code> <code>\textgreater</code></td>
+<td>\ ~ ^ | &lt; &gt;</td>
+</tr>
+<tr>
+<td><code>\quad</code>, <code>\qquad</code>, <code>\enspace</code>, <code>\thinspace</code></td>
+<td>Horizontal spaces</td>
+</tr>
+<tr>
+<td><code>\TeX</code>, <code>\LaTeX</code>, <code>\LaTeXe</code>, <code>\XeTeX</code></td>
+<td>The logos, typeset with lowered and raised letters</td>
+</tr>
+<tr>
+<td><code>\today</code></td>
+<td>Today&#39;s date, e.g. &quot;September 27, 2026&quot; (or 2026年9月27日 in a Chinese document)</td>
+</tr>
+<tr>
+<td><code>\&#39;e</code> <code>\`a</code> <code>\^o</code> <code>\&quot;u</code> <code>\~n</code> <code>\=a</code> <code>\.z</code> <code>\u{a}</code> <code>\v{s}</code> <code>\H{o}</code> <code>\c{c}</code> <code>\r{a}</code></td>
+<td>é à ô ü ñ ā ż ă š ő ç å</td>
+</tr>
+</tbody></table>
+</div>
+<p>As in TeX, the spaces after a control word are dropped: <code>\ldots and</code> gives &quot;…and&quot;. Write <code>\ldots{} and</code> or <code>\ldots\ and</code> to keep a space.</p>
+<h2 id="lists"><a class="anchor" href="#lists" aria-hidden="true">#</a>Lists</h2>
+<pre><code class="language-latex">\begin{itemize}
+  \item First
+  \item[$\star$] A custom label
+\end{itemize}
+
+\begin{enumerate}
+  \item One
+  \begin{enumerate}
+    \item Nested
+  \end{enumerate}
+\end{enumerate}
+
+\begin{description}
+  \item[Term] Its description.
+\end{description}</code></pre>
+<ul>
+<li><code>itemize</code> becomes <code>&lt;ul&gt;</code>, <code>enumerate</code> becomes <code>&lt;ol&gt;</code> and <code>description</code> becomes <code>&lt;dl&gt;</code>.</li>
+<li>Nested <code>enumerate</code> levels are numbered 1., a., i., A., whatever the options say. <code>enumitem</code> options such as <code>[label=(\alph*)]</code> are ignored.</li>
+<li><code>\item[label]</code> in <code>itemize</code> or <code>enumerate</code> replaces the bullet or number with your label.</li>
+<li>An item that is a single paragraph stays tight (no <code>&lt;p&gt;</code> inside the <code>&lt;li&gt;</code>).</li>
+<li>Lists nest to any depth and can contain maths, tables, code and other blocks.</li>
+</ul>
+<h2 id="quotes-and-alignment"><a class="anchor" href="#quotes-and-alignment" aria-hidden="true">#</a>Quotes and alignment</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>quote</code>, <code>quotation</code>, <code>verse</code></td>
+<td>An indented block quote</td>
+</tr>
+<tr>
+<td><code>center</code></td>
+<td>Centred content</td>
+</tr>
+<tr>
+<td><code>flushright</code></td>
+<td>Right-aligned content (in <a href="vertical-chinese.html">vertical text</a>, the foot of the column)</td>
+</tr>
+<tr>
+<td><code>flushleft</code></td>
+<td>Content as usual</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="macros"><a class="anchor" href="#macros" aria-hidden="true">#</a>Macros</h2>
+<pre><code class="language-latex">\newcommand{\R}{\mathbb{R}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\renewcommand{\vec}[1]{\mathbf{#1}}
+\def\eps{\varepsilon}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator*{\argmax}{arg\,max}</code></pre>
+<ul>
+<li>Macros work in text and in maths. In maths they are handed to KaTeX as macros; in text they are expanded, and the expansion is rendered.</li>
+<li>Up to 9 arguments, <code>#1</code> … <code>#9</code>. An optional default for the first argument (<code>\newcommand{\x}[2][0]{…}</code>) is read but not used: every argument is read as a mandatory one.</li>
+<li><code>\def</code> works for macros without parameters (<code>\def\eps{\varepsilon}</code>). A <code>\def</code> with a parameter text (<code>\def\f#1{…}</code>) is not supported.</li>
+<li><code>\newcommand</code>, <code>\renewcommand</code> and <code>\providecommand</code> are handled alike: the last definition wins.</li>
+<li>Macros that a TikZ picture uses are passed into the picture; see <a href="tikz.html#what-a-picture-can-see">TikZ</a>.</li>
+<li><code>\newenvironment</code> and <code>\renewenvironment</code> are ignored. An environment defined with them therefore renders as its plain content.</li>
+</ul>
+<h2 id="chinese-documents"><a class="anchor" href="#chinese-documents" aria-hidden="true">#</a>Chinese documents</h2>
+<p>If the source contains any CJK character (Chinese, Japanese kana, full-width forms), even in a comment, hatex switches to Chinese labels:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>English</th>
+<th>Chinese</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Figure 1:</td>
+<td>图 1</td>
+</tr>
+<tr>
+<td>Table 1:</td>
+<td>表 1</td>
+</tr>
+<tr>
+<td>Algorithm 1:</td>
+<td>算法 1</td>
+</tr>
+<tr>
+<td>Theorem, Lemma, Corollary, Proposition, Definition, Remark, Example</td>
+<td>定理, 引理, 推论, 命题, 定义, 注, 例</td>
+</tr>
+<tr>
+<td>Proof</td>
+<td>证明</td>
+</tr>
+<tr>
+<td>Abstract</td>
+<td>摘要</td>
+</tr>
+<tr>
+<td>References</td>
+<td>参考文献</td>
+</tr>
+<tr>
+<td>Section, Equation (in <code>\autoref</code>/<code>\cref</code>)</td>
+<td>节, 式</td>
+</tr>
+</tbody></table>
+</div>
+<p>The colon after a caption label and the period after a theorem head are left out in Chinese, following ctex. 证明 keeps its period.</p>
+<p>A line break between two CJK characters produces no space, as with ctex, so you can wrap Chinese text in the source freely. A line break between Chinese and Latin text still produces a space.</p>
+<p>For text set vertically, see <a href="vertical-chinese.html">Vertical Chinese</a>.</p>
+<h2 id="ignored-commands"><a class="anchor" href="#ignored-commands" aria-hidden="true">#</a>Ignored commands</h2>
+<p>These produce nothing, and their arguments are consumed so that they don&#39;t appear in the text:</p>
+<ul>
+<li><strong>Title block:</strong> <code>\title</code>, <code>\author</code>, <code>\date</code>, <code>\thanks</code>, <code>\maketitle</code> (in articles)</li>
+<li><strong>Page layout:</strong> <code>\vspace</code>, <code>\hspace</code>, <code>\newpage</code>, <code>\clearpage</code>, <code>\cleardoublepage</code>, <code>\pagestyle</code>, <code>\thispagestyle</code>, <code>\pagenumbering</code>, <code>\linespread</code>, <code>\bigskip</code>, <code>\medskip</code>, <code>\smallskip</code>, <code>\vfill</code></li>
+<li><strong>Settings:</strong> <code>\setlength</code>, <code>\addtolength</code>, <code>\setcounter</code>, <code>\addtocounter</code>, <code>\stepcounter</code>, <code>\geometry</code>, <code>\hypersetup</code>, <code>\captionsetup</code>, <code>\lstset</code>, <code>\setminted</code>, <code>\graphicspath</code></li>
+<li><strong>Structure:</strong> <code>\tableofcontents</code> (in articles), <code>\appendix</code>, <code>\frontmatter</code>, <code>\mainmatter</code>, <code>\backmatter</code></li>
+<li><strong>Bibliography files:</strong> <code>\bibliographystyle</code>, <code>\bibliography</code>, <code>\addbibresource</code>, <code>\printbibliography</code>, <code>\nocite</code></li>
+<li><strong>Files and packages:</strong> <code>\input</code>, <code>\include</code>, <code>\usepackage</code>, <code>\documentclass</code> (after reading its options)</li>
+<li><strong>Other:</strong> <code>\index</code>, <code>\phantom</code>, <code>\protect</code>, <code>\relax</code>, <code>\newenvironment</code>, <code>\renewenvironment</code></li>
+<li><strong>Float placement:</strong> <code>[htbp]</code>, <code>[H]</code> and similar after <code>\begin{figure}</code> or <code>\begin{table}</code></li>
+</ul>
+<hr>
+<p>Previous: <a href="getting-started.html">Getting started</a> · <a href="index.html">Contents</a> · Next: <a href="maths.html">Maths</a></p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="getting-started.html"><small>Previous</small>Getting started</a>
+      <a class="next" href="maths.html"><small>Next</small>Maths</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/documents.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

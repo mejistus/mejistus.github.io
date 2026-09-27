@@ -1,0 +1,169 @@
+<!doctype html>
+<!-- Built from docs/manual/vertical-chinese.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vertical Chinese (古籍) · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li class="here"><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="vertical-chinese-古籍"><a class="anchor" href="#vertical-chinese-古籍" aria-hidden="true">#</a>Vertical Chinese (古籍)</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#guji-a-manuscript-scroll-page"><code>guji</code>: a manuscript-scroll page</a></li><li><a href="#vertical-vertical-text-only"><code>vertical</code>: vertical text only</a></li><li><a href="#jiazhu-interlinear-notes"><code>\jiazhu</code>: interlinear notes</a></li><li><a href="#styling">Styling</a></li><li><a href="#browser-support">Browser support</a></li></ul></nav>
+<p>hatex can set Chinese text vertically, in the manner of old books: columns read from top to bottom and from right to left, with old-style punctuation and two-line interlinear notes.</p>
+<pre><code class="language-latex">\begin{guji}[20]
+洛陽伽藍記序
+
+\begin{flushright}
+魏撫軍府司馬楊衒之撰
+\end{flushright}
+
+三墳五典之說，\jiazhu{孔安國尚書序：伏犧、神農、黃帝之書，謂之三墳。}九流百代之言，……
+\end{guji}</code></pre>
+<h2 id="guji-a-manuscript-scroll-page"><a class="anchor" href="#guji-a-manuscript-scroll-page" aria-hidden="true">#</a><code>guji</code>: a manuscript-scroll page</h2>
+<p><code>\begin{guji}[n] … \end{guji}</code> sets its content like a manuscript scroll (卷子本):</p>
+<ul>
+<li><strong>Columns</strong> run from right to left, with <code>n</code> characters each (行款). <code>n</code> is 20 if it is left out.</li>
+<li><strong>Rules:</strong> a thin rule between the columns (烏絲欄) and a double frame around the page, along the top and bottom (天頭、地腳).</li>
+<li><strong>Paragraphs</strong> (separated by a blank line) start a new column.</li>
+<li><strong><code>flushright</code></strong> puts its text at the foot of its column, as for an author&#39;s name or a date.</li>
+<li><strong>Scrolling:</strong> when the scroll is wider than the page, it scrolls sideways inside its own box, starting at the right (the beginning).</li>
+</ul>
+<h3 id="punctuation-句讀"><a class="anchor" href="#punctuation-句讀" aria-hidden="true">#</a>Punctuation (句讀)</h3>
+<p>Old books have no modern punctuation. A reader marks the end of a sentence with a small circle beside the character (句) and a pause with a dot (讀). Inside <code>guji</code>, you write modern punctuation as usual and it is shown the old way:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>You write</th>
+<th>Shown as</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>。！？ and <code>.</code> <code>!</code> <code>?</code></td>
+<td>A small circle (句) beside the preceding character</td>
+</tr>
+<tr>
+<td>，、；： and <code>,</code> <code>;</code> <code>:</code></td>
+<td>A dot (讀) beside the preceding character</td>
+</tr>
+<tr>
+<td>「」『』《》〈〉“”‘’·</td>
+<td>Nothing: quotation and title marks are removed</td>
+</tr>
+</tbody></table>
+</div>
+<p>The marks take no room in the column, so each character stays in its place on the grid. The circle and dot are drawn by CSS; the original punctuation stays in the text, invisible, so copying the text still copies it. (Removed quotation marks are really gone.)</p>
+<p>Because every <code>.</code>, <code>,</code>, <code>;</code> and <code>:</code> in a <code>guji</code> becomes a mark, keep maths and Latin text with punctuation out of <code>guji</code>.</p>
+<h2 id="vertical-vertical-text-only"><a class="anchor" href="#vertical-vertical-text-only" aria-hidden="true">#</a><code>vertical</code>: vertical text only</h2>
+<p><code>\begin{vertical}[n] … \end{vertical}</code> uses the same vertical layout and column length, but without the rules, the frame or the punctuation changes. Use it for modern vertical text.</p>
+<h2 id="jiazhu-interlinear-notes"><a class="anchor" href="#jiazhu-interlinear-notes" aria-hidden="true">#</a><code>\jiazhu</code>: interlinear notes</h2>
+<p><code>\jiazhu{…}</code> sets a note in two small lines inside one line of text (雙行小字夾注), as commentaries do in old editions. The command name comes from the CTAN <code>jiazhu</code> package.</p>
+<ul>
+<li>The note is half the size of the text, and its box is as long as half its characters, so two lines of note fill the space of one line of text.</li>
+<li><strong>In <code>guji</code>,</strong> a note that doesn&#39;t fit in what is left of its column continues at the top of the next column, as in printed books, instead of leaving a gap. The runtime splits the note into pieces that each fit, and redoes this whenever the layout changes.</li>
+<li><code>\jiazhu</code> also works in ordinary horizontal text, where the two lines sit inside the line of text.</li>
+</ul>
+<h2 id="styling"><a class="anchor" href="#styling" aria-hidden="true">#</a>Styling</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>--hx-font-guji</code></td>
+<td>Songti TC, Noto Serif CJK TC, Source Han Serif TC, Songti SC, …</td>
+<td>The typeface of <code>guji</code> and <code>vertical</code>. A traditional-Chinese Song (Ming) face suits old texts.</td>
+</tr>
+<tr>
+<td><code>--hx-guji-paper</code></td>
+<td>transparent</td>
+<td>The paper colour of <code>guji</code></td>
+</tr>
+<tr>
+<td><code>--hx-guji-rule</code></td>
+<td>the ink colour at 45%</td>
+<td>The colour of the rules between columns</td>
+</tr>
+<tr>
+<td><code>--hx-judou</code></td>
+<td>the ink colour</td>
+<td>The colour of the 句讀 marks. Set it to a red, such as <code>#c0392b</code>, for 朱筆圈點.</td>
+</tr>
+<tr>
+<td><code>--hx-guji-pitch</code></td>
+<td><code>1.9em</code></td>
+<td>The distance between columns</td>
+</tr>
+<tr>
+<td><code>--hx-guji-chars</code></td>
+<td>20</td>
+<td>Characters per column. Normally set with <code>[n]</code> in the source.</td>
+</tr>
+</tbody></table>
+</div>
+<p>The first four can be set anywhere on or above the <code>.hatex</code> element. <code>--hx-guji-pitch</code> and <code>--hx-guji-chars</code> are set on the <code>guji</code> element itself, so a page must override them there:</p>
+<pre><code class="language-css">.hatex { --hx-judou: #c0392b; --hx-guji-paper: #f7f0e1; }
+.hatex .hatex-guji, .hatex .hatex-vertical { --hx-guji-pitch: 2.2em; }</code></pre>
+<p>The text is <code>1.3rem</code> in size.</p>
+<h2 id="browser-support"><a class="anchor" href="#browser-support" aria-hidden="true">#</a>Browser support</h2>
+<p>Vertical text uses CSS <code>writing-mode: vertical-rl</code>, which all current browsers support. The rules are a background gradient, which lines up with the columns as long as the font gives every character a full em square, as CJK fonts do.</p>
+<hr>
+<p>Previous: <a href="slides.html">Slides</a> · <a href="index.html">Contents</a> · Next: <a href="api.html">JavaScript API</a></p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="slides.html"><small>Previous</small>Slides</a>
+      <a class="next" href="api.html"><small>Next</small>JavaScript API</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/vertical-chinese.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

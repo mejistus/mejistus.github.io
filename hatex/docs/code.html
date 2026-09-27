@@ -1,0 +1,153 @@
+<!doctype html>
+<!-- Built from docs/manual/code.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li class="here"><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="code"><a class="anchor" href="#code" aria-hidden="true">#</a>Code</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#code-blocks">Code blocks</a></li><li><a href="#inline-code">Inline code</a></li><li><a href="#highlighting">Highlighting</a></li><li><a href="#copy-buttons">Copy buttons</a></li><li><a href="#wide-code">Wide code</a></li><li><a href="#not-supported">Not supported</a></li></ul></nav>
+<h2 id="code-blocks"><a class="anchor" href="#code-blocks" aria-hidden="true">#</a>Code blocks</h2>
+<pre><code class="language-latex">\begin{lstlisting}[language=python]
+def f(x):
+    return x ** 2
+\end{lstlisting}
+
+\begin{minted}{javascript}
+const f = (x) =&gt; x ** 2;
+\end{minted}
+
+\begin{verbatim}
+Plain text, shown exactly as written: \no \commands {here}.
+\end{verbatim}</code></pre>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Environment</th>
+<th>Language from</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>lstlisting</code></td>
+<td>The <code>language=</code> option. The other options (<code>caption</code>, <code>numbers</code>, <code>frame</code>, …) are ignored.</td>
+</tr>
+<tr>
+<td><code>minted</code></td>
+<td>The mandatory argument. Its options (<code>[linenos]</code>, …) are ignored.</td>
+</tr>
+<tr>
+<td><code>verbatim</code>, <code>verbatim*</code></td>
+<td>None: always plain text</td>
+</tr>
+</tbody></table>
+</div>
+<p>The content of these environments is taken out before anything else is read, so comments, <code>$</code>, braces and backslashes inside them are kept exactly. A blank first line and a blank last line are trimmed. Tabs and indentation are kept.</p>
+<p>Each block becomes <code>&lt;pre class=&quot;language-xxx&quot;&gt;&lt;code class=&quot;language-xxx&quot;&gt;…&lt;/code&gt;&lt;/pre&gt;</code>, with <code>language-plaintext</code> when there is no highlighting.</p>
+<h2 id="inline-code"><a class="anchor" href="#inline-code" aria-hidden="true">#</a>Inline code</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>You write</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\verb|x = 1|</code>, `\verb+a</td>
+<td>b+`</td>
+</tr>
+<tr>
+<td><code>\lstinline|x = 1|</code></td>
+<td>The same</td>
+</tr>
+<tr>
+<td><code>\mintinline{py}{x = 1}</code></td>
+<td>The same, unhighlighted; the code can&#39;t contain <code>}</code></td>
+</tr>
+<tr>
+<td><code>\texttt{…}</code></td>
+<td>Monospace <em>text</em>: commands inside it are still interpreted</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="highlighting"><a class="anchor" href="#highlighting" aria-hidden="true">#</a>Highlighting</h2>
+<p>Highlighting is done by <a href="https://prismjs.com" rel="noopener">Prism</a>, if it is on the page when the source is parsed. Load Prism&#39;s core and a component for every language you use:</p>
+<pre><code class="language-markup">&lt;script src=&quot;https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js&quot;&gt;&lt;/script&gt;</code></pre>
+<ul>
+<li>The language name is lowercased and looked up in <code>Prism.languages</code>, so it must be a Prism language id or alias: <code>python</code>/<code>py</code>, <code>javascript</code>/<code>js</code>, <code>bash</code>/<code>shell</code>, <code>c</code>, <code>cpp</code>, <code>rust</code>, <code>latex</code>/<code>tex</code>, and so on. Some components need another one first (<code>cpp</code> needs <code>c</code>); see Prism&#39;s documentation.</li>
+<li>An unknown language, or no Prism at all, gives plain, escaped text. Nothing fails.</li>
+<li>The core <code>prism.min.js</code> already includes <code>markup</code> (HTML), <code>css</code>, <code>clike</code> and <code>javascript</code>.</li>
+<li><strong>Don&#39;t load a Prism theme.</strong> <code>hatex.css</code> colours the tokens from its own palette (One Light, or One Dark in dark mode), through the <code>--hx-tok-*</code> variables; see <a href="theming.html#code-colours">Theming</a>.</li>
+</ul>
+<p>In Node, pass Prism in with <code>HaTeX.use({ Prism })</code>; see <a href="node.html">Node</a>.</p>
+<h2 id="copy-buttons"><a class="anchor" href="#copy-buttons" aria-hidden="true">#</a>Copy buttons</h2>
+<p>Every code block gets a &quot;copy&quot; button in its top-right corner. It appears when the pointer is over the block or the button has keyboard focus, and it copies the code&#39;s text to the clipboard and says &quot;copied&quot;. If the clipboard is unavailable (an insecure <code>http:</code> page, for example), the button says &quot;press ⌘C&quot; instead. The <code>copyButtons: false</code> <a href="api.html#options">option</a> turns the buttons off.</p>
+<h2 id="wide-code"><a class="anchor" href="#wide-code" aria-hidden="true">#</a>Wide code</h2>
+<p>Long lines don&#39;t wrap: a code block scrolls sideways inside itself. This is also true in <a href="columns.html">two-column layouts</a> and on slides, where code has a smaller font size.</p>
+<h2 id="not-supported"><a class="anchor" href="#not-supported" aria-hidden="true">#</a>Not supported</h2>
+<ul>
+<li><code>\lstinputlisting{file}</code> and <code>\inputminted{lang}{file}</code>: files aren&#39;t read, so they degrade to their argument text (the file name, preceded by the language for <code>\inputminted</code>). Paste the code into the source.</li>
+<li><code>lstlisting</code> captions and line numbers. To number and caption code, put it in a <code>figure</code> or <code>algorithm</code> with a <code>\caption</code>.</li>
+<li><code>\lstset</code> and <code>\setminted</code> are ignored.</li>
+</ul>
+<hr>
+<p>Previous: <a href="theorems.html">Theorems, proofs and algorithms</a> · <a href="index.html">Contents</a> · Next: <a href="references.html">Cross-references, citations and footnotes</a></p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="theorems.html"><small>Previous</small>Theorems, proofs and algorithms</a>
+      <a class="next" href="references.html"><small>Next</small>Cross-references, citations and footnotes</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/code.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

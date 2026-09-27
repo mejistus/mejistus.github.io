@@ -1,0 +1,146 @@
+<!doctype html>
+<!-- Built from docs/manual/columns.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Two columns and multicols · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li class="here"><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="two-columns-and-multicols"><a class="anchor" href="#two-columns-and-multicols" aria-hidden="true">#</a>Two columns and multicols</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#two-column-documents">Two-column documents</a></li><li><a href="#multicols">multicols</a></li><li><a href="#how-it-works-and-when-to-call-layout">How it works, and when to call <code>layout</code></a></li></ul></nav>
+<h2 id="two-column-documents"><a class="anchor" href="#two-column-documents" aria-hidden="true">#</a>Two-column documents</h2>
+<pre><code class="language-latex">\documentclass[twocolumn]{article}
+\begin{document}
+\begin{abstract} … \end{abstract}
+\section{Introduction}
+…
+\begin{figure*} … \end{figure*}     % spans both columns
+\end{document}</code></pre>
+<p><code>\documentclass[twocolumn]{…}</code>, or <code>\twocolumn</code> anywhere in the source, sets the whole document in two columns. <code>\twocolumn</code> can&#39;t be switched off halfway: <code>\onecolumn</code> is removed and does nothing. The optional argument of <code>\twocolumn[…]</code> is removed together with its content, so put a spanning introduction in an <code>abstract</code> or before the first <code>\section</code> instead. In a beamer document, <code>twocolumn</code> is ignored.</p>
+<h3 id="when-the-columns-appear"><a class="anchor" href="#when-the-columns-appear" aria-hidden="true">#</a>When the columns appear</h3>
+<p>The columns need room. A two-column document is laid out in two columns only while its container is at least <strong>50rem</strong> wide (800px at the default font size), and in one column below that, e.g. on a phone. The check is redone whenever the window is resized.</p>
+<h3 id="what-spans-both-columns"><a class="anchor" href="#what-spans-both-columns" aria-hidden="true">#</a>What spans both columns</h3>
+<p>Web pages scroll, so hatex doesn&#39;t fill pages. It cuts the document into stretches at every item that spans the full width, and balances each stretch over two columns of about equal height:</p>
+<ul>
+<li><code>\section</code>, <code>\part</code> and <code>\chapter</code> headings. <code>\subsection</code> and lower stay in their column;</li>
+<li>the <code>abstract</code>;</li>
+<li><code>figure*</code> and <code>table*</code>;</li>
+<li>a <code>multicols</code> block inside the document.</li>
+</ul>
+<p>A reader therefore reads down one short column, up to the top of the next one, and on to the next full-width item. They never have to scroll back up a whole page.</p>
+<h3 id="what-stays-in-its-column"><a class="anchor" href="#what-stays-in-its-column" aria-hidden="true">#</a>What stays in its column</h3>
+<p>Everything else stays in its column, as in LaTeX:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>When it is too wide for the column</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Display equation</td>
+<td>Scaled down to fit, number included; it never scrolls</td>
+</tr>
+<tr>
+<td>Image, TikZ picture</td>
+<td>Shrinks to the column width</td>
+</tr>
+<tr>
+<td>Table</td>
+<td>Scrolls sideways, unless it is in <code>\resizebox</code>, which scales it (see <a href="tables.html#wide-tables">Wide tables</a>)</td>
+</tr>
+<tr>
+<td>Code block</td>
+<td>Scrolls sideways</td>
+</tr>
+</tbody></table>
+</div>
+<h3 id="where-a-column-breaks"><a class="anchor" href="#where-a-column-breaks" aria-hidden="true">#</a>Where a column breaks</h3>
+<p>The runtime measures the stretch and picks the break closest to half its height. A column can break:</p>
+<ul>
+<li>between any two blocks (paragraphs, lists, floats, theorems, code);</li>
+<li>between the paragraphs or items of a theorem, proof, quote, list, bibliography or the footnotes;</li>
+<li>inside a paragraph, just before or just after a display equation.</li>
+</ul>
+<p>A column never breaks inside a line of text, and never directly after a heading. When the break falls inside a list or theorem, the element is split into two copies (the second has the class <code>hatex-split-after</code>), and a numbered list continues its numbering in the second column.</p>
+<h2 id="multicols"><a class="anchor" href="#multicols" aria-hidden="true">#</a>multicols</h2>
+<pre><code class="language-latex">\begin{multicols}{3}[\subsection*{Glossary}]
+  … \columnbreak …
+\end{multicols}</code></pre>
+<ul>
+<li><code>\begin{multicols}{n}</code> sets its content in <code>n</code> balanced columns. <code>n</code> is between 1 and 4, and 2 if it can&#39;t be read.</li>
+<li>The optional <code>[…]</code> after it is set across the full width above the columns, as in the <code>multicol</code> package.</li>
+<li><code>multicols*</code> is treated as <code>multicols</code>: the columns are always balanced.</li>
+<li>The columns appear while the block is at least <strong>32rem</strong> wide.</li>
+<li><code>\columnbreak</code> ends the current column there. Without it, the breaks are chosen as described above.</li>
+</ul>
+<p>Unlike a two-column document, <code>multicols</code> doesn&#39;t have spanning items: a heading inside it stays in its column. A <code>multicols</code> block inside a two-column document spans the page.</p>
+<h2 id="how-it-works-and-when-to-call-layout"><a class="anchor" href="#how-it-works-and-when-to-call-layout" aria-hidden="true">#</a>How it works, and when to call <code>layout</code></h2>
+<p>The runtime lays out the columns itself instead of using CSS multi-column layout, which misplaces KaTeX&#39;s inline maths in Safari. The HTML from <code>parse</code> contains the whole document in one flow (<code>.hatex-cols-flow</code>), and <code>enhance</code> splits it into columns (<code>.hatex-cols-chunk</code> &gt; <code>.hatex-col</code>):</p>
+<ul>
+<li>when the document is rendered, and again when web fonts have loaded;</li>
+<li>whenever the window is resized;</li>
+<li>whenever a TikZ picture arrives, since that changes the heights.</li>
+</ul>
+<p>If the container changes width for any other reason (a sidebar closes, a split pane is dragged, a tab becomes visible), call:</p>
+<pre><code class="language-js">HaTeX.layout(document.querySelector('.hatex'));</code></pre>
+<p>Pre-rendered HTML that is never enhanced (no <code>hatex.js</code> on the page) shows in one column.</p>
+<hr>
+<p>Previous: <a href="references.html">Cross-references, citations and footnotes</a> · <a href="index.html">Contents</a> · Next: <a href="slides.html">Slides</a></p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="references.html"><small>Previous</small>Cross-references, citations and footnotes</a>
+      <a class="next" href="slides.html"><small>Next</small>Slides</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/columns.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

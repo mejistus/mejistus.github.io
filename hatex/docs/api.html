@@ -1,0 +1,369 @@
+<!doctype html>
+<!-- Built from docs/manual/api.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JavaScript API · hatex manual</title>
+<link rel="stylesheet" href="docs.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="../">hatex</a>
+  <span class="sep">/</span>
+  <a href="index.html">manual</a>
+  <span class="ver">1.5.1</span>
+  <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
+</header>
+<div class="layout">
+  <aside id="side" class="side">
+    <ul>
+      <li><a href="index.html">Contents</a></li>
+      <li><a href="getting-started.html">Getting started</a></li>
+      <li><a href="documents.html">How hatex reads a document</a></li>
+      <li><a href="maths.html">Maths</a></li>
+      <li><a href="tables.html">Tables</a></li>
+      <li><a href="figures.html">Figures and images</a></li>
+      <li><a href="tikz.html">TikZ</a></li>
+      <li><a href="theorems.html">Theorems, proofs and algorithms</a></li>
+      <li><a href="code.html">Code</a></li>
+      <li><a href="references.html">Cross-references, citations and footnotes</a></li>
+      <li><a href="columns.html">Two columns and multicols</a></li>
+      <li><a href="slides.html">Slides</a></li>
+      <li><a href="vertical-chinese.html">Vertical Chinese (古籍)</a></li>
+      <li class="here"><a href="api.html">JavaScript API</a></li>
+      <li><a href="theming.html">Theming</a></li>
+      <li><a href="html-output.html">The HTML output</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="checking.html">Checking sources</a></li>
+      <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
+      <li><a href="development.html">Developing hatex</a></li>
+      <li><a href="syntax.html">Syntax cheat sheet</a></li>
+    </ul>
+  </aside>
+  <main>
+    <article>
+<h1 id="javascript-api"><a class="anchor" href="#javascript-api" aria-hidden="true">#</a>JavaScript API</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#loading">Loading</a></li><li><a href="#overview">Overview</a></li><li><a href="#hatexrender"><code>HaTeX.render</code></a></li><li><a href="#hatexparse"><code>HaTeX.parse</code></a></li><li><a href="#hatexenhance"><code>HaTeX.enhance</code></a></li><li><a href="#hatexlayout"><code>HaTeX.layout</code></a></li><li><a href="#hatexlint"><code>HaTeX.lint</code></a></li><li><a href="#hateximages"><code>HaTeX.images</code></a></li><li><a href="#hatextikzsvgs"><code>HaTeX.tikzSvgs</code></a></li><li><a href="#hatexuse"><code>HaTeX.use</code></a></li><li><a href="#hatexbib"><code>HaTeX.Bib</code></a></li><li><a href="#options">Options</a></li><li><a href="#events">Events</a></li><li><a href="#source-lines">Source lines</a></li><li><a href="#building-an-editor">Building an editor</a></li><li><a href="#several-documents-on-one-page">Several documents on one page</a></li></ul></nav>
+<h2 id="loading"><a class="anchor" href="#loading" aria-hidden="true">#</a>Loading</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>How</th>
+<th>You get</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&lt;script src=&quot;dist/hatex.js&quot;&gt;</code></td>
+<td><code>window.HaTeX</code></td>
+</tr>
+<tr>
+<td><code>require(&#39;hatex&#39;)</code> (CommonJS)</td>
+<td><code>HaTeX</code>, from <code>dist/hatex.js</code></td>
+</tr>
+<tr>
+<td><code>import HaTeX from &#39;hatex&#39;</code> (ES module)</td>
+<td><code>HaTeX</code>, from <code>dist/hatex.mjs</code></td>
+</tr>
+<tr>
+<td><code>import { render, parse } from &#39;hatex&#39;</code></td>
+<td>The same functions as named exports: <code>use</code>, <code>parse</code>, <code>render</code>, <code>enhance</code>, <code>layout</code>, <code>lint</code>, <code>images</code>, <code>tikzSvgs</code> and <code>Bib</code></td>
+</tr>
+</tbody></table>
+</div>
+<p>The stylesheet is <code>dist/hatex.css</code>, or <code>hatex/hatex.css</code> through the package&#39;s exports.</p>
+<p>In every case, the library also sets a few globals that its modules share: <code>window.parseLatex</code>, <code>window.hatexExtend</code>, <code>window.lintSource</code>, <code>window.referencedImages</code>, <code>window.Bib</code> and <code>window.TIKZ_NN_PREAMBLE</code>. Outside a browser, <code>window</code> means <code>globalThis</code>.</p>
+<h2 id="overview"><a class="anchor" href="#overview" aria-hidden="true">#</a>Overview</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Needs a DOM</th>
+<th>Summary</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a href="#hatexrender"><code>HaTeX.render(target, source, options?)</code></a></td>
+<td>Yes</td>
+<td>Parse into an element and enhance it</td>
+</tr>
+<tr>
+<td><a href="#hatexparse"><code>HaTeX.parse(source)</code></a></td>
+<td>No</td>
+<td>LaTeX → HTML string</td>
+</tr>
+<tr>
+<td><a href="#hatexenhance"><code>HaTeX.enhance(root, options?)</code></a></td>
+<td>Yes</td>
+<td>Page behaviour for HTML already on the page</td>
+</tr>
+<tr>
+<td><a href="#hatexlayout"><code>HaTeX.layout(root)</code></a></td>
+<td>Yes</td>
+<td>Redo the width-dependent layout</td>
+</tr>
+<tr>
+<td><a href="#hatexlint"><code>HaTeX.lint(source, options?)</code></a></td>
+<td>No</td>
+<td>Problems in a source</td>
+</tr>
+<tr>
+<td><a href="#hateximages"><code>HaTeX.images(source)</code></a></td>
+<td>No</td>
+<td>Local image paths in a source</td>
+</tr>
+<tr>
+<td><a href="#hatextikzsvgs"><code>HaTeX.tikzSvgs(root)</code></a></td>
+<td>Yes</td>
+<td>TikZ pictures compiled in this session, as files</td>
+</tr>
+<tr>
+<td><a href="#hatexuse"><code>HaTeX.use({ katex, Prism })</code></a></td>
+<td>No</td>
+<td>Supply KaTeX and Prism</td>
+</tr>
+<tr>
+<td><a href="#hatexbib"><code>HaTeX.Bib</code></a></td>
+<td>No (lookup needs <code>fetch</code>)</td>
+<td>BibTeX parsing, formatting and DOI lookup</td>
+</tr>
+<tr>
+<td><code>HaTeX.version</code></td>
+<td>No</td>
+<td>The version string, e.g. <code>&quot;1.5.0&quot;</code></td>
+</tr>
+</tbody></table>
+</div>
+<hr>
+<h2 id="hatexrender"><a class="anchor" href="#hatexrender" aria-hidden="true">#</a><code>HaTeX.render</code></h2>
+<pre><code class="language-ts">HaTeX.render(target: Element | string, source: string, options?: Options): Element</code></pre>
+<p>Renders <code>source</code> into <code>target</code> and returns the element.</p>
+<ul>
+<li><code>target</code> is an element or a CSS selector; a selector uses the first match. The element&#39;s content is replaced.</li>
+<li>The element gets the class <code>hatex</code>, which the stylesheet is scoped to.</li>
+<li>It is equivalent to <code>el.innerHTML = HaTeX.parse(source); HaTeX.enhance(el, options)</code>.</li>
+</ul>
+<p>Calling <code>render</code> again on the same element replaces the document and is cheap: an editor can call it on every keystroke (debounced). TikZ pictures that were already compiled come back from the session cache without compiling again.</p>
+<pre><code class="language-js">const el = HaTeX.render('#post', tex, { zoom: false });</code></pre>
+<h2 id="hatexparse"><a class="anchor" href="#hatexparse" aria-hidden="true">#</a><code>HaTeX.parse</code></h2>
+<pre><code class="language-ts">HaTeX.parse(source: string): string</code></pre>
+<p>Converts a LaTeX source to an HTML string. It is pure: no DOM, no network, and it works in Node and in workers. KaTeX must be available (as a global, or through <code>use</code>) for maths, and Prism for highlighting; otherwise formulas come out as their source in <code>&lt;code&gt;</code> and code as plain text.</p>
+<p>The HTML is the document body only. Put it in an element with the class <code>hatex</code>:</p>
+<pre><code class="language-js">article.className = 'hatex';
+article.innerHTML = HaTeX.parse(tex);
+HaTeX.enhance(article);        // optional: see below</code></pre>
+<p>Each call gives its element ids a new random prefix, so two documents on one page never clash; see <a href="references.html#clicking-a-reference">Target ids</a>.</p>
+<p>What <code>parse</code> alone does not do is listed under <code>enhance</code>. Without <code>enhance</code>, the HTML is a complete, readable document in one column, with no TikZ pictures (their boxes stay empty), and in-document links work as plain anchor jumps.</p>
+<h2 id="hatexenhance"><a class="anchor" href="#hatexenhance" aria-hidden="true">#</a><code>HaTeX.enhance</code></h2>
+<pre><code class="language-ts">HaTeX.enhance(root: Element, options?: Options): Element</code></pre>
+<p>Adds the page behaviour to HTML produced by <code>parse</code>, e.g. HTML rendered at build time. It returns <code>root</code> and:</p>
+<ol>
+<li>adds the class <code>hatex</code> to <code>root</code> and remembers <code>options</code> for it;</li>
+<li>sets up slide decks: the deck bar, the Present button, double-click to present;</li>
+<li>runs <a href="#hatexlayout"><code>layout</code></a>: two columns, fitting <code>\resizebox</code> content and wide equations, and slide scaling; and runs it again once web fonts have loaded;</li>
+<li>adds copy buttons to code blocks (unless <code>copyButtons: false</code>);</li>
+<li>makes images and TikZ pictures zoomable (unless <code>zoom: false</code>);</li>
+<li>loads TikZ pictures: from the session cache, from <code>tikzSvgBase</code>, or live (<a href="tikz.html#how-a-picture-gets-on-the-page">TikZ</a>).</li>
+</ol>
+<p>Calling it again on the same root is safe. Decks, copy buttons, zoom handlers and pictures that are already set up are skipped.</p>
+<p>A few things work for every <code>.hatex</code> element on the page, whether it was enhanced or not, because hatex listens on <code>document</code> from the moment it loads:</p>
+<ul>
+<li>clicks on <code>\ref</code>, <code>\eqref</code>, <code>\cite</code> and footnote links scroll to the target and flash it;</li>
+<li>window resizes re-run <code>layout</code> on every <code>.hatex</code> element;</li>
+<li>finished TikZJax compiles are picked up.</li>
+</ul>
+<h2 id="hatexlayout"><a class="anchor" href="#hatexlayout" aria-hidden="true">#</a><code>HaTeX.layout</code></h2>
+<pre><code class="language-ts">HaTeX.layout(root: Element): void</code></pre>
+<p>Recomputes everything that depends on the rendered width:</p>
+<ul>
+<li>the split into columns in <a href="columns.html">two-column documents and <code>multicols</code></a>;</li>
+<li>the scale of display equations in columns;</li>
+<li>the scale of <code>\resizebox</code> and <code>adjustbox</code> content;</li>
+<li>the scale of slides, and the shrinking of slides whose content is too tall;</li>
+<li>the splitting of <code>\jiazhu</code> notes in <code>guji</code>.</li>
+</ul>
+<p>It runs on the next animation frame, not synchronously. hatex runs it by itself after <code>render</code>/<code>enhance</code>, when fonts load, on window resize and when a TikZ picture arrives. Call it yourself when the element changes width in any other way:</p>
+<pre><code class="language-js">sidebarToggle.addEventListener('click', () =&gt; {
+  document.body.classList.toggle('sidebar-open');
+  HaTeX.layout(document.querySelector('#post'));
+});</code></pre>
+<p>For a container whose size changes often, a <code>ResizeObserver</code> can do it:</p>
+<pre><code class="language-js">new ResizeObserver(() =&gt; HaTeX.layout(el)).observe(el);</code></pre>
+<h2 id="hatexlint"><a class="anchor" href="#hatexlint" aria-hidden="true">#</a><code>HaTeX.lint</code></h2>
+<pre><code class="language-ts">HaTeX.lint(source: string, options?: { frontMatter?: boolean }): Problem[]
+type Problem = { line: number, severity: 'error' | 'warning', message: string }</code></pre>
+<p>Returns the structural problems in a source, sorted by line, with errors before warnings on the same line. <code>frontMatter: true</code> also checks the <code>% ---</code> front-matter block. The checks and messages are listed in <a href="checking.html">Checking sources</a>.</p>
+<pre><code class="language-js">for (const p of HaTeX.lint(tex)) console.log(`${p.line}: ${p.severity}: ${p.message}`);</code></pre>
+<h2 id="hateximages"><a class="anchor" href="#hateximages" aria-hidden="true">#</a><code>HaTeX.images</code></h2>
+<pre><code class="language-ts">HaTeX.images(source: string): { path: string, line: number }[]</code></pre>
+<p>Lists the paths of the <code>\includegraphics</code> in a source, with their lines, leaving out <code>http(s):</code> and <code>data:</code> URLs. Commented-out images and those in verbatim blocks are not listed. Use it to check that the files exist; see <a href="checking.html#images">Checking sources</a>.</p>
+<h2 id="hatextikzsvgs"><a class="anchor" href="#hatextikzsvgs" aria-hidden="true">#</a><code>HaTeX.tikzSvgs</code></h2>
+<pre><code class="language-ts">HaTeX.tikzSvgs(root: Element): { hash: string, file: string, svg: string }[]</code></pre>
+<p>Returns the TikZ pictures in <code>root</code> that were compiled live during this session, one entry per distinct picture: <code>file</code> is <code>&lt;hash&gt;.svg</code>, and <code>svg</code> is the file content (exactly what TeX produced, ending with a newline). Save them under your <code>tikzSvgBase</code> so that readers skip compiling; see <a href="tikz.html#pre-rendering">Pre-rendering</a>. Pictures that were loaded from files are not included.</p>
+<h2 id="hatexuse"><a class="anchor" href="#hatexuse" aria-hidden="true">#</a><code>HaTeX.use</code></h2>
+<pre><code class="language-ts">HaTeX.use(libs: { katex?: object, Prism?: object }): HaTeX</code></pre>
+<p>Supplies KaTeX and Prism when they aren&#39;t globals, as in Node or with a bundler. It sets <code>window.katex</code> and <code>window.Prism</code> (i.e. <code>globalThis</code> outside a browser) and returns <code>HaTeX</code>, so calls can be chained. Call it before <code>parse</code> or <code>render</code>.</p>
+<pre><code class="language-js">import katex from 'katex';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-python.js';
+import HaTeX from 'hatex';
+
+HaTeX.use({ katex, Prism });</code></pre>
+<h2 id="hatexbib"><a class="anchor" href="#hatexbib" aria-hidden="true">#</a><code>HaTeX.Bib</code></h2>
+<p>Helpers for turning references into <code>\bibitem</code> lines. None of them needs a DOM.</p>
+<h3 id="bibparsetext"><a class="anchor" href="#bibparsetext" aria-hidden="true">#</a><code>Bib.parse(text)</code></h3>
+<pre><code class="language-ts">Bib.parse(text: string): { type: string, key: string, fields: Record&lt;string, string&gt; }[]</code></pre>
+<p>Parses BibTeX. Entry types and field names are lowercased, braces in values are removed and whitespace is collapsed.</p>
+<pre><code class="language-js">HaTeX.Bib.parse('@article{ho2020, author = {Ho, Jonathan and Jain, Ajay}, title = {{Denoising} Diffusion}, year = 2020}');
+// → [{ type: 'article', key: 'ho2020', fields: { author: 'Ho, Jonathan and Jain, Ajay', title: 'Denoising Diffusion', year: '2020' } }]</code></pre>
+<h3 id="bibformatentry"><a class="anchor" href="#bibformatentry" aria-hidden="true">#</a><code>Bib.format(entry)</code></h3>
+<pre><code class="language-ts">Bib.format(entry): string</code></pre>
+<p>Formats a parsed entry as a <code>\bibitem</code> line: <code>\bibitem{key} Authors. Title. In \emph{Venue}, Year.</code></p>
+<ul>
+<li>Authors are abbreviated to initials (&quot;J. Ho&quot;). More than six authors become the first three and &quot;et al.&quot;.</li>
+<li>The venue is the first of <code>booktitle</code>, <code>journal</code>, <code>journaltitle</code>, <code>school</code>, <code>institution</code> and <code>publisher</code> (unless the publisher is arXiv). For an arXiv paper without a venue, it is <code>arXiv:&lt;id&gt;</code>, found from <code>eprint</code>, the DOI or the URL.</li>
+<li>The key is the entry&#39;s own key, unless it is a URL or a DOI; then <code>Bib.key</code> makes one.</li>
+</ul>
+<h3 id="bibkeyentry"><a class="anchor" href="#bibkeyentry" aria-hidden="true">#</a><code>Bib.key(entry)</code></h3>
+<p>Returns the entry&#39;s key, or makes a readable one from the first author&#39;s last name, the year and the first significant word of the title: <code>ho2020denoising</code>.</p>
+<h3 id="biblookuptext"><a class="anchor" href="#biblookuptext" aria-hidden="true">#</a><code>Bib.lookup(text)</code></h3>
+<pre><code class="language-ts">Bib.lookup(text: string): Promise&lt;Entry[]&gt;</code></pre>
+<p>Fetches BibTeX for a DOI or an arXiv id and parses it. It accepts <code>10.1000/xyz</code>, <code>https://doi.org/10.1000/xyz</code>, <code>2006.11239</code>, <code>arXiv:2006.11239v2</code> and <code>https://arxiv.org/abs/2006.11239</code>. Every lookup goes to <code>https://doi.org/&lt;doi&gt;</code> with <code>Accept: application/x-bibtex</code>; arXiv ids go through arXiv&#39;s DOIs (<code>10.48550/arXiv.&lt;id&gt;</code>), because browsers can reach doi.org but not arXiv&#39;s own API. It rejects with an <code>Error</code> when the text is neither a DOI nor an arXiv id, when nothing is found (404) or when the response isn&#39;t BibTeX.</p>
+<pre><code class="language-js">const [entry] = await HaTeX.Bib.lookup('10.48550/arXiv.2006.11239');
+source += '\n' + HaTeX.Bib.format(entry);</code></pre>
+<h3 id="bibislookuptext"><a class="anchor" href="#bibislookuptext" aria-hidden="true">#</a><code>Bib.isLookup(text)</code></h3>
+<p>Returns true when the text looks like a DOI or an arXiv id and not like BibTeX (BibTeX contains <code>@</code>). Use it to decide whether pasted text should be looked up or parsed.</p>
+<h3 id="bibauthorlistraw"><a class="anchor" href="#bibauthorlistraw" aria-hidden="true">#</a><code>Bib.authorList(raw)</code></h3>
+<p>Splits a BibTeX author field into names in reading order: <code>&quot;Ho, Jonathan and Jain, Ajay&quot;</code> → <code>[&quot;Jonathan Ho&quot;, &quot;Ajay Jain&quot;]</code>.</p>
+<hr>
+<h2 id="options"><a class="anchor" href="#options" aria-hidden="true">#</a>Options</h2>
+<p>Options are passed to <code>render</code> and <code>enhance</code>, and apply to that root.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>tikzSvgBase</code></td>
+<td><code>&#39;tikz/&#39;</code></td>
+<td>URL prefix of pre-rendered TikZ pictures, loaded as <code>&lt;tikzSvgBase&gt;&lt;hash&gt;.svg</code>. Relative prefixes are relative to the page. <code>null</code> skips the lookup, and every picture is compiled live.</td>
+</tr>
+<tr>
+<td><code>tikzLive</code></td>
+<td><code>true</code></td>
+<td>Compile pictures that have no SVG in the browser with TikZJax. <code>false</code> leaves them empty (<code>data-tikz-state=&quot;missing&quot;</code>).</td>
+</tr>
+<tr>
+<td><code>tikzErrors</code></td>
+<td><code>false</code></td>
+<td>Show TeX&#39;s error in place of a picture that fails to compile, and fire <code>hatex:tikz-error</code>. It works by wrapping <code>console.log</code>/<code>warn</code>/<code>error</code> (TikZJax prints TeX&#39;s log there), so it is meant for editors.</td>
+</tr>
+<tr>
+<td><code>tikzjaxBase</code></td>
+<td><code>&#39;https://cdn.jsdelivr.net/npm/@drgrice1/tikzjax@1.0.0-beta24/dist/&#39;</code></td>
+<td>Where <code>tikzjax.js</code> and <code>fonts.css</code> come from, for self-hosting. Keep the trailing slash.</td>
+</tr>
+<tr>
+<td><code>copyButtons</code></td>
+<td><code>true</code></td>
+<td>Add a &quot;copy&quot; button to each code block.</td>
+</tr>
+<tr>
+<td><code>zoom</code></td>
+<td><code>true</code></td>
+<td>Open an image or TikZ picture in a full-window overlay when it is clicked.</td>
+</tr>
+<tr>
+<td><code>animate</code></td>
+<td><code>true</code></td>
+<td><code>false</code> makes in-document links jump without smooth scrolling or flashing, and the zoom overlay open and close without a fade. The reader&#39;s <code>prefers-reduced-motion</code> setting has the same effect.</td>
+</tr>
+</tbody></table>
+</div>
+<h2 id="events"><a class="anchor" href="#events" aria-hidden="true">#</a>Events</h2>
+<p>Both events are dispatched on the TikZ picture&#39;s box (<code>.latex-tikz</code>) and bubble, so they can be caught on the root or on <code>document</code>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Event</th>
+<th><code>detail</code></th>
+<th>When</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>hatex:tikz</code></td>
+<td><code>{ hash, svg }</code></td>
+<td>A picture has been compiled live. <code>svg</code> is the file content, as in <code>tikzSvgs</code>.</td>
+</tr>
+<tr>
+<td><code>hatex:tikz-error</code></td>
+<td><code>{ hash, message }</code></td>
+<td>A picture failed to compile. Only with <code>tikzErrors: true</code>.</td>
+</tr>
+</tbody></table>
+</div>
+<pre><code class="language-js">el.addEventListener('hatex:tikz', (e) =&gt; saveFile(`tikz/${e.detail.hash}.svg`, e.detail.svg));</code></pre>
+<h2 id="source-lines"><a class="anchor" href="#source-lines" aria-hidden="true">#</a>Source lines</h2>
+<p>The output keeps track of where everything came from, so a preview can be linked back to the source:</p>
+<ul>
+<li>every block element (paragraph, heading, list, table, float, theorem, …) has <code>data-line</code>, the line in the source where it starts;</li>
+<li>list items, table rows, bibliography entries and captions have their own <code>data-line</code>;</li>
+<li>inside a block, an empty <code>&lt;span class=&quot;latex-line&quot; data-line=&quot;n&quot;&gt;</code> marks where each later source line begins.</li>
+</ul>
+<p>Lines count from 1, and they stay correct in two-column documents, slides and vertical text.</p>
+<p>To find the source line of a click, take the last <code>[data-line]</code> element that starts at or before the clicked node:</p>
+<pre><code class="language-js">out.addEventListener('dblclick', (e) =&gt; {
+  let line = null;
+  for (const m of out.querySelectorAll('[data-line]')) {
+    const before = m.contains(e.target) ||
+      (m.compareDocumentPosition(e.target) &amp; Node.DOCUMENT_POSITION_FOLLOWING);
+    if (!before) break;
+    line = Number(m.dataset.line);
+  }
+  if (line) goToLine(line);
+});</code></pre>
+<h2 id="building-an-editor"><a class="anchor" href="#building-an-editor" aria-hidden="true">#</a>Building an editor</h2>
+<p><a href="https://github.com/mejistus/hatex/blob/main/examples/editor.html" rel="noopener"><code>examples/editor.html</code></a> is a complete editor in about 150 lines. Its core:</p>
+<pre><code class="language-js">let timer;
+textarea.addEventListener('input', () =&gt; {
+  clearTimeout(timer);
+  timer = setTimeout(() =&gt; {
+    const keep = out.scrollTop;
+    HaTeX.render(out, textarea.value, { tikzSvgBase: null, tikzErrors: true });
+    out.scrollTop = keep;                        // re-rendering keeps the reader's place
+    showProblems(HaTeX.lint(textarea.value));
+  }, 300);
+});</code></pre>
+<ul>
+<li><code>tikzSvgBase: null</code> compiles every picture live, so that you see your edits rather than an old SVG; the session cache means that each version of a picture compiles only once.</li>
+<li><code>tikzErrors: true</code> shows TeX errors in place of broken pictures.</li>
+<li><code>HaTeX.lint</code> gives the problem list, and the <a href="#source-lines">source lines</a> let a double-click jump to the source.</li>
+<li><code>HaTeX.tikzSvgs(out)</code> gives the compiled pictures to save for publishing.</li>
+</ul>
+<h2 id="several-documents-on-one-page"><a class="anchor" href="#several-documents-on-one-page" aria-hidden="true">#</a>Several documents on one page</h2>
+<p>Each <code>render</code> or <code>parse</code> call is independent: numbering, labels, macros and footnotes don&#39;t leak from one document to another, and the ids can&#39;t clash. Options are remembered per root. The TikZ session cache is shared, so the same picture in two documents compiles once.</p>
+<hr>
+<p>Previous: <a href="vertical-chinese.html">Vertical Chinese</a> · <a href="index.html">Contents</a> · Next: <a href="theming.html">Theming</a></p>
+    </article>
+    <nav class="pager">
+      <a class="prev" href="vertical-chinese.html"><small>Previous</small>Vertical Chinese (古籍)</a>
+      <a class="next" href="theming.html"><small>Next</small>Theming</a>
+    </nav>
+    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/api.md">edit this page on GitHub</a></footer>
+  </main>
+</div>
+<script>
+  document.querySelector('.menu').addEventListener('click', (e) => {
+    const open = document.body.classList.toggle('side-open');
+    e.currentTarget.setAttribute('aria-expanded', open);
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+</body>
+</html>

@@ -125,11 +125,12 @@
   <div class="actions">
     <a class="button primary" href="demo/">See the demos</a>
     <a class="button" href="#playground">Try it</a>
+    <a class="button" href="docs/">Documentation</a>
     <a class="button" href="lib/hatex.js" download>hatex.js</a>
     <a class="button" href="lib/hatex.css" download>hatex.css</a>
     <a class="button" href="https://github.com/mejistus/hatex">GitHub</a>
   </div>
-  <p class="version">Version 1.5.0 · about 120&nbsp;KB, no dependencies besides KaTeX · MIT License · the renderer behind <a href="../">this blog</a></p>
+  <p class="version">Version 1.5.1 · about 120&nbsp;KB, no dependencies besides KaTeX · MIT License · the renderer behind <a href="../">this blog</a></p>
 </header>
 
 <section id="about" class="text">
@@ -350,72 +351,34 @@ A \verb|\columnbreak| sends what follows to the next column. On a narrow screen 
   <tr><td>Slides</td><td><code>\documentclass{beamer}</code>: <code>frame</code>, <code>\titlepage</code>, <code>\tableofcontents</code>, <code>block</code> / <code>alertblock</code> / <code>exampleblock</code>, <code>columns</code>; any aspect ratio (16:9, 4:3, 1:1, …); a full-screen <b>Present</b> mode; overlays (<code>\pause</code>, <code>&lt;2-&gt;</code>) show every step at once</td></tr>
 </table>
 
-<h2 id="api">API</h2>
+<h2 id="docs">Documentation</h2>
+<p>
+  The <a href="docs/">hatex manual</a> describes everything hatex does, chapter by chapter, and
+  <a href="docs/syntax.html">the syntax cheat sheet</a> lists the supported LaTeX on one page.
+</p>
 <table class="ref">
-  <tr><th>Call</th><th>What it does</th></tr>
-  <tr><td><code>HaTeX.render(el, source, options)</code></td><td>Parses <code>source</code> into <code>el</code> (an element or a selector) and wires up TikZ, links, table fitting, copy buttons and zoom.</td></tr>
-  <tr><td><code>HaTeX.parse(source)</code></td><td>Returns the HTML string. It needs no DOM, so it also runs in Node for static sites.</td></tr>
-  <tr><td><code>HaTeX.enhance(el, options)</code></td><td>Does the wiring for HTML that was rendered earlier, for example by <code>parse</code> at build time.</td></tr>
-  <tr><td><code>HaTeX.lint(source)</code></td><td>Returns problems as <code>[{ line, severity, message }]</code>: unclosed environments, unbalanced braces or <code>$</code>, unknown labels and citations, duplicate labels, wrong cell counts.</td></tr>
-  <tr><td><code>HaTeX.tikzSvgs(el)</code></td><td>Returns the pictures compiled in this session as <code>{ file, svg }</code>, ready to save for pre-rendering.</td></tr>
-  <tr><td><code>HaTeX.Bib</code></td><td>BibTeX <code>parse</code> and <code>format</code> (to <code>\bibitem</code>), and <code>lookup</code> of a DOI or arXiv id.</td></tr>
+  <tr><th>Using hatex</th><th>Integrating hatex</th></tr>
+  <tr>
+    <td>
+      <a href="docs/getting-started.html">Getting started</a><br>
+      <a href="docs/documents.html">How hatex reads a document</a><br>
+      <a href="docs/maths.html">Maths</a> · <a href="docs/tables.html">Tables</a> · <a href="docs/figures.html">Figures</a><br>
+      <a id="tikz" href="docs/tikz.html">TikZ</a> and the <a href="docs/tikz.html#neural-network-diagrams">nn styles</a><br>
+      <a href="docs/theorems.html">Theorems, proofs and algorithms</a> · <a href="docs/code.html">Code</a><br>
+      <a href="docs/references.html">Cross-references, citations and footnotes</a><br>
+      <a href="docs/columns.html">Two columns</a> · <a href="docs/slides.html">Slides</a> · <a href="docs/vertical-chinese.html">Vertical Chinese</a>
+    </td>
+    <td>
+      <a id="api" href="docs/api.html">JavaScript API</a>: every function, option and event<br>
+      <a id="theming" href="docs/theming.html">Theming</a>: CSS variables, dark mode, fonts<br>
+      <a href="docs/html-output.html">The HTML output</a><br>
+      <a id="node" href="docs/node.html">Node, bundlers and static sites</a><br>
+      <a href="docs/checking.html">Checking sources</a><br>
+      <a id="limits" href="docs/troubleshooting.html">Limitations and troubleshooting</a><br>
+      <a href="docs/development.html">Developing hatex</a>
+    </td>
+  </tr>
 </table>
-<p>Options for <code>render</code> and <code>enhance</code>:</p>
-<table class="ref">
-  <tr><th>Option</th><th>Default</th><th></th></tr>
-  <tr><td><code>tikzSvgBase</code></td><td><code>'tikz/'</code></td><td>Where pre-rendered pictures live, as <code>&lt;base&gt;&lt;hash&gt;.svg</code>. <code>null</code> skips the lookup.</td></tr>
-  <tr><td><code>tikzLive</code></td><td><code>true</code></td><td>Compile pictures that have no SVG in the browser.</td></tr>
-  <tr><td><code>tikzErrors</code></td><td><code>false</code></td><td>Show TeX errors in place of a failed picture (for editors).</td></tr>
-  <tr><td><code>animate</code></td><td><code>true</code></td><td><code>false</code>: links jump without scrolling or flashing.</td></tr>
-  <tr><td><code>copyButtons</code>, <code>zoom</code></td><td><code>true</code></td><td>Copy buttons on code blocks; click-to-zoom on figures.</td></tr>
-</table>
-
-<h2 id="tikz">TikZ</h2>
-<p>
-  Pictures are compiled by real TeX running in WebAssembly (<a href="https://github.com/drgrice1/tikzjax">TikZJax</a>).
-  That is about 6&nbsp;MB and a few seconds per picture the first time, so for readers you compile once and ship SVGs:
-</p>
-<ol>
-  <li>Render your page with <code>tikzSvgBase: null</code> and let the pictures compile.</li>
-  <li>Save each <code>{ file, svg }</code> from <code>HaTeX.tikzSvgs(el)</code> into your <code>tikz/</code> folder.</li>
-  <li>Deploy. Each picture now loads from <code>tikz/&lt;hash&gt;.svg</code>. The hash covers the picture's code, so editing a picture falls back to compiling it until you save it again.</li>
-</ol>
-<p>
-  Labels inside a picture must be ASCII (plain TeX has no CJK fonts); maths in labels is fine.
-  Any <code>nn*</code> style (<code>nnconv</code>, <code>nnpool</code>, <code>nnattn</code>, <code>nnflow</code>, <code>nnskip</code>, …)
-  pulls in a set of definitions for neural-network diagrams.
-</p>
-
-<h2 id="theming">Theming</h2>
-<p>The default look is plain: black on white in a LaTeX-like serif (KaTeX's Computer Modern), with no rules under headings. Output is scoped to <code>.hatex</code> and styled with CSS variables, so a page restyles it without touching the rules:</p>
-<pre><code>.hatex {
-  --hx-text: #222;              /* paragraphs, lists, captions */
-  --hx-accent: #0b57d0;         /* links, section numbers, inline code */
-  --hx-cite: #3aa35b;           /* hyperref-style boxes around citations */
-  --hx-font-body: Georgia, serif;
-}</code></pre>
-<p>
-  Put <code>data-theme="dark"</code> on the element or any ancestor for the dark palette, or <code>data-theme="auto"</code> to follow the system.
-  In dark mode, author colours are lifted so they stay readable, and TikZ drawings are inverted in lightness (hues kept), so black ink turns light on the dark page.
-  The <code>warm</code> style in the playground above is just a handful of these variables.
-</p>
-
-<h2 id="node">Node and static sites</h2>
-<p><code>parse</code> needs no DOM, so you can render at build time and ship plain HTML. Use the ES module build, <a href="lib/hatex.mjs" download>hatex.mjs</a>:</p>
-<pre><code>import katex from 'katex';
-import HaTeX from './hatex.mjs';
-
-HaTeX.use({ katex });
-const html = HaTeX.parse(source);   // → &lt;article class="hatex"&gt;${html}&lt;/article&gt;</code></pre>
-
-<h2 id="limits">Limitations</h2>
-<ul>
-  <li>It is not a TeX engine. It covers the subset articles use, and has no page layout: <code>\vspace</code>, <code>\newpage</code> and float placement are ignored.</li>
-  <li><code>\title</code>, <code>\author</code> and <code>\maketitle</code> produce nothing, so put the title block in your HTML.</li>
-  <li>Maths is whatever KaTeX supports; <code>siunitx</code> and similar packages are not available.</li>
-  <li>One file per document: no <code>\input</code> or <code>.bib</code> files. Write <code>thebibliography</code> instead (<code>HaTeX.Bib</code> can generate the entries).</li>
-  <li>The output is meant for your own writing. Sanitise it before rendering sources from other people.</li>
-</ul>
 
 <h2 id="license">License</h2>
 <p>
@@ -432,7 +395,7 @@ const html = HaTeX.parse(source);   // → &lt;article class="hatex"&gt;${html}&
 </div>
 
 <footer>
-  hatex 1.5.0 · MIT License · by Mejistus · <a href="https://github.com/mejistus/hatex">source on GitHub</a> · the LaTeX renderer of <a href="../">mejistus.github.io</a> ·
+  hatex 1.5.1 · MIT License · by Mejistus · <a href="https://github.com/mejistus/hatex">source on GitHub</a> · the LaTeX renderer of <a href="../">mejistus.github.io</a> ·
   <a href="demo/">demos</a>: a two-column paper, a classical Chinese text set like an old book, and a slide deck
 </footer>
 
