@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <title>hatex</title>
-  <!-- H in KaTeX's sans-serif bold (the web side), a small raised A in
+  <!-- H in KaTeX's sans-serif bold, in HTML5 orange (the web side), a small raised A in
        Computer Modern (the TeX side, set as in the LaTeX logo). Glyphs are
        outlines from KaTeX's fonts, so no font has to be installed. -->
   <style>
-    .tile { fill: #161616; } .h { fill: #fff; } .tex { fill: #fff; }
-    @media (prefers-color-scheme: dark) { .tile { fill: #ece9e4; } .h, .tex { fill: #191817; } }
+    .tile { fill: #161616; } .h { fill: #f0714b; } .tex { fill: #fff; }
+    @media (prefers-color-scheme: dark) { .tile { fill: #ece9e4; } .h { fill: #e34f26; } .tex { fill: #191817; } }
   </style>
   <rect class="tile" width="64" height="64" rx="14"/>
   <g transform="translate(5.44 45.64) scale(0.03872)">
