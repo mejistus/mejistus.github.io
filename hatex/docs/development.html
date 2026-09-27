@@ -176,6 +176,7 @@ scripts/          build.mjs, serve.mjs, sync.mjs, docs.mjs (+ docs.css)</code></
 <li>Update the README, <code>docs/syntax.md</code> and this manual for anything a user can see.</li>
 <li>Commit <code>src/</code>, <code>dist/</code> and the docs together, with a message in the form <code>hatex 1.4.0: vertical Chinese in the manner of old books</code>, and a body listing the changes.</li>
 <li>Publish on the project site: copy <code>dist/</code> to the site&#39;s <code>hatex/lib/</code>, and run <code>npm run docs</code> to rebuild the manual pages in its <code>hatex/docs/</code>.</li>
+<li>Copy <code>dist/hatex.js</code> and <code>dist/hatex.css</code> to <code>lib/</code> in <a href="https://github.com/mejistus/hatex-demo" rel="noopener">hatex-demo</a> too, which keeps its own copy, and point the site&#39;s <code>hatex/demo</code> submodule at the new commit.</li>
 </ol>
 <hr>
 <p>Previous: <a href="troubleshooting.html">Limitations and troubleshooting</a> · <a href="index.html">Contents</a></p>
