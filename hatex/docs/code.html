@@ -12,7 +12,7 @@
   <a class="brand" href="../">hatex</a>
   <span class="sep">/</span>
   <a href="index.html">manual</a>
-  <span class="ver">1.5.1</span>
+  <span class="ver">1.6.0</span>
   <button class="menu" type="button" aria-expanded="false" aria-controls="side">Chapters</button>
 </header>
 <div class="layout">
@@ -122,7 +122,7 @@ Plain text, shown exactly as written: \no \commands {here}.
 <h2 id="copy-buttons"><a class="anchor" href="#copy-buttons" aria-hidden="true">#</a>Copy buttons</h2>
 <p>Every code block gets a &quot;copy&quot; button in its top-right corner. It appears when the pointer is over the block or the button has keyboard focus, and it copies the code&#39;s text to the clipboard and says &quot;copied&quot;. If the clipboard is unavailable (an insecure <code>http:</code> page, for example), the button says &quot;press ⌘C&quot; instead. The <code>copyButtons: false</code> <a href="api.html#options">option</a> turns the buttons off.</p>
 <h2 id="wide-code"><a class="anchor" href="#wide-code" aria-hidden="true">#</a>Wide code</h2>
-<p>Long lines don&#39;t wrap: a code block scrolls sideways inside itself. This is also true in <a href="columns.html">two-column layouts</a> and on slides, where code has a smaller font size.</p>
+<p>Long lines wrap at the edge of the block instead of scrolling sideways, also in <a href="columns.html">two-column layouts</a> and on slides, where code has a smaller font size. Only the display wraps: the copy button and copy-and-paste give the lines as written.</p>
 <h2 id="not-supported"><a class="anchor" href="#not-supported" aria-hidden="true">#</a>Not supported</h2>
 <ul>
 <li><code>\lstinputlisting{file}</code> and <code>\inputminted{lang}{file}</code>: files aren&#39;t read, so they degrade to their argument text (the file name, preceded by the language for <code>\inputminted</code>). Paste the code into the source.</li>
@@ -136,7 +136,7 @@ Plain text, shown exactly as written: \no \commands {here}.
       <a class="prev" href="theorems.html"><small>Previous</small>Theorems, proofs and algorithms</a>
       <a class="next" href="references.html"><small>Next</small>Cross-references, citations and footnotes</a>
     </nav>
-    <footer>hatex 1.5.1 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/code.md">edit this page on GitHub</a></footer>
+    <footer>hatex 1.6.0 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/code.md">edit this page on GitHub</a></footer>
   </main>
 </div>
 <script>
