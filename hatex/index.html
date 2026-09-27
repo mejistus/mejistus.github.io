@@ -5,22 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>hatex — LaTeX articles and slides, rendered in the browser</title>
 <meta name="description" content="hatex = html + latex: it turns LaTeX articles and beamer slides into web pages in the browser. Numbered equations, tables, figures, TikZ, theorems, algorithms, citations, two-column layouts and slides. MIT licensed.">
+<script>
+  // The saved light / dark choice, applied before the page paints. No saved
+  // choice (or no storage) means following the system.
+  try { const t = localStorage.getItem('hatex-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.color = t; } catch (_) {}
+</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <link rel="stylesheet" href="lib/hatex.css">
 <style>
   :root {
     color-scheme: light;
+    --bg: #fff;
+    --fg: #111;
+    --edge: #111;         /* strong borders, the primary button */
+    --on-edge: #fff;
     --line: #ddd;
     --soft: #f6f6f6;
     --grey: #555;
+    --error: #b3261e;
     --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    background: #fff;
-    color: #111;
+    background: var(--bg);
+    color: var(--fg);
     font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
   }
   a { color: inherit; }
@@ -35,12 +45,12 @@
   .button {
     display: inline-block;
     padding: 0.45rem 0.9rem;
-    border: 1px solid #111;
+    border: 1px solid var(--edge);
     border-radius: 0.3rem;
     text-decoration: none;
     font-size: 0.95rem;
   }
-  .button.primary { background: #111; color: #fff; }
+  .button.primary { background: var(--edge); color: var(--on-edge); }
   .version { font-size: 0.85rem; color: var(--grey); margin-top: 0.8rem; }
 
   h2 { font-size: 1.35rem; margin: 3.2rem 0 0.8rem; }
@@ -62,28 +72,28 @@
   }
   table.ref { border-collapse: collapse; width: 100%; font-size: 0.92rem; margin: 0 0 1rem; }
   table.ref th, table.ref td { text-align: left; vertical-align: top; padding: 0.45rem 0.8rem 0.45rem 0; border-bottom: 1px solid var(--line); }
-  table.ref th { font-weight: 600; border-bottom-color: #111; }
+  table.ref th { font-weight: 600; border-bottom-color: var(--edge); }
   table.ref td:first-child { white-space: nowrap; }
   ul { padding-left: 1.2rem; }
   li { margin-bottom: 0.3rem; }
 
   /* Playground */
-  .play { border: 1px solid #111; border-radius: 0.3rem; overflow: hidden; }
+  .play { border: 1px solid var(--edge); border-radius: 0.3rem; overflow: hidden; }
   .play-bar {
     display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;
-    padding: 0.4rem 0.8rem; border-bottom: 1px solid #111; font-size: 0.85rem;
+    padding: 0.4rem 0.8rem; border-bottom: 1px solid var(--edge); font-size: 0.85rem;
   }
   .play-bar b { margin-right: auto; }
   .play-bar select { font: inherit; }
   .play-panes { display: grid; grid-template-columns: 1fr 1fr; height: 34rem; }
   .play textarea {
-    border: 0; border-right: 1px solid #111; padding: 0.9rem 1rem; resize: none; outline: none;
-    font: 0.8rem/1.6 var(--mono); color: #111; background: #fff; tab-size: 2;
+    border: 0; border-right: 1px solid var(--edge); padding: 0.9rem 1rem; resize: none; outline: none;
+    font: 0.8rem/1.6 var(--mono); color: var(--fg); background: var(--bg); tab-size: 2;
   }
   .play-out { overflow: auto; padding: 0.4rem 1.5rem 2rem; background: #fff; }
   .play-out.dark-bg { background: #191817; }
-  .play-status { border-top: 1px solid #111; padding: 0.35rem 0.8rem; font-size: 0.8rem; color: var(--grey); min-height: 2rem; }
-  .play-status .error { color: #b3261e; }
+  .play-status { border-top: 1px solid var(--edge); padding: 0.35rem 0.8rem; font-size: 0.8rem; color: var(--grey); min-height: 2rem; }
+  .play-status .error { color: var(--error); }
   /* The "warm" style of the preview: a handful of variables over the plain default. */
   .hatex.warm {
     --hx-ink: #2d2d2d; --hx-text: #6b645b; --hx-muted: #8a8278; --hx-accent: #2d2d2d;
@@ -103,18 +113,63 @@
   footer { margin: 4rem 0 3rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--grey); }
 
   @media (max-width: 720px) {
-    header { padding-top: 2.5rem; }
+    header { padding-top: 3.4rem; }
     h1 { font-size: 2.1rem; }
     .play-panes { grid-template-columns: 1fr; grid-template-rows: 18rem 26rem; height: auto; }
-    .play textarea { border-right: 0; border-bottom: 1px solid #111; }
+    .play textarea { border-right: 0; border-bottom: 1px solid var(--edge); }
     table.ref td:first-child { white-space: normal; }
   }
+
+  /* Dark: follows the system unless the switch says otherwise. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-color="light"]) {
+    color-scheme: dark;
+    --bg: #191817;
+    --fg: #e8e6e3;
+    --edge: #d9d6d1;
+    --on-edge: #191817;
+    --line: #3a3835;
+    --soft: #242220;
+    --grey: #a8a39c;
+    --error: #f2b8b5;
+    }
+  }
+  :root[data-color="dark"] {
+    color-scheme: dark;
+    --bg: #191817;
+    --fg: #e8e6e3;
+    --edge: #d9d6d1;
+    --on-edge: #191817;
+    --line: #3a3835;
+    --soft: #242220;
+    --grey: #a8a39c;
+    --error: #f2b8b5;
+  }
+
+  /* The light / dark switch. */
+  header { position: relative; }
+  .theme {
+    position: absolute; top: 1rem; right: 0;
+    display: inline-flex; border: 1px solid var(--line); border-radius: 0.35rem; overflow: hidden;
+    font-size: 0.8rem;
+  }
+  .theme button {
+    font: inherit; color: var(--grey); background: transparent; border: 0;
+    padding: 0.25rem 0.6rem; cursor: pointer;
+  }
+  .theme button + button { border-left: 1px solid var(--line); }
+  .theme button[aria-pressed="true"] { color: var(--fg); background: var(--soft); font-weight: 600; }
 </style>
 </head>
 <body>
 <div class="wrap">
 
 <header>
+  <div class="theme" role="group" aria-label="Colour theme">
+    <button type="button" data-set="auto" title="Follow the system setting">Auto</button>
+    <button type="button" data-set="light">Light</button>
+    <button type="button" data-set="dark">Dark</button>
+  </div>
   <h1>hatex</h1>
   <p class="tagline">LaTeX articles and slides, rendered in the browser.</p>
   <p class="lead text">
@@ -436,7 +491,7 @@ A \verb|\columnbreak| sends what follows to the next column. On a narrow screen 
 
   let timer;
   src.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(update, 250); });
-  style.addEventListener('change', update);
+  style.addEventListener('change', () => { styleChosen = true; update(); });
   document.getElementById('reset').addEventListener('click', () => { src.value = initial; src.scrollTop = 0; wrap.scrollTop = 0; update(); });
   example.addEventListener('change', () => {
     initial = sourceOf(example.value);
@@ -446,7 +501,29 @@ A \verb|\columnbreak| sends what follows to the next column. On a narrow screen 
     document.querySelector('.play').classList.toggle('preview-only', e.target.checked);
     HaTeX.layout(out);
   });
+  // ── Light / dark ──
+  // The switch sets data-color on <html> (not data-theme, which would also
+  // turn the preview dark). The preview follows the page until a style is
+  // picked for it.
+  const html = document.documentElement;
+  const systemDark = matchMedia('(prefers-color-scheme: dark)');
+  let styleChosen = false;
+  function showTheme() {
+    const choice = html.dataset.color || 'auto';
+    document.querySelectorAll('.theme button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.set === choice)));
+    const dark = choice === 'auto' ? systemDark.matches : choice === 'dark';
+    if (!styleChosen) style.value = dark ? 'dark' : 'plain';
+  }
+  document.querySelectorAll('.theme button').forEach(b => b.addEventListener('click', () => {
+    if (b.dataset.set === 'auto') delete html.dataset.color; else html.dataset.color = b.dataset.set;
+    try { if (b.dataset.set === 'auto') localStorage.removeItem('hatex-theme'); else localStorage.setItem('hatex-theme', b.dataset.set); } catch (_) {}
+    showTheme();
+    update();
+  }));
+  systemDark.addEventListener('change', () => { showTheme(); update(); });
+
   src.value = initial;
+  showTheme();
   update();
 </script>
 </body>
