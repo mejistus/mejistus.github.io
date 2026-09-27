@@ -100,20 +100,6 @@
   .play.preview-only .play-panes { grid-template-columns: 1fr; }
   .play.preview-only textarea { display: none; }
   .play-bar label { display: inline-flex; align-items: center; gap: 0.35rem; }
-  /* The comparison: a table on a wide screen, one card per project on a phone. */
-  .compare { margin: 0 0 1rem; }
-  .compare table.ref { margin: 0; }
-  .compare table.ref td:first-child { white-space: normal; min-width: 6.5rem; }
-  @media (max-width: 720px) {
-    .compare table.ref, .compare tbody, .compare tr, .compare td { display: block; width: auto; }
-    .compare tr:first-child { display: none; }
-    .compare tr { padding: 0.6rem 0; border-bottom: 1px solid var(--line); }
-    .compare table.ref td { border: 0; padding: 0.1rem 0; }
-    .compare td[data-label="Project"] { font-size: 1.05rem; padding-bottom: 0.3rem; }
-    .compare td:not([data-label="Project"])::before {
-      content: attr(data-label) ": "; font-weight: 600;
-    }
-  }
   footer { margin: 4rem 0 3rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--grey); }
 
   @media (max-width: 720px) {
@@ -364,29 +350,6 @@ A \verb|\columnbreak| sends what follows to the next column. On a narrow screen 
   <tr><td>Layout</td><td><code>\documentclass[twocolumn]</code> and <code>multicols</code>: balanced columns on a wide screen, one column on a phone; headings, the abstract and <code>figure*</code> / <code>table*</code> span both columns, and equations too wide for a column are scaled to fit</td></tr>
   <tr><td>Slides</td><td><code>\documentclass{beamer}</code>: <code>frame</code>, <code>\titlepage</code>, <code>\tableofcontents</code>, <code>block</code> / <code>alertblock</code> / <code>exampleblock</code>, <code>columns</code>; any aspect ratio (16:9, 4:3, 1:1, …); a full-screen <b>Present</b> mode; overlays (<code>\pause</code>, <code>&lt;2-&gt;</code>) show every step at once</td></tr>
 </table>
-
-<h2 id="compare">How it compares</h2>
-<p class="text">
-  hatex doesn't replace KaTeX: it uses it. KaTeX (or MathJax) typesets formulas; hatex handles the document
-  around them (sections, numbering, floats, theorems, references, TikZ, slides) and hands every formula to KaTeX.
-</p>
-<div class="compare">
-<table class="ref">
-  <tr><th>Project</th><th>What it converts</th><th>Where it runs</th><th>Maths</th><th>TikZ</th><th>Beamer slides</th></tr>
-  <tr><td data-label="Project"><b>hatex</b></td><td data-label="What it converts">Articles and beamer decks, the subset papers and posts use</td><td data-label="Where it runs">In the browser or Node; one script, no build step, no TeX installation</td><td data-label="Maths">Typeset by KaTeX</td><td data-label="TikZ">Real TeX in the browser (TikZJax, WebAssembly), or pre-rendered SVGs</td><td data-label="Beamer slides">Yes, as web slides with a Present mode</td></tr>
-  <tr><td data-label="Project"><a href="https://katex.org">KaTeX</a>, <a href="https://www.mathjax.org">MathJax</a></td><td data-label="What it converts">Formulas only</td><td data-label="Where it runs">Browser or Node</td><td data-label="Maths">They are the maths engine</td><td data-label="TikZ">No</td><td data-label="Beamer slides">No</td></tr>
-  <tr><td data-label="Project"><a href="https://latex.js.org">LaTeX.js</a></td><td data-label="What it converts">Whole documents (article, book, report), aiming at TeX-like typesetting</td><td data-label="Where it runs">Browser or Node</td><td data-label="Maths">KaTeX</td><td data-label="TikZ">No</td><td data-label="Beamer slides">No</td></tr>
-  <tr><td data-label="Project"><a href="https://pandoc.org">Pandoc</a></td><td data-label="What it converts">Between many formats, LaTeX among them</td><td data-label="Where it runs">Command line, before publishing</td><td data-label="Maths">MathJax, KaTeX or MathML in the output</td><td data-label="TikZ">Not drawn without extra filters and a TeX installation</td><td data-label="Beamer slides">Writes slides, but doesn't read beamer source as slides</td></tr>
-  <tr><td data-label="Project"><a href="https://math.nist.gov/~BMiller/LaTeXML/">LaTeXML</a></td><td data-label="What it converts">Whole documents with broad package coverage (behind arXiv's HTML papers)</td><td data-label="Where it runs">Command line (Perl), before publishing</td><td data-label="Maths">MathML</td><td data-label="TikZ">Partial</td><td data-label="Beamer slides">Not a focus</td></tr>
-  <tr><td data-label="Project"><a href="https://tug.org/tex4ht/">TeX4ht / make4ht</a></td><td data-label="What it converts">Whatever TeX compiles, since it runs TeX itself</td><td data-label="Where it runs">Command line, with a TeX distribution</td><td data-label="Maths">MathML or MathJax</td><td data-label="TikZ">Yes, as SVG images</td><td data-label="Beamer slides">Not a focus</td></tr>
-</table>
-</div>
-<p class="text">
-  In short: hatex is for putting your own LaTeX on the web as it is, with nothing to install or build, and it has
-  features of its own, such as balanced two-column layouts and vertical Chinese (<code>guji</code>, <code>\jiazhu</code>).
-  For a paper that relies on many packages, LaTeXML or TeX4ht, which cover far more of LaTeX, is the better tool.
-  The comparison reflects each project's documentation in 2026.
-</p>
 
 <h2 id="docs">Documentation</h2>
 <p>
