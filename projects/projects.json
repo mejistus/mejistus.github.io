@@ -1,7 +1,7 @@
 [
   {
     "name": "hatex",
-    "desc": "html + latex: LaTeX articles and beamer slides rendered in the browser — numbered equations, tables, TikZ, theorems, citations, two columns, vertical Chinese. No TeX install, no build step; the renderer behind this blog.",
+    "desc": "html + latex: LaTeX articles and beamer slides rendered in the browser — numbered equations, tables, TikZ, theorems, citations, two columns, vertical Chinese. No TeX install, no build step.",
     "link": "https://mejistus.github.io/hatex/",
     "category": "Library"
   },
