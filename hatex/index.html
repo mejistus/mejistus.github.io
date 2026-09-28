@@ -118,6 +118,20 @@
   .play.preview-only .play-panes { grid-template-columns: 1fr; }
   .play.preview-only textarea { display: none; }
   .play-bar label { display: inline-flex; align-items: center; gap: 0.35rem; }
+  /* The comparison, as a three-rule table with the last row set apart. */
+  table.ablation { border-collapse: collapse; font-size: 0.92rem; margin: 0.4rem 0 0.5rem; }
+  table.ablation th, table.ablation td { padding: 0.35rem 0.9rem; text-align: center; vertical-align: bottom; }
+  table.ablation th:first-child, table.ablation td:first-child { text-align: left; padding-left: 0.2rem; white-space: nowrap; }
+  table.ablation thead th { font-weight: 600; line-height: 1.3; border-top: 2px solid var(--edge); border-bottom: 1px solid var(--edge); }
+  table.ablation tbody.ours td { font-weight: 700; border-top: 1px solid var(--edge); border-bottom: 2px solid var(--edge); }
+  table.ablation a { text-decoration: none; }
+  table.ablation a:hover { text-decoration: underline; }
+  .table-note { font-size: 0.82rem; color: var(--grey); }
+  @media (max-width: 720px) {
+    table.ablation { font-size: 0.7rem; width: 100%; }
+    table.ablation th, table.ablation td { padding: 0.3rem 0.12rem; }
+    table.ablation th:first-child, table.ablation td:first-child { white-space: normal; padding-left: 0; }
+  }
   footer { margin: 4rem 0 3rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--grey); }
 
   @media (max-width: 720px) {
@@ -440,6 +454,24 @@ A \verb|\columnbreak| sends what follows to the next column. On a narrow screen 
   <tr><td>Layout</td><td><code>\documentclass[twocolumn]</code> and <code>multicols</code>: balanced columns on a wide screen, one column on a phone; headings, the abstract and <code>figure*</code> / <code>table*</code> span both columns, and equations too wide for a column are scaled to fit</td></tr>
   <tr><td>Slides</td><td><code>\documentclass{beamer}</code>: <code>frame</code>, <code>\titlepage</code>, <code>\tableofcontents</code>, <code>block</code> / <code>alertblock</code> / <code>exampleblock</code>, <code>columns</code>; any aspect ratio (16:9, 4:3, 1:1, …); a full-screen <b>Present</b> mode; overlays (<code>\pause</code>, <code>&lt;2-&gt;</code>) show every step at once</td></tr>
 </table>
+
+<h2 id="compare">Compared with</h2>
+<table class="ablation">
+  <thead>
+    <tr><th>Method</th><th>Maths</th><th>Document<br>structure</th><th>TikZ</th><th>Beamer</th><th>Runs in<br>browser</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><a href="https://katex.org">KaTeX</a></td><td>✔</td><td></td><td></td><td></td><td>✔</td></tr>
+    <tr><td><a href="https://www.mathjax.org">MathJax</a></td><td>✔</td><td></td><td></td><td></td><td>✔</td></tr>
+    <tr><td><a href="https://latex.js.org">LaTeX.js</a></td><td>✔</td><td>✔</td><td></td><td></td><td>✔</td></tr>
+    <tr><td><a href="https://pandoc.org">Pandoc</a></td><td>✔</td><td>✔</td><td></td><td></td><td></td></tr>
+    <tr><td><a href="https://tug.org/tex4ht/">TeX4ht</a></td><td>✔</td><td>✔</td><td>✔</td><td></td><td></td></tr>
+  </tbody>
+  <tbody class="ours">
+    <tr><td>HaTeX (Ours)</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
+  </tbody>
+</table>
+<p class="table-note">Document structure: sections, numbering, cross-references and citations. Beamer: beamer slide decks shown as slides. Runs in browser: the <code>.tex</code> source is rendered in the reader's browser, with no build step. HaTeX typesets its maths with KaTeX.</p>
 
 <h2 id="docs">Documentation</h2>
 <p>
