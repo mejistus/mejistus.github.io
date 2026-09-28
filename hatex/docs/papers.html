@@ -1,10 +1,10 @@
 <!doctype html>
-<!-- Built from docs/manual/node.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
+<!-- Built from docs/manual/papers.md by scripts/docs.mjs in https://github.com/mejistus/hatex; edit the Markdown, not this file. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Node, bundlers and static sites · HaTeX manual</title>
+<title>Papers · HaTeX manual</title>
 <link rel="icon" href="../favicon-32.png" sizes="32x32">
 <link rel="icon" href="../favicon.svg?v=3" type="image/svg+xml">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
@@ -28,7 +28,7 @@
     <ul>
       <li><a href="index.html">Contents</a></li>
       <li><a href="getting-started.html">Getting started</a></li>
-      <li><a href="papers.html">Papers</a></li>
+      <li class="here"><a href="papers.html">Papers</a></li>
       <li><a href="documents.html">How HaTeX reads a document</a></li>
       <li><a href="maths.html">Maths</a></li>
       <li><a href="tables.html">Tables</a></li>
@@ -43,7 +43,7 @@
       <li><a href="api.html">JavaScript API</a></li>
       <li><a href="theming.html">Theming</a></li>
       <li><a href="html-output.html">The HTML output</a></li>
-      <li class="here"><a href="node.html">Node, bundlers and static sites</a></li>
+      <li><a href="node.html">Node, bundlers and static sites</a></li>
       <li><a href="checking.html">Checking sources</a></li>
       <li><a href="troubleshooting.html">Limitations and troubleshooting</a></li>
       <li><a href="development.html">Developing HaTeX</a></li>
@@ -52,86 +52,178 @@
   </aside>
   <main>
     <article>
-<h1 id="node-bundlers-and-static-sites"><a class="anchor" href="#node-bundlers-and-static-sites" aria-hidden="true">#</a>Node, bundlers and static sites</h1>
-<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#installing">Installing</a></li><li><a href="#rendering-in-node">Rendering in Node</a></li><li><a href="#the-page-around-pre-rendered-html">The page around pre-rendered HTML</a></li><li><a href="#tikz-at-build-time">TikZ at build time</a></li><li><a href="#bundlers">Bundlers</a></li><li><a href="#frameworks">Frameworks</a></li><li><a href="#static-site-generators">Static-site generators</a></li><li><a href="#security">Security</a></li></ul></nav>
-<p><code>HaTeX.parse</code> doesn&#39;t need a DOM, so documents can be rendered at build time and shipped as plain HTML. Readers then need no JavaScript to read them, and the page appears without waiting for KaTeX or the renderer.</p>
-<h2 id="installing"><a class="anchor" href="#installing" aria-hidden="true">#</a>Installing</h2>
-<p>HaTeX isn&#39;t published to npm. Install it from the repository, or copy <code>dist/</code> into your project:</p>
-<pre><code class="language-bash">npm install github:mejistus/hatex katex</code></pre>
-<p>KaTeX is a peer dependency, used when you render at build time. Prism (<code>prismjs</code>) is optional.</p>
-<h2 id="rendering-in-node"><a class="anchor" href="#rendering-in-node" aria-hidden="true">#</a>Rendering in Node</h2>
-<pre><code class="language-js">import { readFileSync, writeFileSync } from 'node:fs';
-import katex from 'katex';
-import HaTeX from 'hatex';                     // dist/hatex.mjs
-
-HaTeX.use({ katex });                          // before parse
-const html = HaTeX.parse(readFileSync('post.tex', 'utf8'));
-writeFileSync('post.html', `&lt;article class=&quot;hatex&quot;&gt;${html}&lt;/article&gt;`);</code></pre>
-<p>CommonJS works the same way:</p>
-<pre><code class="language-js">const katex = require('katex');
-const HaTeX = require('hatex');                // dist/hatex.js
-HaTeX.use({ katex });</code></pre>
-<p>With highlighting:</p>
-<pre><code class="language-js">import Prism from 'prismjs';
-import loadLanguages from 'prismjs/components/index.js';
-loadLanguages(['python', 'bash']);
-HaTeX.use({ katex, Prism });</code></pre>
-<p><a href="https://github.com/mejistus/hatex/blob/main/examples/node/prerender.mjs" rel="noopener"><code>examples/node/prerender.mjs</code></a> is a complete script that renders a <code>.tex</code> file to a standalone page, taking the title from the front matter and printing lint warnings:</p>
-<pre><code class="language-bash">npm install
-node examples/node/prerender.mjs in.tex out.html</code></pre>
-<h2 id="the-page-around-pre-rendered-html"><a class="anchor" href="#the-page-around-pre-rendered-html" aria-hidden="true">#</a>The page around pre-rendered HTML</h2>
-<pre><code class="language-markup">&lt;link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css&quot;&gt;
-&lt;link rel=&quot;stylesheet&quot; href=&quot;hatex.css&quot;&gt;
-
-&lt;article class=&quot;hatex&quot;&gt;…output of parse…&lt;/article&gt;
-
-&lt;!-- optional: page behaviour --&gt;
-&lt;script src=&quot;hatex.js&quot;&gt;&lt;/script&gt;
-&lt;script&gt;HaTeX.enhance(document.querySelector('.hatex'));&lt;/script&gt;</code></pre>
+<h1 id="papers"><a class="anchor" href="#papers" aria-hidden="true">#</a>Papers</h1>
+<nav class="toc" aria-label="On this page"><b>On this page</b><ul><li><a href="#conference-templates">Conference templates</a></li><li><a href="#the-title-block">The title block</a></li><li><a href="#citations-and-the-bibliography">Citations and the bibliography</a></li><li><a href="#from-an-arxiv-source">From an arXiv source</a></li></ul></nav>
+<p>HaTeX is made for putting research papers on the web, in computer science and AI in particular. Hand it the LaTeX source of a paper written with a conference template and it renders the paper as it is: the title block, two columns where the template has them, numbered equations, tables, figures, algorithms, citations and the bibliography, and the appendix.</p>
+<pre><code class="language-js">const [tex, bib] = await Promise.all([
+  fetch('paper/main.tex').then(r =&gt; r.text()),
+  fetch('paper/refs.bib').then(r =&gt; r.text()),
+]);
+HaTeX.render('#paper', tex, { bib });</code></pre>
+<h2 id="conference-templates"><a class="anchor" href="#conference-templates" aria-hidden="true">#</a>Conference templates</h2>
+<p>The template&#39;s own packages and commands (<code>\usepackage[final]{neurips_2024}</code>, <code>\iclrfinalcopy</code>, <code>\icmltitlerunning</code>, <code>\pdfinfo</code>, <code>\def\paperID</code>, …) are read where they matter and otherwise skipped without leaving text behind.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Template</th>
+<th>Columns</th>
+<th>Title block</th>
+<th>Citations</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NeurIPS</td>
+<td>one</td>
+<td><code>\title</code>, <code>\author</code> with <code>\And</code> / <code>\AND</code>, <code>\thanks</code></td>
+<td>natbib, author–year</td>
+</tr>
+<tr>
+<td>ICLR</td>
+<td>one</td>
+<td><code>\title</code>, <code>\author</code> with <code>\And</code> / <code>\AND</code>, <code>\thanks</code></td>
+<td>natbib, author–year</td>
+</tr>
+<tr>
+<td>ICML</td>
+<td>two (<code>\twocolumn[…]</code>)</td>
+<td><code>\icmltitle</code>, <code>\icmlauthor</code>, <code>\icmlaffiliation</code>, <code>\icmlsetsymbol</code>, <code>\icmlcorrespondingauthor</code></td>
+<td>natbib, author–year</td>
+</tr>
+<tr>
+<td>CVPR, ICCV</td>
+<td>two (class option)</td>
+<td><code>\title</code>, <code>\author</code> with <code>\and</code></td>
+<td>numbers</td>
+</tr>
+<tr>
+<td>ACL, EMNLP, NAACL</td>
+<td>two (the <code>acl</code> style)</td>
+<td><code>\title</code>, <code>\author</code> with <code>\And</code> / <code>\AND</code></td>
+<td>natbib, author–year</td>
+</tr>
+<tr>
+<td>AAAI</td>
+<td>two (the <code>aaai…</code> style)</td>
+<td><code>\title</code>, <code>\author</code>, <code>\affiliations</code></td>
+<td>numbers</td>
+</tr>
+<tr>
+<td>IJCAI</td>
+<td>two (the <code>ijcai…</code> style)</td>
+<td><code>\title</code>, <code>\author</code></td>
+<td>numbers</td>
+</tr>
+<tr>
+<td>IEEE (<code>IEEEtran</code>)</td>
+<td>two, unless <code>onecolumn</code></td>
+<td><code>\title</code>, <code>\author</code></td>
+<td>numbers</td>
+</tr>
+<tr>
+<td>ACM (<code>acmart</code>)</td>
+<td>two with <code>sigconf</code> / <code>sigplan</code></td>
+<td><code>\title</code>, <code>\author</code></td>
+<td>numbers</td>
+</tr>
+</tbody></table>
+</div>
+<p>The citation column is what HaTeX chooses when it builds the bibliography from a <code>.bib</code> (below): author–year when the paper uses natbib&#39;s <code>\citep</code> / <code>\citet</code> without the <code>numbers</code> option, numbers otherwise. With a <code>.bbl</code>, the labels in it decide.</p>
+<p>Each row was tested with a skeleton that follows the template&#39;s instructions: its class and style options, title block and citation commands. A paper that loads packages of its own may use commands HaTeX doesn&#39;t know: they <a href="documents.html">degrade</a> to their text. Look through the rendered paper once, and see <a href="troubleshooting.html">Limitations</a>.</p>
+<h2 id="the-title-block"><a class="anchor" href="#the-title-block" aria-hidden="true">#</a>The title block</h2>
+<p><code>\maketitle</code> shows the title, the authors and, if set, the date (a bare <code>\today</code> is left out, as conference styles do):</p>
 <ul>
-<li><code>katex.min.css</code> and <code>hatex.css</code> are always needed. <code>katex.min.js</code> is not: the maths is already typeset.</li>
-<li><code>hatex.js</code> and <code>enhance</code> are needed only for what HTML can&#39;t do by itself: TikZ pictures, two columns, <code>\resizebox</code> fitting, slides, <code>\jiazhu</code> in <code>guji</code>, smooth reference scrolling, copy buttons and zoom. Without them, the page is a readable single-column document, and TikZ boxes are empty.</li>
-<li>When enhancing, pass the same options you would pass to <code>render</code>, e.g. <code>{ tikzSvgBase: &#39;/tikz/&#39; }</code>.</li>
+<li>Authors separated by <code>\and</code>, <code>\And</code> or <code>\AND</code> are set side by side. Within an author, <code>\\</code> breaks the lines: name first, then affiliation and e-mail.</li>
+<li><code>\thanks{…}</code> becomes a symbol (*, †, ‡, …) after the name, and its text a note under the authors.</li>
+<li>ICML&#39;s authors are listed on one line with affiliation numbers and symbols, followed by the numbered affiliations, &quot;Equal contribution&quot; when <code>equal</code> is used, and the correspondence line. ICML has no <code>\maketitle</code>: the block stands where <code>\icmltitle</code> is.</li>
+<li>AAAI&#39;s <code>\affiliations{…}</code> is shown under the authors.</li>
 </ul>
-<h2 id="tikz-at-build-time"><a class="anchor" href="#tikz-at-build-time" aria-hidden="true">#</a>TikZ at build time</h2>
-<p>TikZ can&#39;t be compiled in Node, because TikZJax needs a browser. The output of <code>parse</code> contains each picture&#39;s code and hash, and <code>enhance</code> in the reader&#39;s browser loads <code>&lt;tikzSvgBase&gt;&lt;hash&gt;.svg</code>. So:</p>
+<p>In a two-column paper the title block spans both columns, like the abstract. When the page already shows the title, leave the block out with <code>titleBlock: false</code>:</p>
+<pre><code class="language-js">HaTeX.render('#paper', tex, { titleBlock: false });</code></pre>
+<h2 id="citations-and-the-bibliography"><a class="anchor" href="#citations-and-the-bibliography" aria-hidden="true">#</a>Citations and the bibliography</h2>
+<p>HaTeX reads one file, so the bibliography comes in as an option, as the text of either file:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>What it is</th>
+<th>Where it comes from</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>bib</code></td>
+<td>The <code>.bib</code> database</td>
+<td>Your <code>refs.bib</code></td>
+</tr>
+<tr>
+<td><code>bbl</code></td>
+<td>The bibliography BibTeX produced</td>
+<td><code>main.bbl</code> next to the source; arXiv includes it in every source download</td>
+</tr>
+</tbody></table>
+</div>
+<p>Either one takes the place of <code>\bibliography{…}</code> (or biblatex&#39;s <code>\printbibliography</code>) in the text:</p>
+<ul>
+<li>From a <strong><code>.bbl</code></strong>, the entries are exactly the ones in the file, formatted as the paper&#39;s <code>.bst</code> formatted them. This is the most faithful choice.</li>
+<li>From a <strong><code>.bib</code></strong>, HaTeX lists the entries the text cites (all of them with <code>\nocite{*}</code>), formatted in one plain style: authors, title, venue, year. With author–year citations they are sorted by author, otherwise numbered in the order of first citation; <code>\bibliographystyle{plain}</code>, <code>abbrv</code> or <code>alpha</code> sort numbered entries by author too.</li>
+</ul>
+<p>With natbib labels (from a <code>.bbl</code>, or built from a <code>.bib</code>), citations are author–year, as natbib sets them:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>\citet{vaswani2017}</code></td>
+<td>Vaswani et al. (2017)</td>
+</tr>
+<tr>
+<td><code>\citep{vaswani2017}</code></td>
+<td>(Vaswani et al., 2017)</td>
+</tr>
+<tr>
+<td><code>\citep{a,b}</code></td>
+<td>(Vaswani et al., 2017; He et al., 2016)</td>
+</tr>
+<tr>
+<td><code>\citep[see][Sec.~3]{a}</code></td>
+<td>(see Vaswani et al., 2017, Sec. 3)</td>
+</tr>
+<tr>
+<td><code>\citet[p.~5]{a}</code></td>
+<td>Vaswani et al. (2017, p. 5)</td>
+</tr>
+<tr>
+<td><code>\citealp{a}</code></td>
+<td>Vaswani et al., 2017</td>
+</tr>
+<tr>
+<td><code>\citeauthor{a}</code>, <code>\citeyear{a}</code>, <code>\citeyearpar{a}</code></td>
+<td>Vaswani et al., 2017, (2017)</td>
+</tr>
+<tr>
+<td><code>\cite{a}</code></td>
+<td>as <code>\citet</code></td>
+</tr>
+</tbody></table>
+</div>
+<p>Each citation links to its entry. Without either option, <code>\bibliography{…}</code> produces nothing and citations show their keys; see <a href="references.html">Cross-references, citations and footnotes</a>.</p>
+<h2 id="from-an-arxiv-source"><a class="anchor" href="#from-an-arxiv-source" aria-hidden="true">#</a>From an arXiv source</h2>
 <ol>
-<li>compile the pictures once in a browser (in the editor example, or on the page itself with <code>tikzSvgBase: null</code>);</li>
-<li>save the SVGs from <code>HaTeX.tikzSvgs</code> into the folder that your build publishes;</li>
-<li>build.</li>
+<li>Download the source (&quot;Other formats&quot; → &quot;Download source&quot;) and unpack it.</li>
+<li>If the paper is split into files with <code>\input</code> / <code>\include</code>, join them into one: <code>latexpand main.tex &gt; paper.tex</code> (latexpand comes with TeX Live), or paste the parts in by hand. HaTeX doesn&#39;t follow <code>\input</code>.</li>
+<li>Serve <code>paper.tex</code>, <code>main.bbl</code> and the figures together, and render with <code>{ bbl }</code>.</li>
+<li>Figures in PDF format don&#39;t show in browsers: convert them to PNG or SVG and change the <code>\includegraphics</code> paths, or keep the file names and change only the extension.</li>
 </ol>
-<p>The hashes that <code>parse</code> computes in Node are the same as in the browser, so the saved files match. See <a href="tikz.html#pre-rendering">Pre-rendering</a>.</p>
-<h2 id="bundlers"><a class="anchor" href="#bundlers" aria-hidden="true">#</a>Bundlers</h2>
-<p>With Vite, webpack, esbuild or Rollup, import the ES module and the stylesheet:</p>
-<pre><code class="language-js">import katex from 'katex';
-import 'katex/dist/katex.min.css';
-import HaTeX from 'hatex';
-import 'hatex/hatex.css';
-
-HaTeX.use({ katex });
-HaTeX.render(document.querySelector('#post'), source);</code></pre>
-<p>The library is about 135 KB before minification (plus 26 KB of CSS) and has no dependencies of its own. TikZJax is not bundled; it is loaded from <code>tikzjaxBase</code> when needed.</p>
-<p>A <code>.tex</code> file can be imported as a string with your bundler&#39;s raw import, e.g. <code>import source from &#39;./post.tex?raw&#39;</code> in Vite.</p>
-<h2 id="frameworks"><a class="anchor" href="#frameworks" aria-hidden="true">#</a>Frameworks</h2>
-<p>HaTeX writes into a DOM element, so in React, Vue or Svelte, give it an element and render in an effect:</p>
-<pre><code class="language-jsx">function Post({ source }) {
-  const ref = useRef(null);
-  useEffect(() =&gt; { HaTeX.render(ref.current, source); }, [source]);
-  return &lt;article ref={ref} /&gt;;
-}</code></pre>
-<p>Don&#39;t let the framework manage the element&#39;s children, since <code>render</code> replaces them. For server-side rendering, call <code>parse</code> on the server, send the HTML with <code>dangerouslySetInnerHTML</code> (or your framework&#39;s equivalent), and call <code>enhance</code> on the client after hydration.</p>
-<h2 id="static-site-generators"><a class="anchor" href="#static-site-generators" aria-hidden="true">#</a>Static-site generators</h2>
-<p>The pattern is the same for Eleventy, Hugo (through a Node step), Astro and others: a transform that turns <code>.tex</code> files into HTML with <code>parse</code>, a layout that includes the two stylesheets, and optionally <code>hatex.js</code> with an <code>enhance</code> call. The front matter in the <code>% ---</code> block can feed the generator&#39;s metadata; <code>HaTeX.lint(source, { frontMatter: true })</code> checks it.</p>
-<h2 id="security"><a class="anchor" href="#security" aria-hidden="true">#</a>Security</h2>
-<p>The output is meant for your own writing. <code>\href</code> and <code>\url</code> accept only safe URL schemes, and text is HTML-escaped, but the renderer doesn&#39;t aim to be a sanitiser. If you render sources written by other people, pass the output through an HTML sanitiser such as DOMPurify, and allow <code>&lt;script type=&quot;text/x-tikz&quot;&gt;</code> if you want their TikZ pictures.</p>
 <hr>
-<p>Previous: <a href="html-output.html">The HTML output</a> · <a href="index.html">Contents</a> · Next: <a href="checking.html">Checking sources</a></p>
+<p>Previous: <a href="getting-started.html">Getting started</a> · <a href="index.html">Contents</a> · Next: <a href="documents.html">How HaTeX reads a document</a></p>
     </article>
     <nav class="pager">
-      <a class="prev" href="html-output.html"><small>Previous</small>The HTML output</a>
-      <a class="next" href="checking.html"><small>Next</small>Checking sources</a>
+      <a class="prev" href="getting-started.html"><small>Previous</small>Getting started</a>
+      <a class="next" href="documents.html"><small>Next</small>How HaTeX reads a document</a>
     </nav>
-    <footer>HaTeX 1.7.0 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/node.md">edit this page on GitHub</a></footer>
+    <footer>HaTeX 1.7.0 · MIT License · <a href="https://github.com/mejistus/hatex/blob/main/docs/manual/papers.md">edit this page on GitHub</a></footer>
   </main>
 </div>
 <script>
