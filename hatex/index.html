@@ -118,19 +118,40 @@
   .play.preview-only .play-panes { grid-template-columns: 1fr; }
   .play.preview-only textarea { display: none; }
   .play-bar label { display: inline-flex; align-items: center; gap: 0.35rem; }
-  /* The comparison, as a three-rule table with the last row set apart. */
-  table.ablation { border-collapse: collapse; font-size: 0.92rem; margin: 0.4rem 0 0.5rem; }
-  table.ablation th, table.ablation td { padding: 0.35rem 0.9rem; text-align: center; vertical-align: bottom; }
-  table.ablation th:first-child, table.ablation td:first-child { text-align: left; padding-left: 0.2rem; white-space: nowrap; }
-  table.ablation thead th { font-weight: 600; line-height: 1.3; border-top: 2px solid var(--edge); border-bottom: 1px solid var(--edge); }
-  table.ablation tbody.ours td { font-weight: 700; border-top: 1px solid var(--edge); border-bottom: 2px solid var(--edge); }
+  /* The comparison, set like a table in a paper: a caption above, booktabs
+     rules, Computer Modern (KaTeX's), and the last row, ours, shaded. */
+  .compare { margin: 3rem 0 0; max-width: 46rem; }
+  .compare figcaption, table.ablation, .compare .table-note {
+    font-family: KaTeX_Main, "Latin Modern Roman", "Times New Roman", serif;
+  }
+  .compare figcaption { font-size: 1.02rem; text-align: center; margin: 0 0 0.7rem; }
+  table.ablation { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 1.05rem; line-height: 1.35; }
+  table.ablation col.method { width: 26%; }
+  table.ablation th, table.ablation td { padding: 0.42rem 0.3rem; text-align: center; }
+  table.ablation th:first-child, table.ablation td:first-child { text-align: left; padding-left: 0.6rem; }
+  table.ablation thead th { font-weight: 400; font-style: italic; border-top: 1.6px solid var(--edge); border-bottom: 0.8px solid var(--edge); }
+  table.ablation tbody tr:first-child td { padding-top: 0.6rem; }
+  table.ablation tbody:not(.ours) tr:last-child td { padding-bottom: 0.6rem; }
+  table.ablation tbody.ours td { font-weight: 700; background: var(--soft); border-top: 0.8px solid var(--edge); border-bottom: 1.6px solid var(--edge); }
+  table.ablation tbody.ours td + td { color: var(--brand-h); }
+  table.ablation .short { display: none; }
   table.ablation a { text-decoration: none; }
   table.ablation a:hover { text-decoration: underline; }
-  .table-note { font-size: 0.82rem; color: var(--grey); }
+  .compare .table-note { font-size: 0.86rem; color: var(--grey); line-height: 1.5; margin: 0.8rem 0 0; }
   @media (max-width: 720px) {
-    table.ablation { font-size: 0.64rem; width: 100%; }
-    table.ablation th, table.ablation td { padding: 0.3rem 0.08rem; }
-    table.ablation th:first-child, table.ablation td:first-child { white-space: normal; padding-left: 0; }
+    .compare figcaption { font-size: 0.92rem; }
+    table.ablation { font-size: 0.74rem; }
+    table.ablation thead th { white-space: nowrap; }
+    table.ablation col.method { width: 21%; }
+    table.ablation th, table.ablation td { padding: 0.35rem 0.05rem; }
+    table.ablation th:first-child, table.ablation td:first-child { padding-left: 0.3rem; }
+    table.ablation .long { display: none; }
+    table.ablation .short { display: inline; }
+  }
+  @media (max-width: 400px) {
+    table.ablation { font-size: 0.68rem; }
+    table.ablation col.method { width: 20%; }
+    table.ablation th:first-child, table.ablation td:first-child { padding-left: 0.15rem; }
   }
   footer { margin: 4rem 0 3rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--grey); }
 
@@ -141,6 +162,7 @@
     .play-panes { grid-template-columns: 1fr; grid-template-rows: 18rem 26rem; height: auto; }
     .play textarea { border-right: 0; border-bottom: 1px solid var(--edge); }
     table.ref td:first-child { white-space: normal; }
+    table.ref td { overflow-wrap: anywhere; }
   }
 
   /* Dark: follows the system unless the switch says otherwise. */
@@ -265,6 +287,28 @@
     bring over an arXiv source.
   </p>
 </section>
+
+<figure class="compare" id="compare">
+  <figcaption><b>Table 1:</b> What each tool renders from a LaTeX source; ✓ marks a supported feature.</figcaption>
+  <table class="ablation">
+    <colgroup><col class="method"><col span="6"></colgroup>
+    <thead>
+      <tr><th>Method</th><th>Maths</th><th><span class="long">Structure</span><span class="short">Struct.</span></th><th><span class="long">2-column</span><span class="short">2-col.</span></th><th>TikZ</th><th>Beamer</th><th><span class="long">In-browser</span><span class="short">Browser</span></th></tr>
+    </thead>
+    <tbody>
+      <tr><td><a href="https://katex.org">KaTeX</a></td><td>✓</td><td></td><td></td><td></td><td></td><td>✓</td></tr>
+      <tr><td><a href="https://www.mathjax.org">MathJax</a></td><td>✓</td><td></td><td></td><td></td><td></td><td>✓</td></tr>
+      <tr><td><a href="https://latex.js.org">LaTeX.js</a></td><td>✓</td><td>✓</td><td></td><td></td><td></td><td>✓</td></tr>
+      <tr><td><a href="https://pandoc.org">Pandoc</a></td><td>✓</td><td>✓</td><td></td><td></td><td></td><td></td></tr>
+      <tr><td><a href="https://tug.org/tex4ht/">TeX4ht</a></td><td>✓</td><td>✓</td><td></td><td>✓</td><td></td><td></td></tr>
+    </tbody>
+    <tbody class="ours">
+      <tr><td>HaTeX (Ours)</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+    </tbody>
+  </table>
+  <p class="table-note">Structure: sections, numbering, cross-references and citations. 2-column: a two-column paper stays in two balanced columns instead of being reflowed into one. Beamer: slide decks shown as slides. In-browser: the <code>.tex</code> source is rendered in the reader's browser, with no build step. HaTeX typesets its maths with KaTeX.</p>
+</figure>
+
 
 <section id="playground">
   <h2>Try it</h2>
@@ -464,24 +508,6 @@ A \verb|\columnbreak| sends what follows to the next column. On a narrow screen 
   <tr><td>Layout</td><td><code>\documentclass[twocolumn]</code>, the two-column conference styles (ICML, CVPR, ACL, AAAI, IJCAI, IEEE, ACM) and <code>multicols</code>: balanced columns on a wide screen, one column on a phone; headings, the abstract and <code>figure*</code> / <code>table*</code> span both columns, and equations too wide for a column are scaled to fit</td></tr>
   <tr><td>Slides</td><td><code>\documentclass{beamer}</code>: <code>frame</code>, <code>\titlepage</code>, <code>\tableofcontents</code>, <code>block</code> / <code>alertblock</code> / <code>exampleblock</code>, <code>columns</code>; any aspect ratio (16:9, 4:3, 1:1, …); a full-screen <b>Present</b> mode; overlays (<code>\pause</code>, <code>&lt;2-&gt;</code>) show every step at once</td></tr>
 </table>
-
-<h2 id="compare">Compared with</h2>
-<table class="ablation">
-  <thead>
-    <tr><th>Method</th><th>Maths</th><th>Document<br>structure</th><th>Two<br>columns</th><th>TikZ</th><th>Beamer</th><th>Runs in<br>browser</th></tr>
-  </thead>
-  <tbody>
-    <tr><td><a href="https://katex.org">KaTeX</a></td><td>✔</td><td></td><td></td><td></td><td></td><td>✔</td></tr>
-    <tr><td><a href="https://www.mathjax.org">MathJax</a></td><td>✔</td><td></td><td></td><td></td><td></td><td>✔</td></tr>
-    <tr><td><a href="https://latex.js.org">LaTeX.js</a></td><td>✔</td><td>✔</td><td></td><td></td><td></td><td>✔</td></tr>
-    <tr><td><a href="https://pandoc.org">Pandoc</a></td><td>✔</td><td>✔</td><td></td><td></td><td></td><td></td></tr>
-    <tr><td><a href="https://tug.org/tex4ht/">TeX4ht</a></td><td>✔</td><td>✔</td><td></td><td>✔</td><td></td><td></td></tr>
-  </tbody>
-  <tbody class="ours">
-    <tr><td>HaTeX (Ours)</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
-  </tbody>
-</table>
-<p class="table-note">Document structure: sections, numbering, cross-references and citations. Two columns: a two-column paper is shown in two balanced columns, not reflowed into one. Beamer: beamer slide decks shown as slides. Runs in browser: the <code>.tex</code> source is rendered in the reader's browser, with no build step. HaTeX typesets its maths with KaTeX.</p>
 
 <h2 id="docs">Documentation</h2>
 <p>
