@@ -15,7 +15,7 @@
 </script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-<link rel="stylesheet" href="lib/hatex.css">
+<link rel="stylesheet" href="lib/hatex.css?v=1.9.0">
 <style>
   :root {
     color-scheme: light;
@@ -262,7 +262,7 @@
     <a class="button" href="lib/hatex.css" download>hatex.css</a>
     <a class="button" href="https://github.com/mejistus/hatex">GitHub</a>
   </div>
-  <p class="version">Version 1.8.1 · about 120&nbsp;KB, no dependencies besides KaTeX · MIT License</p>
+  <p class="version">Version 1.9.0 · about 120&nbsp;KB, no dependencies besides KaTeX · MIT License</p>
 </header>
 
 <section id="about" class="text">
@@ -509,7 +509,7 @@ A \verb|\columnbreak| sends what follows to the next column. On a narrow screen 
   <tr><td>Papers</td><td>the title block of <code>\maketitle</code> and ICML's <code>\icmltitle</code> (authors, affiliations, <code>\thanks</code>); the conference templates' own commands skipped quietly; the bibliography from a <code>.bib</code> or an arXiv <code>.bbl</code></td></tr>
   <tr><td>References</td><td><code>\ref</code>, <code>\eqref</code>, <code>\autoref</code>, <code>\cref</code>, <code>\cite{a,b}</code>, natbib's <code>\citep</code> / <code>\citet</code> as “(Vaswani et al., 2017)” / “Vaswani et al. (2017)”, <code>thebibliography</code>; each link scrolls to its target</td></tr>
   <tr><td>Text</td><td><code>\textbf</code>, <code>\emph</code>, <code>\texttt</code>, <code>\sout</code>, <code>\hl</code>, <code>\textcolor</code>, <code>\href</code>, <code>\url</code>, sizes, accents, dashes and quotes</td></tr>
-  <tr><td>Chinese</td><td>captions and names switch to 图 / 表 / 定理 / 证明 / 参考文献; no stray spaces at CJK line breaks; <code>\begin{guji}</code> sets a vertical manuscript-scroll page (right to left, ruled columns, 句讀 marks in place of punctuation) and <code>\jiazhu{…}</code> adds two-line interlinear notes (夾注)</td></tr>
+  <tr><td>Chinese</td><td>captions and names switch to 图 / 表 / 定理 / 证明 / 参考文献; no stray spaces at CJK line breaks; <code>\begin{guji}</code> sets vertical text on ruled sheets of 3:4 like the leaves of an old book (right to left, 句讀 marks in place of punctuation, one sheet per printed page) and <code>\jiazhu{…}</code> adds two-line interlinear notes (夾注)</td></tr>
   <tr><td>Layout</td><td><code>\documentclass[twocolumn]</code>, the two-column conference styles (ICML, CVPR, ACL, AAAI, IJCAI, IEEE, ACM) and <code>multicols</code>: balanced columns on a wide screen, one column on a phone; headings, the abstract and <code>figure*</code> / <code>table*</code> span both columns, and equations too wide for a column are scaled to fit</td></tr>
   <tr><td>Slides</td><td><code>\documentclass{beamer}</code>: <code>frame</code>, <code>\titlepage</code>, <code>\tableofcontents</code>, <code>block</code> / <code>alertblock</code> / <code>exampleblock</code>, <code>columns</code>; any aspect ratio (16:9, 4:3, 1:1, …); a full-screen <b>Present</b> mode; overlays (<code>\pause</code>, <code>&lt;2-&gt;</code>) show every step at once</td></tr>
 </table>
@@ -558,7 +558,7 @@ A \verb|\columnbreak| sends what follows to the next column. On a narrow screen 
 </div>
 
 <footer>
-  HaTeX 1.8.1 · MIT License · by Mejistus · <a href="https://github.com/mejistus/hatex">source on GitHub</a> ·
+  HaTeX 1.9.0 · MIT License · by Mejistus · <a href="https://github.com/mejistus/hatex">source on GitHub</a> ·
   <a href="demo/">demos</a>: a two-column paper, a slide deck, and a classical Chinese text set like an old book
 </footer>
 
@@ -567,7 +567,7 @@ A \verb|\columnbreak| sends what follows to the next column. On a narrow screen 
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
-<script src="lib/hatex.js"></script>
+<script src="lib/hatex.js?v=1.9.0"></script>
 <script>
   const src = document.getElementById('src');
   const out = document.getElementById('out');
