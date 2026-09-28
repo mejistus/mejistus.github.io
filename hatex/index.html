@@ -128,8 +128,8 @@
   table.ablation a:hover { text-decoration: underline; }
   .table-note { font-size: 0.82rem; color: var(--grey); }
   @media (max-width: 720px) {
-    table.ablation { font-size: 0.7rem; width: 100%; }
-    table.ablation th, table.ablation td { padding: 0.3rem 0.12rem; }
+    table.ablation { font-size: 0.64rem; width: 100%; }
+    table.ablation th, table.ablation td { padding: 0.3rem 0.08rem; }
     table.ablation th:first-child, table.ablation td:first-child { white-space: normal; padding-left: 0; }
   }
   footer { margin: 4rem 0 3rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--grey); }
@@ -458,20 +458,20 @@ A \verb|\columnbreak| sends what follows to the next column. On a narrow screen 
 <h2 id="compare">Compared with</h2>
 <table class="ablation">
   <thead>
-    <tr><th>Method</th><th>Maths</th><th>Document<br>structure</th><th>TikZ</th><th>Beamer</th><th>Runs in<br>browser</th></tr>
+    <tr><th>Method</th><th>Maths</th><th>Document<br>structure</th><th>Two<br>columns</th><th>TikZ</th><th>Beamer</th><th>Runs in<br>browser</th></tr>
   </thead>
   <tbody>
-    <tr><td><a href="https://katex.org">KaTeX</a></td><td>✔</td><td></td><td></td><td></td><td>✔</td></tr>
-    <tr><td><a href="https://www.mathjax.org">MathJax</a></td><td>✔</td><td></td><td></td><td></td><td>✔</td></tr>
-    <tr><td><a href="https://latex.js.org">LaTeX.js</a></td><td>✔</td><td>✔</td><td></td><td></td><td>✔</td></tr>
-    <tr><td><a href="https://pandoc.org">Pandoc</a></td><td>✔</td><td>✔</td><td></td><td></td><td></td></tr>
-    <tr><td><a href="https://tug.org/tex4ht/">TeX4ht</a></td><td>✔</td><td>✔</td><td>✔</td><td></td><td></td></tr>
+    <tr><td><a href="https://katex.org">KaTeX</a></td><td>✔</td><td></td><td></td><td></td><td></td><td>✔</td></tr>
+    <tr><td><a href="https://www.mathjax.org">MathJax</a></td><td>✔</td><td></td><td></td><td></td><td></td><td>✔</td></tr>
+    <tr><td><a href="https://latex.js.org">LaTeX.js</a></td><td>✔</td><td>✔</td><td></td><td></td><td></td><td>✔</td></tr>
+    <tr><td><a href="https://pandoc.org">Pandoc</a></td><td>✔</td><td>✔</td><td></td><td></td><td></td><td></td></tr>
+    <tr><td><a href="https://tug.org/tex4ht/">TeX4ht</a></td><td>✔</td><td>✔</td><td></td><td>✔</td><td></td><td></td></tr>
   </tbody>
   <tbody class="ours">
-    <tr><td>HaTeX (Ours)</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
+    <tr><td>HaTeX (Ours)</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td><td>✔</td></tr>
   </tbody>
 </table>
-<p class="table-note">Document structure: sections, numbering, cross-references and citations. Beamer: beamer slide decks shown as slides. Runs in browser: the <code>.tex</code> source is rendered in the reader's browser, with no build step. HaTeX typesets its maths with KaTeX.</p>
+<p class="table-note">Document structure: sections, numbering, cross-references and citations. Two columns: a two-column paper is shown in two balanced columns, not reflowed into one. Beamer: beamer slide decks shown as slides. Runs in browser: the <code>.tex</code> source is rendered in the reader's browser, with no build step. HaTeX typesets its maths with KaTeX.</p>
 
 <h2 id="docs">Documentation</h2>
 <p>
