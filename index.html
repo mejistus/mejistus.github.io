@@ -1388,6 +1388,12 @@
         color: var(--ink);
       }
 
+      /* ── Slide decks (rendered by HaTeX, hatex/lib) ── */
+      .blog-deck-note {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
       /* ── LaTeX posts (rendered by assets/latex.js) ── */
       .blog-content {
         counter-reset: katexEqnNo mmlEqnNo;
@@ -4041,12 +4047,12 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
-    <script src="assets/latex.js?v=9.2.0"></script>
-    <script src="assets/latex-complete.js?v=9.2.0"></script>
-    <script src="assets/vim.js?v=9.2.0"></script>
-    <script src="assets/lint.js?v=9.2.0"></script>
-    <script src="assets/tikz-nn.js?v=9.2.0"></script>
-    <script src="assets/bib.js?v=9.2.0"></script>
+    <script src="assets/latex.js?v=9.3.0"></script>
+    <script src="assets/latex-complete.js?v=9.3.0"></script>
+    <script src="assets/vim.js?v=9.3.0"></script>
+    <script src="assets/lint.js?v=9.3.0"></script>
+    <script src="assets/tikz-nn.js?v=9.3.0"></script>
+    <script src="assets/bib.js?v=9.3.0"></script>
     <script>
       let poems = [];
       let current = 0;
@@ -4669,6 +4675,7 @@
         // paint of the next load.
         root.style.background = theme.swatch[0];
         root.style.colorScheme = theme.dark ? 'dark' : 'light';
+        document.querySelectorAll('.blog-deck-host').forEach(h => { h.dataset.theme = theme.dark ? 'dark' : 'light'; });
         const meta = document.getElementById('themeColorMeta');
         if (meta) meta.setAttribute('content', theme.swatch[0]);
         renderThemeMenu();
@@ -4827,8 +4834,14 @@
       }
 
       function enhanceReading(root, b) {
-        const stat = readingTime(b);
         const label = document.getElementById('blogPanelLabel');
+        if (isDeck(b.content)) {
+          // HaTeX adds its own copy buttons, and a click on a slide presents it.
+          const n = (b.content.match(/^[^%\n]*\\begin\{frame\}/gm) || []).length;
+          if (label && n) label.textContent += ` · ${n} slides`;
+          return;
+        }
+        const stat = readingTime(b);
         if (stat && label) label.textContent += ` · ${stat.minutes} min read`;
 
         root.querySelectorAll('pre').forEach(pre => {
@@ -4857,7 +4870,7 @@
           if (scope.id !== 'blogPanelContent') return;
         }
         scope.querySelectorAll('img, svg').forEach(el => {
-          if (el.dataset.zoom) return;
+          if (el.dataset.zoom || el.closest('.hatex')) return;
           el.dataset.zoom = '1';
           el.classList.add('zoomable');
           el.addEventListener('click', () => openZoom(el));
@@ -4889,6 +4902,11 @@
         const panel = document.getElementById('blogToc');
         const btn = document.getElementById('blogTocBtn');
         panel.hidden = true;
+        if (content.classList.contains('blog-deck')) {
+          btn.style.display = 'none';
+          panel.innerHTML = '';
+          return;
+        }
         const heads = [...content.querySelectorAll('h2, h3, h4')];
         const file = blogs[currentBlog] && blogs[currentBlog].file;
         heads.forEach((h, n) => {
@@ -4957,6 +4975,85 @@
         return parseLatex(content || '');
       }
 
+      // ── Slide decks ──
+      // A post whose source says \documentclass{beamer} is a slide deck.
+      // assets/latex.js renders articles only, so decks go to HaTeX
+      // (hatex/lib), loaded the first time one is opened. HaTeX sets
+      // parseLatex and a few other globals that the blog's scripts define
+      // too: the blog's are put back once it has loaded, and HaTeX's are
+      // swapped in only while it parses.
+      const HATEX_VERSION = '1.10.0';
+      const HATEX_GLOBALS = ['parseLatex', 'lintSource', 'referencedImages', 'Bib', 'TIKZ_NN_PREAMBLE'];
+      const isDeck = (src) => /^[^%\n]*\\documentclass\s*(\[[^\]]*\])?\s*\{beamer\}/m.test(src || '');
+      let hatexLoading = null, hatexReady = null;
+      function loadHatex() {
+        if (hatexLoading) return hatexLoading;
+        hatexLoading = new Promise((resolve, reject) => {
+          const css = document.createElement('link');
+          css.rel = 'stylesheet';
+          css.href = `hatex/lib/hatex.css?v=${HATEX_VERSION}`;
+          document.head.appendChild(css);
+          const blogOwn = HATEX_GLOBALS.map(n => window[n]);
+          const js = document.createElement('script');
+          js.src = `hatex/lib/hatex.js?v=${HATEX_VERSION}`;
+          js.onload = () => {
+            const own = HATEX_GLOBALS.map(n => window[n]);
+            HATEX_GLOBALS.forEach((n, k) => { window[n] = blogOwn[k]; });
+            hatexReady = { HaTeX: window.HaTeX, own };
+            resolve(hatexReady);
+          };
+          js.onerror = () => {
+            js.remove();
+            hatexLoading = null;
+            reject(new Error('HaTeX did not load'));
+          };
+          document.head.appendChild(js);
+        });
+        return hatexLoading;
+      }
+      // Runs fn with HaTeX's globals in place of the blog's.
+      function asHatex(h, fn) {
+        const blogOwn = HATEX_GLOBALS.map(n => window[n]);
+        HATEX_GLOBALS.forEach((n, k) => { window[n] = h.own[k]; });
+        try { return fn(); }
+        finally { HATEX_GLOBALS.forEach((n, k) => { window[n] = blogOwn[k]; }); }
+      }
+      // Renders a deck into the reading panel or the editor preview. HaTeX
+      // gets a child element of its own, so its class and state never stay
+      // on the box when the next post is an article. Synchronous once HaTeX
+      // is loaded, so the editor can keep its place.
+      function renderDeck(box, src, options) {
+        box.classList.remove('blog-content');
+        box.classList.add('blog-deck');
+        const token = String(Math.random());
+        box.dataset.deckToken = token;
+        const draw = (h) => {
+          if (box.dataset.deckToken !== token) return; // replaced in the meantime
+          let host = box.firstElementChild;
+          if (!host || box.children.length !== 1 || !host.classList.contains('blog-deck-host')) {
+            host = document.createElement('div');
+            host.className = 'blog-deck-host';
+            box.replaceChildren(host);
+          }
+          host.dataset.theme = document.documentElement.hasAttribute('data-dark') ? 'dark' : 'light';
+          asHatex(h, () => h.HaTeX.render(host, src,
+            Object.assign({ tikzSvgBase: 'notes/tikz/', zoom: false, animate: false }, options)));
+          applyStagedImages(host);
+        };
+        if (hatexReady) { draw(hatexReady); return; }
+        box.innerHTML = '<p class="blog-deck-note">Loading the slides…</p>';
+        loadHatex().then(draw, () => {
+          if (box.dataset.deckToken === token) {
+            box.innerHTML = '<p class="blog-deck-note">The slides could not be loaded. Reload the page to try again.</p>';
+          }
+        });
+      }
+      function leaveDeck(box) {
+        box.classList.add('blog-content');
+        box.classList.remove('blog-deck');
+        delete box.dataset.deckToken;
+      }
+
       // Bounded, most recently used last: a site with hundreds of posts should
       // not keep every one of them rendered in memory.
       const PARSED_CACHE_MAX = 60;
@@ -4981,11 +5078,12 @@
       // post per idle slice, so opening any of them costs only the layout.
       function warmParsedPosts() {
         if (!window.requestIdleCallback) return;
-        const queue = blogs.map((b, i) => i).filter(i => blogs[i].content && !parsedHtmlCache.has(i));
+        const queue = blogs.map((b, i) => i)
+          .filter(i => blogs[i].content && !isDeck(blogs[i].content) && !parsedHtmlCache.has(i));
         const step = (deadline) => {
           while (queue.length && deadline.timeRemaining() > 12) {
             const i = queue.shift();
-            if (blogs[i] && blogs[i].content && !parsedHtmlCache.has(i)) {
+            if (blogs[i] && blogs[i].content && !isDeck(blogs[i].content) && !parsedHtmlCache.has(i)) {
               try { getParsedHtml(i); } catch (_) {}
             }
             if (parsedHtmlCache.size >= PARSED_CACHE_MAX) { queue.length = 0; break; }
@@ -5018,15 +5116,22 @@
           `Blog · ${i + 1} of ${blogs.length}`;
         document.getElementById("blogPanelTitle").innerHTML = renderInline(b.title);
         const content = document.getElementById("blogPanelContent");
-        content.innerHTML = getParsedHtml(i);
+        const deck = isDeck(b.content);
+        if (deck) renderDeck(content, b.content);
+        else {
+          leaveDeck(content);
+          content.innerHTML = getParsedHtml(i);
+        }
         // Screen readers pick a voice from this; the page shell is English but
         // most posts are not.
         const text = (b.content || '').slice(0, 4000);
         const cjk = (text.match(/[\u3400-\u9fff]/g) || []).length;
         content.lang = cjk > text.replace(/\s/g, '').length * 0.15 ? 'zh' : 'en';
-        applyStagedImages(content);
-        fitLatexBoxes(content);
-        loadTikzJax(content);
+        if (!deck) {
+          applyStagedImages(content);
+          fitLatexBoxes(content);
+          loadTikzJax(content);
+        }
         buildToc();
         enhanceReading(content, b);
         document.getElementById("blogCounter").textContent =
@@ -5190,6 +5295,8 @@
       document.addEventListener("keydown", (e) => {
         // Don't intercept keys when editor is active
         if (editorActive) return;
+        // Nor while a slide deck is being presented: its keys change slides.
+        if (document.querySelector('.hatex-presenting')) return;
 
         const poemPanelOpen = document.getElementById("poemPanel").classList.contains("open");
         const blogPanelOpen = document.getElementById("blogPanel").classList.contains("open");
@@ -5370,6 +5477,7 @@
       function fitLatexBoxes(root) {
         requestAnimationFrame(() => {
           root.querySelectorAll('.latex-fit').forEach(box => {
+            if (box.closest('.hatex')) return; // HaTeX fits its own
             const inner = box.firstElementChild;
             if (!inner) return;
             inner.style.zoom = '';
@@ -5485,8 +5593,9 @@
       // TikZJax compiles one picture at a time and only on a reader's first
       // visit, so say how far along it is instead of showing bare spinners.
       function updateTikzProgress() {
-        const boxes = [...document.querySelectorAll('.latex-tikz[data-tikz-state="live"]')];
-        const done = document.querySelectorAll('.latex-tikz[data-tikz-state="compiled"]').length;
+        const own = (b) => !b.closest('.hatex'); // HaTeX counts its own
+        const boxes = [...document.querySelectorAll('.latex-tikz[data-tikz-state="live"]')].filter(own);
+        const done = [...document.querySelectorAll('.latex-tikz[data-tikz-state="compiled"]')].filter(own).length;
         const total = boxes.length + done;
         boxes.forEach((box, i) => {
           const label = box.querySelector('.latex-tikz-status');
@@ -5499,7 +5608,7 @@
 
       document.addEventListener('tikzjax-load-finished', (e) => {
         const box = e.target.closest && e.target.closest('.latex-tikz');
-        if (!box) return;
+        if (!box || box.closest('.hatex')) return;
         box.dataset.tikzState = 'compiled';
         delete box.dataset.tikzError;
         tikzErrors.delete(box.dataset.tikzHash);
@@ -5513,14 +5622,20 @@
       // Stage SVGs of pictures compiled in the editor preview alongside the post.
       async function stageCompiledTikz() {
         let staged = 0, pending = 0;
+        // HaTeX draws its pictures adjusted for the screen; it keeps TeX's own files.
+        const deckFiles = new Map();
+        if (hatexReady) document.querySelectorAll('#editorPreview .hatex').forEach(root =>
+          hatexReady.HaTeX.tikzSvgs(root).forEach(f => deckFiles.set(f.hash, f.svg)));
         for (const box of document.querySelectorAll('#editorPreview .latex-tikz[data-tikz-hash]')) {
           const state = box.dataset.tikzState;
           if (state === 'static') continue;
           const svg = box.querySelector('svg');
           if (state !== 'compiled' || !svg) { pending++; continue; }
+          const file = box.closest('.hatex') ? deckFiles.get(box.dataset.tikzHash) : svg.outerHTML + '\n';
+          if (!file) { pending++; continue; }
           const path = `notes/tikz/${box.dataset.tikzHash}.svg`;
           if (getStagedEntry(path) || await getFileSha(path)) continue;
-          stageFile(path, svg.outerHTML + '\n', `Add TikZ figure ${box.dataset.tikzHash}`);
+          stageFile(path, file, `Add TikZ figure ${box.dataset.tikzHash}`);
           tikzMissing.delete(box.dataset.tikzHash);
           staged++;
         }
@@ -5592,12 +5707,15 @@
 
       // Pre-rendered TikZ SVGs whose picture no longer exists (edited, deleted,
       // or rendered by an older version) are removed with the next publish.
-      function orphanTikzFiles(remoteTree) {
+      function orphanTikzFiles(remoteTree, hatex) {
         if (!blogs.length || !blogs.every(b => b.content)) return []; // can't tell yet
+        if (!hatex && blogs.some(b => isDeck(b.content))) return []; // nor without HaTeX
         const used = new Set();
         blogs.forEach(b => {
           if (!/\.tex$/i.test(b.file || '')) return;
-          const html = parseLatex(b.content);
+          const html = isDeck(b.content)
+            ? asHatex(hatex, () => hatex.HaTeX.parse(b.content))
+            : parseLatex(b.content);
           (html.match(/data-tikz-hash="(\w+)"/g) || []).forEach(t => used.add(t.slice(16, -1)));
         });
         const staged = loadStaged().files;
@@ -5630,7 +5748,8 @@
             setTimeout(updatePublishBar, 2500);
             return;
           }
-          const orphans = remoteTree ? orphanTikzFiles(remoteTree) : [];
+          const hatex = blogs.some(b => isDeck(b.content)) ? await loadHatex().catch(() => null) : null;
+          const orphans = remoteTree ? orphanTikzFiles(remoteTree, hatex) : [];
 
           const tree = orphans.map(path => ({ path, mode: '100644', type: 'blob', sha: null }));
           for (const path of paths) {
@@ -6176,10 +6295,14 @@
         // above it.
         const anchor = samePost ? previewAnchor() : null;
         const range = changedLineRange(lastCompiledSource, md);
-        pv.innerHTML = renderPost(md);
-        applyStagedImages(pv);
-        fitLatexBoxes(pv);
-        loadTikzJax(pv);
+        if (isDeck(md)) renderDeck(pv, md, { tikzErrors: true });
+        else {
+          leaveDeck(pv);
+          pv.innerHTML = renderPost(md);
+          applyStagedImages(pv);
+          fitLatexBoxes(pv);
+          loadTikzJax(pv);
+        }
         if (anchor) {
           restorePreviewAnchor(anchor);
           rememberSyncPoint();
