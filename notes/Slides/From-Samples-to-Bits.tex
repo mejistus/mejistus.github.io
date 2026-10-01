@@ -2,10 +2,11 @@
 % title: From Samples to Bits: Sampling Theory and Image Compression
 % date: 2026-09-30
 % tag: Slides
-% excerpt: A 20-minute talk in beamer slides: the Nyquist–Shannon sampling theorem with pictures, the story of image compression from Shannon and the DCT to learned codecs, and what sampling theory says about the 2x down- and upsampling inside neural networks.
+% excerpt: A 20-minute talk in beamer slides: the Nyquist–Shannon sampling theorem in five minutes, a tour of image compression from JPEG to learned and generative codecs, and where the two really meet: rate–distortion theory, sampling below Nyquist when bits are scarce, and compressed sensing.
 % ---
-% About 20 minutes: Part I ~8 min, Part II ~8 min, Part III ~4 min.
-% The comment above each frame gives a suggested time.
+% About 20 minutes: Part I (sampling) ~5 min, Part II (compression) ~10 min,
+% Part III (where they meet) ~4.5 min. The comment above each frame gives a
+% suggested time; slides are meant to go by quickly.
 \documentclass[aspectratio=169]{beamer}
 \usetikzlibrary{arrows.meta,positioning,calc,decorations.pathreplacing}
 \pgfplotsset{compat=1.18}
@@ -16,19 +17,19 @@
 \definecolor{video}{HTML}{2E7D6B}
 
 \title[From Samples to Bits]{From Samples to Bits}
-\subtitle{The Nyquist--Shannon sampling theorem and the story of image compression}
+\subtitle{The sampling theorem, image compression, and where the two meet}
 \author{Xu Chen}
 \date{October 2026}
 
 \begin{document}
 
-% 0:15
+% 0:10
 \begin{frame}
   \titlepage
 \end{frame}
 
-% 1:00
-\begin{frame}{Two questions}
+% 0:30
+\begin{frame}{Two budgets}
   \begin{center}
   \begin{tikzpicture}[>={Stealth[length=2mm]}, font=\small]
     \draw[soft, ->] (0,0) -- (2.9,0);
@@ -47,20 +48,21 @@
     \draw[->, thick] (8.0,0) -- node[above] {code} (9.3,0);
     \node[font=\ttfamily\small, align=left] at (10.5,0) {0110 1011\\0010 1110\\1001 0...};
     \node at (10.5,-1.0) {bits};
-    \node[accent, align=center] at (3.85,-1.9) {How many samples?};
-    \node[accent, align=center] at (8.65,-1.9) {How many bits?};
+    \node[accent, align=center] at (3.85,-1.9) {samples per second\\(Nyquist, 1928--49)};
+    \node[accent, align=center] at (8.65,-1.9) {bits per sample\\(Shannon, 1948--59)};
   \end{tikzpicture}
   \end{center}
+  \[ \text{bits per second} \;=\; \text{samples per second} \times \text{bits per sample} \]
   \begin{enumerate}
-    \item \textbf{Sampling}: when do samples capture a signal \emph{exactly}?
-    \item \textbf{Compression}: how few bits can an image take? 70 years of codecs.
-    \item \textbf{Deep nets}: is the $2\times$ down- and upsampling just practice, or theory?
+    \item \textbf{Sampling} (5 min): when are samples enough?
+    \item \textbf{Image compression} (10 min): from JPEG to learned and generative codecs.
+    \item \textbf{Where they meet} (5 min): the two factors are \alert{not independent}.
   \end{enumerate}
 \end{frame}
 
 \section{The sampling theorem}
 
-% 1:00
+% 0:40
 \begin{frame}{Samples alone are not enough}
   Take a value every $T$ seconds: $x[n]=x(nT)$, at the \textbf{sampling rate} $f_s=1/T$.
   \begin{center}
@@ -79,7 +81,7 @@
   We need an assumption: the signal cannot wiggle too fast.
 \end{frame}
 
-% 1:15
+% 0:50
 \begin{frame}{Sampling in the frequency domain}
   \begin{columns}[T]
     \begin{column}{0.5\textwidth}
@@ -118,7 +120,7 @@
   \end{columns}
 \end{frame}
 
-% 1:15
+% 1:00
 \begin{frame}{The sampling theorem}
   \begin{block}{Theorem (Nyquist 1928, Shannon 1949 \cite{nyquist1928,shannon1949})}
     If $X(f)=0$ for $|f|>B$ and $f_s>2B$, the samples $x(nT)$ determine $x(t)$ exactly.
@@ -148,7 +150,29 @@
   $2B$ is the \textbf{Nyquist rate}. Whittaker (1915) and Kotelnikov (1933) found it too.
 \end{frame}
 
-% 1:15
+% 0:30
+\begin{frame}{Aliasing: a fast wave in disguise}
+  \begin{center}
+  \begin{tikzpicture}
+    \begin{axis}[width=12cm, height=4.2cm, axis lines=middle, xmin=0, xmax=10.4, ymin=-1.3, ymax=1.3,
+        xtick={0,...,10}, xticklabels={}, ytick=\empty, xlabel={$t/T$}, clip=false,
+        every axis x label/.style={at={(current axis.right of origin)}, anchor=north east},
+        legend style={draw=none, fill=none, font=\small, at={(0.5,1.02)}, anchor=south, legend columns=2}]
+      \addplot[sig, domain=0:10.2, samples=400, smooth] {cos(deg(2*pi*0.9*x))};
+      \addlegendentry{$f_0=0.9f_s$}
+      \addplot[hot, very thick, dashed, domain=0:10.2, samples=120, smooth] {cos(deg(2*pi*0.1*x))};
+      \addlegendentry{what the samples show: $0.1f_s$}
+      \addplot[black, only marks, mark=*, mark size=2.4pt, samples at={0,...,10}] {cos(deg(2*pi*0.1*x))};
+    \end{axis}
+  \end{tikzpicture}
+  \end{center}
+  \begin{itemize}
+    \item $\cos(2\pi f_0 nT)=\cos\big(2\pi (f_0-f_s)nT\big)$: the samples cannot tell $f_0$ from $|f_0-f_s|$.
+    \item \alert{Aliasing cannot be undone} after sampling. Seen daily: wheels spinning backwards in films, moir\'e on striped shirts, jagged edges.
+  \end{itemize}
+\end{frame}
+
+% 0:50
 \begin{frame}{Reconstruction: sinc interpolation}
   \begin{columns}[T]
     \begin{column}{0.44\textwidth}
@@ -156,6 +180,7 @@
         \item Keep the central copy with an ideal low-pass filter at $f_s/2$.
         \item In time, that filter is a sinc: $\operatorname{sinc}(u)=\frac{\sin\pi u}{\pi u}$.
         \item Each sample adds one sinc, which is $0$ at all other sample points.
+        \item In practice: low-pass \emph{before} sampling (CD: 44.1\,kHz for $\approx$20\,kHz), and approximate the sinc (linear, cubic, Lanczos).
       \end{itemize}
     \end{column}
     \begin{column}{0.56\textwidth}
@@ -183,60 +208,7 @@
   \[ x(t)=\sum_{n} x[n]\,\operatorname{sinc}\Big(\frac{t-nT}{T}\Big) \]
 \end{frame}
 
-% 1:00
-\begin{frame}{Aliasing: a fast wave in disguise}
-  \begin{center}
-  \begin{tikzpicture}
-    \begin{axis}[width=12cm, height=4.2cm, axis lines=middle, xmin=0, xmax=10.4, ymin=-1.3, ymax=1.3,
-        xtick={0,...,10}, xticklabels={}, ytick=\empty, xlabel={$t/T$}, clip=false,
-        every axis x label/.style={at={(current axis.right of origin)}, anchor=north east},
-        legend style={draw=none, fill=none, font=\small, at={(0.5,1.02)}, anchor=south, legend columns=2}]
-      \addplot[sig, domain=0:10.2, samples=400, smooth] {cos(deg(2*pi*0.9*x))};
-      \addlegendentry{$f_0=0.9f_s$}
-      \addplot[hot, very thick, dashed, domain=0:10.2, samples=120, smooth] {cos(deg(2*pi*0.1*x))};
-      \addlegendentry{what the samples show: $0.1f_s$}
-      \addplot[black, only marks, mark=*, mark size=2.4pt, samples at={0,...,10}] {cos(deg(2*pi*0.1*x))};
-    \end{axis}
-  \end{tikzpicture}
-  \end{center}
-  \begin{itemize}
-    \item $\cos(2\pi f_0 nT)=\cos\big(2\pi (f_0-f_s)nT\big)$: the samples cannot tell $f_0$ from $|f_0-f_s|$.
-    \item \alert{Aliasing cannot be undone} after sampling. Seen daily: wheels spinning backwards in films, moir\'e on striped shirts, jagged edges.
-  \end{itemize}
-\end{frame}
-
-% 1:00
-\begin{frame}{In practice: filter, sample, interpolate}
-  \begin{columns}[T]
-    \begin{column}{0.5\textwidth}
-      \begin{itemize}
-        \item \textbf{Before sampling}, low-pass at $f_s/2$ and leave a margin: CD audio samples at $44.1$\,kHz for hearing up to $\approx 20$\,kHz.
-        \item \textbf{Reconstruction} kernels approximate the sinc: nearest (box), linear (triangle), cubic, Lanczos.
-        \item Their responses leak above $f_s/2$: \alert{images} survive.
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.5\textwidth}
-      \begin{center}
-      \begin{tikzpicture}[declare function={s(\t)=sin(180*\t)/(pi*\t);}]
-        \begin{axis}[width=7cm, height=5cm, axis lines=left, xmin=0, xmax=1.5, ymin=0, ymax=1.12,
-            xtick={0,0.5,1,1.5}, xticklabels={$0$,$f_s/2$,$f_s$,$1.5f_s$}, ytick={0,1},
-            xlabel={$f$}, ylabel={$|H(f)|$}, domain=0.001:1.5, samples=120, no markers,
-            legend style={draw=none, fill=none, font=\small, at={(0.98,0.98)}, anchor=north east}]
-          \addplot[black, very thick, const plot] coordinates {(0,1) (0.5,0) (1.5,0)};
-          \addlegendentry{ideal (sinc)}
-          \addplot[hot, thick] {abs(s(x))};
-          \addlegendentry{nearest}
-          \addplot[sig, thick] {s(x)^2};
-          \addlegendentry{linear}
-          \draw[soft, dashed] (axis cs:0.5,0) -- (axis cs:0.5,1.1);
-        \end{axis}
-      \end{tikzpicture}
-      \end{center}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-% 1:00
+% 0:40
 \begin{frame}{Images are 2-D samples}
   \begin{columns}[T]
     \begin{column}{0.56\textwidth}
@@ -276,7 +248,7 @@
 
 \section{Image compression}
 
-% 1:00
+% 0:45
 \begin{frame}{Why compress, and how far can we go?}
   A 12-megapixel photo is $4000\times3000\times3$ bytes $=36$\,MB raw; as a JPEG, a few MB.
   \begin{center}
@@ -304,7 +276,40 @@
   \end{itemize}
 \end{frame}
 
-% 1:15
+% 0:50
+\begin{frame}{The limits: entropy and rate--distortion}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item \textbf{Lossless}: at least the entropy $H=-\sum_i p_i\log_2 p_i$ bits per symbol \cite{shannon1948}.
+        \item \textbf{Lossy}: $R(D)$, the fewest bits per sample at mean distortion $\le D$ \cite{shannon1959}.
+        \item Gaussian source, MSE:
+          \[ R(D)=\tfrac12\log_2\frac{\sigma^2}{D}, \quad D=\sigma^2\,2^{-2R} \]
+          Each extra bit per sample: error $\div 4$, \textbf{$+6$\,dB}.
+        \item A real codec is a point above the curve; 70 years of codecs = moving towards it.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{center}
+      \begin{tikzpicture}
+        \begin{axis}[width=7cm, height=5.2cm, axis lines=left, xmin=0, xmax=3, ymin=0, ymax=1.1,
+            xlabel={rate $R$ (bits/sample)}, ylabel={$D/\sigma^2$}, ytick={0,0.5,1}, xtick={0,1,2,3},
+            domain=0:3, samples=80, no markers,
+            legend style={draw=none, fill=none, font=\small, at={(0.98,0.98)}, anchor=north east}]
+          \addplot[draw=none, fill=hot!12, area legend] {2^(-2*x)} \closedcycle;
+          \addlegendentry{impossible}
+          \addplot[sig, very thick] {2^(-2*x)};
+          \addlegendentry{$D(R)$}
+          \addplot[accent, thick, dashed] {min(1, 1.9*2^(-2*x))};
+          \addlegendentry{a real codec}
+        \end{axis}
+      \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% 0:40
 \begin{frame}{Seventy years in one picture}
   \begin{center}
   \begin{tikzpicture}[font=\footnotesize, x=0.14cm,
@@ -335,7 +340,7 @@
   Each step: a better transform, a better model of the data, better entropy coding.
 \end{frame}
 
-% 1:15
+% 0:50
 \begin{frame}{JPEG (1992): the classic pipeline}
   \begin{center}
   \begin{tikzpicture}[font=\small, >={Stealth[length=1.8mm]}, node distance=3.5mm,
@@ -365,7 +370,7 @@
   \end{itemize}
 \end{frame}
 
-% 1:00
+% 0:40
 \begin{frame}{Why the DCT? Energy compaction}
   \begin{columns}[T]
     \begin{column}{0.56\textwidth}
@@ -395,7 +400,37 @@
   \end{columns}
 \end{frame}
 
-% 1:00
+% 0:45
+\begin{frame}{Quantization and entropy coding}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{center}
+      \scriptsize
+      \begin{tabular}{rrrrrrrr}
+        16 & 11 & 10 & 16 & 24 & 40 & 51 & 61 \\
+        12 & 12 & 14 & 19 & 26 & 58 & 60 & 55 \\
+        14 & 13 & 16 & 24 & 40 & 57 & 69 & 56 \\
+        14 & 17 & 22 & 29 & 51 & 87 & 80 & 62 \\
+        18 & 22 & 37 & 56 & 68 & 109 & 103 & 77 \\
+        24 & 35 & 55 & 64 & 81 & 104 & 113 & 92 \\
+        49 & 64 & 78 & 87 & 103 & 121 & 120 & 101 \\
+        72 & 92 & 95 & 98 & 112 & 100 & 103 & 99
+      \end{tabular}
+      \end{center}
+      {\small JPEG's example luminance table $Q_{uv}$: step sizes grow towards high frequencies.}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \begin{itemize}
+        \item $\hat c_{uv}=Q_{uv}\,\mathrm{round}(c_{uv}/Q_{uv})$: the only lossy step. Big steps where the eye is blind.
+        \item ``Quality 90'' scales the whole table.
+        \item Zigzag order puts the zeros in long runs; (run, value) pairs are Huffman-coded; DC as a difference from the last block.
+        \item Later codecs: \textbf{arithmetic coding} with adaptive context models, close to the entropy.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% 0:40
 \begin{frame}{Artifacts: blocking and ringing}
   \begin{columns}[T]
     \begin{column}{0.5\textwidth}
@@ -425,7 +460,7 @@
   Part I again: truncating a spectrum puts the sinc's ripples next to every edge.
 \end{frame}
 
-% 1:15
+% 0:50
 \begin{frame}{Wavelets and JPEG 2000 (2000)}
   \begin{columns}[T]
     \begin{column}{0.64\textwidth}
@@ -485,7 +520,7 @@
   \end{itemize}
 \end{frame}
 
-% 0:45
+% 0:40
 \begin{frame}{Modern codecs borrow from video}
   \begin{columns}[T]
     \begin{column}{0.62\textwidth}
@@ -514,7 +549,7 @@
   \end{columns}
 \end{frame}
 
-% 1:15
+% 0:50
 \begin{frame}{Learned image compression (2017--)}
   \begin{center}
   \begin{tikzpicture}[nn, node distance=4mm, nndata/.append style={minimum width=8mm}]
@@ -543,135 +578,282 @@
   \[ \mathcal L = R + \lambda D = \mathbb E\big[-\log_2 p(\hat y)\big] + \lambda\,\mathbb E\big[\|x-\hat x\|^2\big] \]
   \begin{itemize}
     \item Transform, quantizer and entropy model trained together \cite{balle2017,balle2018}; on par with VVC in PSNR by 2020 \cite{cheng2020}.
-    \item $g_a$ halves the resolution four times: $16\times$ smaller per side. \alert{Why always $2$?}
+    \item The same three steps as JPEG, but every part is learned and judged by its bits.
   \end{itemize}
 \end{frame}
 
-\section{Why 2x? Sampling inside networks}
+% 0:50
+\begin{frame}{What made learned codecs work}
+  \begin{center}
+  \begin{tikzpicture}[font=\small, >={Stealth[length=1.8mm]},
+      box/.style={draw, rounded corners=2pt, minimum height=8mm, minimum width=11mm, align=center, inner sep=2pt}]
+    \node (x) at (0,0) {$x$};
+    \node[box] (ga) at (1.3,0) {$g_a$};
+    \node (y) at (2.6,0) {$y$};
+    \node[box] (q) at (4.2,0) {$Q$, AE};
+    \node[font=\ttfamily] (b) at (6.0,0) {bits};
+    \node[box] (ha) at (4.2,1.5) {$h_a$};
+    \node (z) at (5.5,1.5) {$z$};
+    \node[box] (qz) at (6.8,1.5) {$Q$, AE};
+    \node[font=\ttfamily] (bz) at (8.7,1.5) {side bits};
+    \node[box] (hs) at (10.6,1.5) {$h_s$};
+    \draw[->] (x) -- (ga);
+    \draw[->] (ga) -- (y);
+    \draw[->] (y) -- (q);
+    \draw[->] (q) -- (b);
+    \draw[->] (y) |- (ha);
+    \draw[->] (ha) -- (z);
+    \draw[->] (z) -- (qz);
+    \draw[->] (qz) -- (bz);
+    \draw[->] (bz) -- (hs);
+    \draw[->, accent, thick] (hs.south) -- (10.6,-0.9) -| (q.south);
+    \node[accent, font=\footnotesize, below] at (7.4,-0.9) {the scale $\sigma_i$ of each $y_i$, for the entropy model};
+  \end{tikzpicture}
+  \end{center}
+  \begin{itemize}
+    \item \textbf{Training through rounding}: add uniform noise $y+u$, $u\sim U(-\tfrac12,\tfrac12)$, in place of $\mathrm{round}(y)$.
+    \item \textbf{Hyperprior} \cite{balle2018}: a few side bits $z$ tell the entropy model how big each $y_i$ is.
+    \item \textbf{Context models} \cite{minnen2018}: predict each $y_i$ from the ones already decoded, as intra prediction does.
+    \item \textbf{Standardized}: JPEG AI, ISO/IEC 6048-1:2025 \cite{jpegai2025}.
+  \end{itemize}
+\end{frame}
 
-% 1:15
-\begin{frame}{Downsampling by 2 in CNNs}
+% 0:50
+\begin{frame}{Beyond MSE: rate, distortion and perception}
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
       \begin{itemize}
-        \item Stride 2 or pooling keeps every second value: a sampling step, safe only below $\tfrac14$ cycle/pixel.
-        \item Nothing enforces that, so features alias and outputs change when the input moves by one pixel \cite{azulay2019}.
-        \item The fix from Part I: \textbf{low-pass, then subsample} (BlurPool) \cite{zhang2019}.
+        \item Low MSE $\neq$ looks real: the MSE-best guess averages possible details, so it is \textbf{blurry}.
+        \item At a fixed rate, distortion and perceptual quality trade off \cite{blau2018,blau2019}.
+        \item \textbf{Generative decoders} produce plausible texture: GANs (HiFiC) \cite{mentzer2020}, diffusion \cite{yang2023}.
+        \item The detail is \alert{generated, not transmitted}. Fine for photos; not for medical or forensic images.
       \end{itemize}
     \end{column}
     \begin{column}{0.48\textwidth}
       \begin{center}
-      \begin{tikzpicture}[font=\small, >={Stealth[length=1.6mm]}, c/.style={minimum size=5mm, inner sep=0pt, draw=soft}]
-        \foreach \v [count=\i] in {0,0,1,1,0,0,1,1}
-          \node[c, fill=sig!\the\numexpr\v*60\relax] at (0.5*\i,0) {\v};
-        \foreach \v [count=\i] in {0,1,0,1}
-          \node[c, fill=sig!\the\numexpr\v*60\relax] at (\i-0.25,-1.2) {\v};
-        \draw[->] (2.25,-0.35) -- node[right, font=\footnotesize] {max-pool, stride 2} (2.25,-0.85);
-        \begin{scope}[yshift=-2.4cm]
-          \foreach \v [count=\i] in {0,1,1,0,0,1,1,0}
-            \node[c, fill=sig!\the\numexpr\v*60\relax] at (0.5*\i,0) {\v};
-          \foreach \v [count=\i] in {1,1,1,1}
-            \node[c, fill=hot!\the\numexpr\v*45\relax] at (\i-0.25,-1.2) {\v};
-          \draw[->] (2.25,-0.35) -- (2.25,-0.85);
-        \end{scope}
-        \node[font=\footnotesize, soft, anchor=west] at (4.3,-2.4) {shifted};
-        \node[font=\footnotesize, soft, anchor=west] at (4.3,0) {input};
+      \begin{tikzpicture}
+        \begin{axis}[width=7cm, height=5.2cm, axis lines=left, xmin=0, xmax=2.2, ymin=0, ymax=2.65,
+            xlabel={distortion (MSE)}, ylabel={perception: less real $\rightarrow$}, xtick=\empty, ytick=\empty,
+            no markers, samples=80]
+          \addplot[sig, very thick, domain=0.27:2.2] {0.25/(x-0.15)};
+          \addplot[accent, very thick, domain=0.47:2.2] {0.25/(x-0.35)};
+          \addplot[hot, very thick, domain=0.67:2.2] {0.25/(x-0.55)};
+          \node[sig, font=\small, anchor=south] at (axis cs:0.27,2.22) {high $R$};
+          \node[hot, font=\small, anchor=south] at (axis cs:0.67,2.22) {low $R$};
+          \fill (axis cs:0.72,1.47) circle (2pt) node[right, font=\small] {MSE-optimal: blurry};
+          \fill (axis cs:1.5,0.26) circle (2pt);
+          \draw (axis cs:1.5,0.26) -- (axis cs:1.7,0.75) node[above, font=\small] {generative: sharp};
+        \end{axis}
       \end{tikzpicture}
       \end{center}
-      {\small Shift the input by one pixel: a different output.}
+      {\small Schematic, after Blau \& Michaeli.}
     \end{column}
   \end{columns}
 \end{frame}
 
-% 1:15
-\begin{frame}{Upsampling by 2 is interpolation}
+% 0:40
+\begin{frame}{How codecs are compared}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item \textbf{PSNR} $=10\log_{10}(255^2/\mathrm{MSE})$: simple, blind to blur.
+        \item \textbf{MS-SSIM} \cite{wang2003}: local structure.
+        \item \textbf{LPIPS} \cite{zhang2018}: distances between deep features; FID for realism.
+        \item \textbf{BD-rate} \cite{bjontegaard2001}: the average bitrate saving at equal quality, between two R--D curves.
+        \item Always say \emph{which} metric: rankings change with it.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[>={Stealth[length=1.8mm]}]
+        \begin{axis}[width=7cm, height=5.2cm, axis lines=left, xmin=0.5, xmax=10, ymin=26, ymax=42,
+            xlabel={bitrate}, ylabel={PSNR (dB)}, xtick=\empty, ytick={30,35,40}, no markers, samples=80, domain=0.5:10,
+            legend style={draw=none, fill=none, font=\small, at={(0.98,0.04)}, anchor=south east}]
+          \addplot[soft, very thick] {28+5*ln(x)};
+          \addlegendentry{codec A}
+          \addplot[sig, very thick] {28+5*ln(x/0.7)};
+          \addlegendentry{codec B}
+          \draw[hot, thick, <->] (axis cs:3.47,36) -- (axis cs:4.95,36);
+          \draw[hot] (axis cs:4.2,36) -- (axis cs:6.3,32.6);
+          \node[hot, font=\small, anchor=north] at (axis cs:6.3,32.6) {same PSNR, $30\%$ fewer bits};
+        \end{axis}
+      \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\section{Where they meet}
+
+% 0:40
+\begin{frame}{Link 1: count the numbers, then the bits}
+  \begin{block}{Shannon (1949) \cite{shannon1949}}
+    A signal of bandwidth $W$ lasting $T$ seconds is fixed by about $2WT$ numbers:
+    a point in a $2WT$-dimensional space.
+  \end{block}
+  \begin{itemize}
+    \item The same paper that proves the sampling theorem uses it to count dimensions, and then computes the channel capacity $W\log_2(1+S/N)$.
+    \item Sampling turns a waveform into numbers \emph{without loss}; rate--distortion theory then prices each number in bits.
+    \item For an image: pixels $\times$ bits per pixel. A $4000\times3000$ photo at 1 bit/pixel is 1.5\,MB.
+    \item But the best split between the two factors depends on the budget: \alert{next slide}.
+  \end{itemize}
+\end{frame}
+
+% 1:00
+\begin{frame}{Link 2: the optimal lossy code is a low-pass filter}
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \textbf{Reverse water-filling} for a Gaussian process with spectrum $S(f)$ \cite{berger1971}:
+      \[ D_\theta=\int\!\min\{\theta,S(f)\}\,df \]
+      \[ R_\theta=\int\!\tfrac12\log_2^{+}\frac{S(f)}{\theta}\,df \]
+      \begin{itemize}
+        \item Frequencies with $S(f)<\theta$ get \alert{zero bits}: they are dropped.
+        \item Natural images: $S\propto 1/f^2$ \cite{field1987}. Fewer bits $\Rightarrow$ higher $\theta$ $\Rightarrow$ narrower band.
+        \item JPEG's tables and zeroed DCT coefficients do this by hand.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.54\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[x=1.55cm, y=1.9cm, font=\small, >={Stealth[length=1.6mm]},
+          declare function={S(\t)=1.6/(1+(\t/0.35)^2);}]
+        \fill[soft!22] (-2,0) -- plot[domain=-2:-0.56, samples=50] (\x,{S(\x)}) -- (0.56,0.45)
+          -- plot[domain=0.56:2, samples=50] (\x,{S(\x)}) -- (2,0) -- cycle;
+        \fill[sig!28] (-0.56,0.45) -- plot[domain=-0.56:0.56, samples=60] (\x,{S(\x)}) -- cycle;
+        \draw[sig, very thick] plot[domain=-2:2, samples=120] (\x,{S(\x)});
+        \draw[accent, thick, dashed] (-2,0.45) -- (2,0.45) node[right] {$\theta$};
+        \draw[->] (-2.1,0) -- (2.2,0) node[right] {$f$};
+        \draw[soft] (-0.56,0) -- (-0.56,0.45);
+        \draw[soft] (0.56,0) -- (0.56,0.45);
+        \node[below] at (-0.56,0) {$-f_\theta$};
+        \node[below] at (0.56,0) {$f_\theta$};
+        \node[sig, align=center] at (1.05,1.25) {bits spent\\here};
+        \draw[sig] (0.75,1.05) -- (0.2,0.8);
+        \node[soft, align=center] at (1.45,0.75) {error $=\min(\theta,S)$};
+        \node[align=center, font=\footnotesize] at (0,-0.55) {only $|f|<f_\theta$ is coded};
+      \end{tikzpicture}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% 1:00
+\begin{frame}{Link 3: when bits are scarce, sample below Nyquist}
   \begin{columns}[T]
     \begin{column}{0.54\textwidth}
       \begin{itemize}
-        \item $\uparrow2$ = insert zeros, then filter. The zeros create an \alert{image} of the spectrum that the filter must remove.
-        \item Nearest and bilinear are box and triangle filters: images leak through.
-        \item Transposed conv, stride 2: uneven overlap gives checkerboard artifacts \cite{odena2016}.
-        \item Pixel shuffle \cite{shi2016}: convolve at low resolution, then rearrange.
+        \item \textbf{Theory}: at bitrate $R$, sampling at $f_R=2f_\theta$, below Nyquist, already reaches $D(R)$ \cite{kipnis2016,kipnis2018}.
+        \item \textbf{Images}: downscale, JPEG, upscale beats plain JPEG at low rates \cite{bruckstein2003}.
+        \item \textbf{AV1}: frame super-resolution codes a frame narrower and upscales it in the loop \cite{av1overview}.
+        \item \textbf{Streaming}: each bitrate gets the resolution on the upper envelope \cite{netflix2015}.
       \end{itemize}
     \end{column}
     \begin{column}{0.46\textwidth}
       \begin{center}
-      \begin{tikzpicture}[x=3.4cm, font=\small, >={Stealth[length=1.6mm]}]
-        \draw[->] (-0.78,0) -- (0.8,0) node[right] {$f$};
-        \foreach \c in {-0.5,0.5}
-          \filldraw[hot, fill=hot!18, thick] ({\c-0.25},0) -- (\c,1.3) -- ({\c+0.25},0);
-        \filldraw[sig, fill=sig!20, thick] (-0.25,0) -- (0,1.3) -- (0.25,0);
-        \draw[black, thick, dashed] (-0.25,0) -- (-0.25,1.6) -- (0.25,1.6) -- (0.25,0);
-        \node[below] at (0,0) {$0$};
-        \node[below] at (0.25,0) {$\frac14$};
-        \node[below] at (0.5,0) {$\frac12$};
-        \node[below] at (-0.5,0) {$-\frac12$};
-        \node[hot, above] at (0.5,1.3) {image};
-        \node[above] at (0,1.6) {ideal filter};
+      \begin{tikzpicture}
+        \begin{axis}[width=6.8cm, height=5.2cm, axis lines=left, xmin=0, xmax=10, ymin=0, ymax=100,
+            xlabel={bitrate}, ylabel={quality}, xtick=\empty, ytick=\empty, no markers, samples=100, domain=0:10,
+            legend style={draw=none, fill=none, font=\small, at={(0.98,0.04)}, anchor=south east}]
+          \addplot[hot, thick] {70*(1-exp(-x/1.0))};
+          \addlegendentry{low res.}
+          \addplot[accent, thick] {85*(1-exp(-x/2.2))};
+          \addlegendentry{mid res.}
+          \addplot[sig, thick] {97*(1-exp(-x/4.5))};
+          \addlegendentry{full res.}
+          \addplot[black, very thick, dashed] {max(70*(1-exp(-x/1.0)), 85*(1-exp(-x/2.2)), 97*(1-exp(-x/4.5)))};
+          \addlegendentry{best choice}
+        \end{axis}
       \end{tikzpicture}
       \end{center}
-      {\small Spectrum after inserting zeros, in cycles per new pixel.}
+      {\small Schematic.}
     \end{column}
   \end{columns}
 \end{frame}
 
-% 1:30
-\begin{frame}{So is $2\times$ just practical?}
+% 0:30
+\begin{frame}{Link 4: sampling inside codecs}
+  \begin{center}
+  \small
+  \begin{tabular}{lll}
+    \toprule
+    Where & Sampling operation & Idea from Part I \\
+    \midrule
+    JPEG, video & chroma 4:2:0 & colour is band-limited \emph{to the eye} \\
+    JPEG 2000 & half-band filters $+\downarrow2$ per level & aliasing that cancels exactly \\
+    JPEG 2000 & decode only the low subbands & a lower sampling rate for free \\
+    AV1, VVC & code at reduced resolution & sub-Nyquist under a bit budget \\
+    Learned codecs & strided conv $\downarrow2$, $\uparrow2$ & a learned pyramid \\
+    JPEG & zeroed high frequencies & low-pass $\Rightarrow$ Gibbs ringing \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \medskip
+  Each is a choice of \textbf{how many samples} made with \textbf{bits} in mind.
+\end{frame}
+
+% 0:50
+\begin{frame}{Link 5: beyond band-limits, sparsity}
   \begin{columns}[T]
-    \begin{column}{0.64\textwidth}
-      Partly. But there is theory behind it:
-      \begin{enumerate}
-        \item \textbf{Octaves}: pyramids and wavelets halve the band per level; encoders and U-Nets learn one.
-        \item \textbf{Channels pay for pixels}: $\downarrow2$ with $4\times$ channels loses nothing \cite{papoulis1977}.
-        \item \textbf{Otherwise, aliasing}: StyleGAN3 designs every layer by the theorem \cite{karras2021}.
-      \end{enumerate}
-      \alert{$\times4$ super-resolution}: detail past the Nyquist limit is \emph{inferred}, not recovered.
+    \begin{column}{0.58\textwidth}
+      \begin{itemize}
+        \item Transform coding works because images are \textbf{sparse}: few large coefficients.
+        \item \textbf{Compressed sensing} \cite{candes2006,donoho2006}: if $x$ is $k$-sparse, $m\approx k\log(n/k)$ random measurements $y=\Phi x$ suffice. Why sample everything and then throw most of it away?
+        \item Single-pixel camera \cite{duarte2008}; faster MRI \cite{lustig2007}, FDA-cleared in 2017.
+        \item \textbf{Finite rate of innovation} \cite{vetterli2002}: sample at the rate of degrees of freedom, not of bandwidth.
+      \end{itemize}
     \end{column}
-    \begin{column}{0.36\textwidth}
+    \begin{column}{0.42\textwidth}
       \begin{center}
-      \begin{tikzpicture}[scale=0.44, font=\small, >={Stealth[length=1.8mm]}]
-        \foreach \i in {0,...,3} \foreach \j in {0,...,3} {
-          \pgfmathtruncatemacro{\p}{mod(\i,2)+2*mod(\j,2)}
-          \ifcase\p \def\cc{sig}\or \def\cc{accent}\or \def\cc{hot}\or \def\cc{video}\fi
-          \fill[\cc!45] (\i,-\j) rectangle ++(1,-1);
+      \begin{tikzpicture}[x=0.32cm, y=0.32cm, font=\small]
+        \foreach \i in {0,...,3} \fill[sig!45] (0,-\i) rectangle ++(1,-1);
+        \draw (0,0) rectangle (1,-4);
+        \node[below] at (0.5,-4) {$y$};
+        \node at (2,-2) {$=$};
+        \foreach \i in {0,...,3} \foreach \j in {0,...,11} {
+          \pgfmathtruncatemacro{\g}{mod(7*\i+5*\j+3*\i*\j,9)*8+10}
+          \fill[black!\g] (3+\j,-\i) rectangle ++(1,-1);
         }
-        \draw[step=1, black!60] (0,0) grid (4,-4);
-        \node[below] at (2,-4) {$H\times W\times1$};
-        \draw[->, thick] (4.4,-2) -- (5.6,-2);
-        \foreach \c/\k in {video/3,hot/2,accent/1,sig/0} {
-          \begin{scope}[shift={({6.1+0.42*\k},{-2+0.42*\k})}]
-            \fill[\c!45, draw=black!60] (0,0) rectangle (2,-2);
-            \draw[black!60] (1,0) -- (1,-2);
-            \draw[black!60] (0,-1) -- (2,-1);
-          \end{scope}
-        }
-        \node[below] at (7.7,-4) {$\frac H2\times\frac W2\times4$};
+        \draw (3,0) rectangle (15,-4);
+        \node[below] at (9,-4) {$\Phi$: $m\times n$, $m\ll n$};
+        \foreach \i in {0,...,11} \draw[soft] (16.5,-\i) rectangle ++(1,-1);
+        \foreach \i in {2,7,9} \fill[hot!70] (16.5,-\i) rectangle ++(1,-1);
+        \node[below] at (17,-12) {$x$};
+        \node[hot, font=\footnotesize, align=center] at (17,-13.8) {$k$ nonzeros};
       \end{tikzpicture}
       \end{center}
-      {\small Space-to-depth keeps every pixel.}
     \end{column}
   \end{columns}
+\end{frame}
+
+% 0:20
+\begin{frame}{Open questions}
+  \begin{itemize}
+    \item \textbf{Joint design}: choose the sampling (resolution, chroma, pre-filter) and the code together, for each image and bitrate \cite{kipnis2018}.
+    \item \textbf{Aliasing inside learned codecs}: strided layers are sampling steps; alias-free design is known for generators \cite{karras2021}.
+    \item \textbf{Continuous representations}: store a function and sample it at any resolution \cite{dupont2021}.
+    \item \textbf{Perception}: where generated detail is acceptable, and how to signal it.
+  \end{itemize}
 \end{frame}
 
 \section{Summary}
 
-% 1:00
+% 0:30
 \begin{frame}{Takeaways}
   \begin{itemize}
-    \item \textbf{Sampling}: with $f_s>2B$ the samples are enough, and a sinc brings $x$ back. Below that: aliasing, for good.
-    \item \textbf{Compression}: remove redundancy and irrelevance. DCT, wavelets, prediction, learned transforms.
-    \item \textbf{The link}: low-pass before $\downarrow2$, remove images after $\uparrow2$, count the channels.
+    \item \textbf{Sampling}: with $f_s>2B$ the samples are enough and a sinc brings $x$ back. Below that: aliasing, for good.
+    \item \textbf{Compression}: transform, quantize, entropy-code. DCT $\to$ wavelets $\to$ prediction $\to$ learned and generative codecs.
+    \item \textbf{The link}: bits = samples $\times$ bits per sample, and the best split moves with the budget. The optimal lossy code drops the weak frequencies, so at low rates \alert{fewer samples are better}.
   \end{itemize}
 \end{frame}
 
-% 0:15
+% 0:00
 \begin{frame}[t]
-  \scriptsize
+  \tiny
   \begin{thebibliography}{99}
     \bibitem{nyquist1928} H. Nyquist. Certain topics in telegraph transmission theory. \emph{Trans. AIEE}, 1928.
     \bibitem{shannon1949} C. E. Shannon. Communication in the presence of noise. \emph{Proc. IRE}, 1949.
     \bibitem{shannon1948} C. E. Shannon. A mathematical theory of communication. \emph{Bell Syst. Tech. J.}, 1948.
     \bibitem{shannon1959} C. E. Shannon. Coding theorems for a discrete source with a fidelity criterion. \emph{IRE Nat. Conv. Rec.}, 1959.
+    \bibitem{berger1971} T. Berger. \emph{Rate Distortion Theory}. Prentice-Hall, 1971.
     \bibitem{huffman1952} D. A. Huffman. A method for the construction of minimum-redundancy codes. \emph{Proc. IRE}, 1952.
     \bibitem{ahmed1974} N. Ahmed, T. Natarajan, K. R. Rao. Discrete cosine transform. \emph{IEEE Trans. Computers}, 1974.
     \bibitem{wallace1992} G. K. Wallace. The JPEG still picture compression standard. \emph{IEEE Trans. Consumer Electronics}, 1992.
@@ -680,17 +862,40 @@
     \bibitem{skodras2001} A. Skodras, C. Christopoulos, T. Ebrahimi. The JPEG 2000 still image compression standard. \emph{IEEE Signal Processing Magazine}, 2001.
     \bibitem{balle2017} J. Ball\'e, V. Laparra, E. P. Simoncelli. End-to-end optimized image compression. \emph{ICLR}, 2017.
     \bibitem{balle2018} J. Ball\'e, D. Minnen, S. Singh, S. J. Hwang, N. Johnston. Variational image compression with a scale hyperprior. \emph{ICLR}, 2018.
+    \bibitem{minnen2018} D. Minnen, J. Ball\'e, G. Toderici. Joint autoregressive and hierarchical priors for learned image compression. \emph{NeurIPS}, 2018.
     \bibitem{cheng2020} Z. Cheng, H. Sun, M. Takeuchi, J. Katto. Learned image compression with discretized Gaussian mixture likelihoods and attention modules. \emph{CVPR}, 2020.
-    \bibitem{azulay2019} A. Azulay, Y. Weiss. Why do deep convolutional networks generalize so poorly to small image transformations? \emph{JMLR}, 2019.
-    \bibitem{zhang2019} R. Zhang. Making convolutional networks shift-invariant again. \emph{ICML}, 2019.
-    \bibitem{odena2016} A. Odena, V. Dumoulin, C. Olah. Deconvolution and checkerboard artifacts. \emph{Distill}, 2016.
-    \bibitem{shi2016} W. Shi et al. Real-time single image and video super-resolution using an efficient sub-pixel convolutional neural network. \emph{CVPR}, 2016.
-    \bibitem{papoulis1977} A. Papoulis. Generalized sampling expansion. \emph{IEEE Trans. Circuits and Systems}, 1977.
-    \bibitem{karras2021} T. Karras et al. Alias-free generative adversarial networks. \emph{NeurIPS}, 2021.
+    \bibitem{jpegai2025} ISO/IEC 6048-1:2025. JPEG AI learning-based image coding system, Part 1: Core coding system.
+    \bibitem{blau2018} Y. Blau, T. Michaeli. The perception--distortion tradeoff. \emph{CVPR}, 2018.
+    \bibitem{blau2019} Y. Blau, T. Michaeli. Rethinking lossy compression: the rate-distortion-perception tradeoff. \emph{ICML}, 2019.
   \end{thebibliography}
 \end{frame}
 
-% 0:15
+% 0:00
+\begin{frame}[t]
+  \tiny
+  \begin{thebibliography}{99}
+    \bibitem{mentzer2020} F. Mentzer, G. Toderici, M. Tschannen, E. Agustsson. High-fidelity generative image compression. \emph{NeurIPS}, 2020.
+    \bibitem{yang2023} R. Yang, S. Mandt. Lossy image compression with conditional diffusion models. \emph{NeurIPS}, 2023.
+    \bibitem{wang2003} Z. Wang, E. P. Simoncelli, A. C. Bovik. Multiscale structural similarity for image quality assessment. \emph{Asilomar}, 2003.
+    \bibitem{zhang2018} R. Zhang, P. Isola, A. A. Efros, E. Shechtman, O. Wang. The unreasonable effectiveness of deep features as a perceptual metric. \emph{CVPR}, 2018.
+    \bibitem{bjontegaard2001} G. Bj{\o}ntegaard. Calculation of average PSNR differences between RD-curves. ITU-T VCEG-M33, 2001.
+    \bibitem{field1987} D. J. Field. Relations between the statistics of natural images and the response properties of cortical cells. \emph{JOSA A}, 1987.
+    \bibitem{kipnis2016} A. Kipnis, A. J. Goldsmith, Y. C. Eldar, T. Weissman. Distortion rate function of sub-Nyquist sampled Gaussian sources. \emph{IEEE Trans. Inf. Theory}, 2016.
+    \bibitem{kipnis2018} A. Kipnis, Y. C. Eldar, A. J. Goldsmith. Analog-to-digital compression: a new paradigm for converting signals to bits. \emph{IEEE Signal Processing Magazine}, 2018.
+    \bibitem{bruckstein2003} A. M. Bruckstein, M. Elad, R. Kimmel. Down-scaling for better transform compression. \emph{IEEE Trans. Image Processing}, 2003.
+    \bibitem{av1overview} J. Han et al. A technical overview of AV1. \emph{Proc. IEEE}, 2021.
+    \bibitem{netflix2015} A. Aaron et al. Per-title encode optimization. Netflix Technology Blog, 2015.
+    \bibitem{candes2006} E. J. Cand\`es, J. Romberg, T. Tao. Robust uncertainty principles: exact signal reconstruction from highly incomplete frequency information. \emph{IEEE Trans. Inf. Theory}, 2006.
+    \bibitem{donoho2006} D. L. Donoho. Compressed sensing. \emph{IEEE Trans. Inf. Theory}, 2006.
+    \bibitem{duarte2008} M. F. Duarte et al. Single-pixel imaging via compressive sampling. \emph{IEEE Signal Processing Magazine}, 2008.
+    \bibitem{lustig2007} M. Lustig, D. Donoho, J. M. Pauly. Sparse MRI: the application of compressed sensing for rapid MR imaging. \emph{Magn. Reson. Med.}, 2007.
+    \bibitem{vetterli2002} M. Vetterli, P. Marziliano, T. Blu. Sampling signals with finite rate of innovation. \emph{IEEE Trans. Signal Processing}, 2002.
+    \bibitem{karras2021} T. Karras et al. Alias-free generative adversarial networks. \emph{NeurIPS}, 2021.
+    \bibitem{dupont2021} E. Dupont et al. COIN: compression with implicit neural representations. \emph{ICLR Neural Compression Workshop}, 2021.
+  \end{thebibliography}
+\end{frame}
+
+% 0:10
 \begin{frame}[plain]
   \begin{center}
     {\Huge Thank you}

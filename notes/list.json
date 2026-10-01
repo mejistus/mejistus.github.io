@@ -4,7 +4,7 @@
     "title": "From Samples to Bits: Sampling Theory and Image Compression",
     "date": "2026-09-30",
     "tag": "Slides",
-    "excerpt": "A 20-minute talk in beamer slides: the Nyquist–Shannon sampling theorem with pictures, the story of image compression from Shannon and the DCT to learned codecs, and what sampling theory says about the 2x down- and upsampling inside neural networks."
+    "excerpt": "A 20-minute talk in beamer slides: the Nyquist–Shannon sampling theorem in five minutes, a tour of image compression from JPEG to learned and generative codecs, and where the two really meet: rate–distortion theory, sampling below Nyquist when bits are scarce, and compressed sensing."
   },
   {
     "file": "Example/LaTeX-写作示例.tex",
