@@ -1388,6 +1388,12 @@
         color: var(--ink);
       }
 
+      /* ── Slide decks (HaTeX, with its stylesheet) ── */
+      .blog-deck-note {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
       /* ── LaTeX posts (rendered by HaTeX, hatex/core) ── */
       .blog-content {
         counter-reset: katexEqnNo mmlEqnNo;
@@ -4667,6 +4673,7 @@
         // paint of the next load.
         root.style.background = theme.swatch[0];
         root.style.colorScheme = theme.dark ? 'dark' : 'light';
+        document.querySelectorAll('.blog-deck-host').forEach(h => { h.dataset.theme = theme.dark ? 'dark' : 'light'; });
         const meta = document.getElementById('themeColorMeta');
         if (meta) meta.setAttribute('content', theme.swatch[0]);
         renderThemeMenu();
@@ -4825,8 +4832,14 @@
       }
 
       function enhanceReading(root, b) {
-        const stat = readingTime(b);
         const label = document.getElementById('blogPanelLabel');
+        if (isDeck(b.content)) {
+          // HaTeX adds its own copy buttons, and a click on a slide presents it.
+          const n = (b.content.match(/^[^%\n]*\\begin\{frame\}/gm) || []).length;
+          if (label && n) label.textContent += ` · ${n} slides`;
+          return;
+        }
+        const stat = readingTime(b);
         if (stat && label) label.textContent += ` · ${stat.minutes} min read`;
 
         root.querySelectorAll('pre').forEach(pre => {
@@ -4855,7 +4868,7 @@
           if (scope.id !== 'blogPanelContent') return;
         }
         scope.querySelectorAll('img, svg').forEach(el => {
-          if (el.dataset.zoom) return;
+          if (el.dataset.zoom || el.closest('.hatex')) return;
           el.dataset.zoom = '1';
           el.classList.add('zoomable');
           el.addEventListener('click', () => openZoom(el));
@@ -4887,6 +4900,11 @@
         const panel = document.getElementById('blogToc');
         const btn = document.getElementById('blogTocBtn');
         panel.hidden = true;
+        if (content.classList.contains('blog-deck')) {
+          btn.style.display = 'none';
+          panel.innerHTML = '';
+          return;
+        }
         const heads = [...content.querySelectorAll('h2, h3, h4')];
         const file = blogs[currentBlog] && blogs[currentBlog].file;
         heads.forEach((h, n) => {
@@ -4955,6 +4973,65 @@
         return HaTeX.parse(content || '');
       }
 
+      // ── Slide decks ──
+      // A post whose source says \documentclass{beamer} is a slide deck, which
+      // HaTeX lays out and presents itself (HaTeX.render), with its own
+      // stylesheet. The stylesheet is only for decks, so it is loaded the
+      // first time one is opened.
+      const isDeck = (src) => /^[^%\n]*\\documentclass\s*(\[[^\]]*\])?\s*\{beamer\}/m.test(src || '');
+      let hatexCss = null, hatexCssReady = false;
+      function loadHatexCss() {
+        if (hatexCss) return hatexCss;
+        hatexCss = new Promise((resolve, reject) => {
+          const css = document.createElement('link');
+          css.rel = 'stylesheet';
+          css.href = `hatex/core/dist/hatex.css?v=${HaTeX.version}`;
+          css.onload = () => { hatexCssReady = true; resolve(); };
+          css.onerror = () => {
+            css.remove();
+            hatexCss = null;
+            reject(new Error('HaTeX stylesheet did not load'));
+          };
+          document.head.appendChild(css);
+        });
+        return hatexCss;
+      }
+      // Renders a deck into the reading panel or the editor preview. HaTeX
+      // gets a child element of its own, so its class and state never stay
+      // on the box when the next post is an article. Synchronous once the
+      // stylesheet is loaded, so the editor can keep its place.
+      function renderDeck(box, src, options) {
+        box.classList.remove('blog-content');
+        box.classList.add('blog-deck');
+        const token = String(Math.random());
+        box.dataset.deckToken = token;
+        const draw = () => {
+          if (box.dataset.deckToken !== token) return; // replaced in the meantime
+          let host = box.firstElementChild;
+          if (!host || box.children.length !== 1 || !host.classList.contains('blog-deck-host')) {
+            host = document.createElement('div');
+            host.className = 'blog-deck-host';
+            box.replaceChildren(host);
+          }
+          host.dataset.theme = document.documentElement.hasAttribute('data-dark') ? 'dark' : 'light';
+          HaTeX.render(host, src,
+            Object.assign({ tikzSvgBase: 'notes/tikz/', zoom: false, animate: false }, options));
+          applyStagedImages(host);
+        };
+        if (hatexCssReady) { draw(); return; }
+        box.innerHTML = '<p class="blog-deck-note">Loading the slides…</p>';
+        loadHatexCss().then(draw, () => {
+          if (box.dataset.deckToken === token) {
+            box.innerHTML = '<p class="blog-deck-note">The slides could not be loaded. Reload the page to try again.</p>';
+          }
+        });
+      }
+      function leaveDeck(box) {
+        box.classList.add('blog-content');
+        box.classList.remove('blog-deck');
+        delete box.dataset.deckToken;
+      }
+
       // Bounded, most recently used last: a site with hundreds of posts should
       // not keep every one of them rendered in memory.
       const PARSED_CACHE_MAX = 60;
@@ -4979,11 +5056,12 @@
       // post per idle slice, so opening any of them costs only the layout.
       function warmParsedPosts() {
         if (!window.requestIdleCallback) return;
-        const queue = blogs.map((b, i) => i).filter(i => blogs[i].content && !parsedHtmlCache.has(i));
+        const queue = blogs.map((b, i) => i)
+          .filter(i => blogs[i].content && !isDeck(blogs[i].content) && !parsedHtmlCache.has(i));
         const step = (deadline) => {
           while (queue.length && deadline.timeRemaining() > 12) {
             const i = queue.shift();
-            if (blogs[i] && blogs[i].content && !parsedHtmlCache.has(i)) {
+            if (blogs[i] && blogs[i].content && !isDeck(blogs[i].content) && !parsedHtmlCache.has(i)) {
               try { getParsedHtml(i); } catch (_) {}
             }
             if (parsedHtmlCache.size >= PARSED_CACHE_MAX) { queue.length = 0; break; }
@@ -5016,15 +5094,22 @@
           `Blog · ${i + 1} of ${blogs.length}`;
         document.getElementById("blogPanelTitle").innerHTML = renderInline(b.title);
         const content = document.getElementById("blogPanelContent");
-        content.innerHTML = getParsedHtml(i);
+        const deck = isDeck(b.content);
+        if (deck) renderDeck(content, b.content);
+        else {
+          leaveDeck(content);
+          content.innerHTML = getParsedHtml(i);
+        }
         // Screen readers pick a voice from this; the page shell is English but
         // most posts are not.
         const text = (b.content || '').slice(0, 4000);
         const cjk = (text.match(/[\u3400-\u9fff]/g) || []).length;
         content.lang = cjk > text.replace(/\s/g, '').length * 0.15 ? 'zh' : 'en';
-        applyStagedImages(content);
-        fitLatexBoxes(content);
-        loadTikzJax(content);
+        if (!deck) {
+          applyStagedImages(content);
+          fitLatexBoxes(content);
+          loadTikzJax(content);
+        }
         buildToc();
         enhanceReading(content, b);
         document.getElementById("blogCounter").textContent =
@@ -5188,6 +5273,8 @@
       document.addEventListener("keydown", (e) => {
         // Don't intercept keys when editor is active
         if (editorActive) return;
+        // Nor while a slide deck is being presented: its keys change slides.
+        if (document.querySelector('.hatex-presenting')) return;
 
         const poemPanelOpen = document.getElementById("poemPanel").classList.contains("open");
         const blogPanelOpen = document.getElementById("blogPanel").classList.contains("open");
@@ -5368,6 +5455,7 @@
       function fitLatexBoxes(root) {
         requestAnimationFrame(() => {
           root.querySelectorAll('.latex-fit').forEach(box => {
+            if (box.closest('.hatex')) return; // HaTeX fits its own
             const inner = box.firstElementChild;
             if (!inner) return;
             inner.style.zoom = '';
@@ -5483,8 +5571,9 @@
       // TikZJax compiles one picture at a time and only on a reader's first
       // visit, so say how far along it is instead of showing bare spinners.
       function updateTikzProgress() {
-        const boxes = [...document.querySelectorAll('.latex-tikz[data-tikz-state="live"]')];
-        const done = document.querySelectorAll('.latex-tikz[data-tikz-state="compiled"]').length;
+        const own = (b) => !b.closest('.hatex'); // HaTeX counts its own
+        const boxes = [...document.querySelectorAll('.latex-tikz[data-tikz-state="live"]')].filter(own);
+        const done = [...document.querySelectorAll('.latex-tikz[data-tikz-state="compiled"]')].filter(own).length;
         const total = boxes.length + done;
         boxes.forEach((box, i) => {
           const label = box.querySelector('.latex-tikz-status');
@@ -5497,7 +5586,7 @@
 
       document.addEventListener('tikzjax-load-finished', (e) => {
         const box = e.target.closest && e.target.closest('.latex-tikz');
-        if (!box) return;
+        if (!box || box.closest('.hatex')) return;
         box.dataset.tikzState = 'compiled';
         delete box.dataset.tikzError;
         tikzErrors.delete(box.dataset.tikzHash);
@@ -5511,14 +5600,20 @@
       // Stage SVGs of pictures compiled in the editor preview alongside the post.
       async function stageCompiledTikz() {
         let staged = 0, pending = 0;
+        // HaTeX draws its pictures adjusted for the screen; it keeps TeX's own files.
+        const deckFiles = new Map();
+        document.querySelectorAll('#editorPreview .hatex').forEach(root =>
+          HaTeX.tikzSvgs(root).forEach(f => deckFiles.set(f.hash, f.svg)));
         for (const box of document.querySelectorAll('#editorPreview .latex-tikz[data-tikz-hash]')) {
           const state = box.dataset.tikzState;
           if (state === 'static') continue;
           const svg = box.querySelector('svg');
           if (state !== 'compiled' || !svg) { pending++; continue; }
+          const file = box.closest('.hatex') ? deckFiles.get(box.dataset.tikzHash) : svg.outerHTML + '\n';
+          if (!file) { pending++; continue; }
           const path = `notes/tikz/${box.dataset.tikzHash}.svg`;
           if (getStagedEntry(path) || await getFileSha(path)) continue;
-          stageFile(path, svg.outerHTML + '\n', `Add TikZ figure ${box.dataset.tikzHash}`);
+          stageFile(path, file, `Add TikZ figure ${box.dataset.tikzHash}`);
           tikzMissing.delete(box.dataset.tikzHash);
           staged++;
         }
@@ -6174,10 +6269,14 @@
         // above it.
         const anchor = samePost ? previewAnchor() : null;
         const range = changedLineRange(lastCompiledSource, md);
-        pv.innerHTML = renderPost(md);
-        applyStagedImages(pv);
-        fitLatexBoxes(pv);
-        loadTikzJax(pv);
+        if (isDeck(md)) renderDeck(pv, md, { tikzErrors: true });
+        else {
+          leaveDeck(pv);
+          pv.innerHTML = renderPost(md);
+          applyStagedImages(pv);
+          fitLatexBoxes(pv);
+          loadTikzJax(pv);
+        }
         if (anchor) {
           restorePreviewAnchor(anchor);
           rememberSyncPoint();
