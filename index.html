@@ -1388,7 +1388,7 @@
         color: var(--ink);
       }
 
-      /* ── LaTeX posts (rendered by assets/latex.js) ── */
+      /* ── LaTeX posts (rendered by HaTeX, hatex/core) ── */
       .blog-content {
         counter-reset: katexEqnNo mmlEqnNo;
       }
@@ -4041,12 +4041,10 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
-    <script src="assets/latex.js?v=9.2.0"></script>
-    <script src="assets/latex-complete.js?v=9.2.0"></script>
-    <script src="assets/vim.js?v=9.2.0"></script>
-    <script src="assets/lint.js?v=9.2.0"></script>
-    <script src="assets/tikz-nn.js?v=9.2.0"></script>
-    <script src="assets/bib.js?v=9.2.0"></script>
+    <!-- HaTeX (github.com/mejistus/hatex, the hatex/core submodule) renders the posts. -->
+    <script src="hatex/core/dist/hatex.js?v=10.0.0"></script>
+    <script src="assets/latex-complete.js?v=10.0.0"></script>
+    <script src="assets/vim.js?v=10.0.0"></script>
     <script>
       let poems = [];
       let current = 0;
@@ -4954,7 +4952,7 @@
       // ── Parsed HTML cache ──
       const parsedHtmlCache = new Map();
       function renderPost(content) {
-        return parseLatex(content || '');
+        return HaTeX.parse(content || '');
       }
 
       // Bounded, most recently used last: a site with hundreds of posts should
@@ -5597,7 +5595,7 @@
         const used = new Set();
         blogs.forEach(b => {
           if (!/\.tex$/i.test(b.file || '')) return;
-          const html = parseLatex(b.content);
+          const html = HaTeX.parse(b.content);
           (html.match(/data-tikz-hash="(\w+)"/g) || []).forEach(t => used.add(t.slice(16, -1)));
         });
         const staged = loadStaged().files;
@@ -6239,10 +6237,10 @@
         try {
           let entries = [];
           if (text.includes('@')) {
-            entries = Bib.parse(text);
+            entries = HaTeX.Bib.parse(text);
           } else {
             for (const line of text.split('\n').map(l => l.trim()).filter(Boolean)) {
-              entries = entries.concat(await Bib.lookup(line));
+              entries = entries.concat(await HaTeX.Bib.lookup(line));
             }
           }
           if (!entries.length) throw new Error('Nothing to add');
@@ -6267,13 +6265,13 @@
         const ta = document.getElementById('editorTextarea');
         const caret = ta.selectionStart;
         const have = new Set([...ta.value.matchAll(/\\bibitem\s*(?:\[[^\]]*\])?\{([^}]*)\}/g)].map(m => m[1].trim()));
-        const fresh = entries.filter(e => !have.has(Bib.key(e)));
-        const keys = entries.map(e => Bib.key(e));
-        const result = { added: fresh.map(e => Bib.key(e)), skipped: keys.filter(k => have.has(k)) };
+        const fresh = entries.filter(e => !have.has(HaTeX.Bib.key(e)));
+        const keys = entries.map(e => HaTeX.Bib.key(e));
+        const result = { added: fresh.map(e => HaTeX.Bib.key(e)), skipped: keys.filter(k => have.has(k)) };
 
         // Where the new \bibitem lines go.
         const endIdx = ta.value.indexOf('\\end{thebibliography}');
-        const body = fresh.map(e => '  ' + Bib.format(e)).join('\n');
+        const body = fresh.map(e => '  ' + HaTeX.Bib.format(e)).join('\n');
         const cite = document.getElementById('editorRefsCite').checked && keys.length
           ? `~\\cite{${keys.join(',')}}` : '';
 
@@ -7251,9 +7249,9 @@
 
       async function runLint() {
         const src = document.getElementById('editorTextarea').value;
-        problems = lintSource(src).concat(tikzProblems());
+        problems = HaTeX.lint(src, { frontMatter: true }).concat(tikzProblems());
         renderProblems();
-        const imgs = await checkImages(referencedImages(src));
+        const imgs = await checkImages(HaTeX.images(src));
         problems = problems.concat(imgs).sort((a, b) => a.line - b.line);
         problems = problems.filter((p, i, all) => i === all.findIndex(q => q.line === p.line && q.message === p.message));
         renderProblems();
@@ -7828,7 +7826,7 @@
         if (fmExcerpt) return fmExcerpt;
         // Otherwise the first rendered paragraph, without its maths.
         const div = document.createElement('div');
-        div.innerHTML = parseLatex(content);
+        div.innerHTML = HaTeX.parse(content);
         div.querySelectorAll('.katex, .latex-fn-ref').forEach(el => el.remove());
         const p = [...div.querySelectorAll('p')].map(el => el.textContent.replace(/\s+/g, ' ').trim()).find(Boolean) || '';
         return p.length > 100 ? p.slice(0, 100) + '...' : p;
