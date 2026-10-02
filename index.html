@@ -1630,6 +1630,27 @@
       .latex-theorem {
         margin: 1.4rem 0;
       }
+      /* block / alertblock / exampleblock, in articles as in beamer */
+      .blog-content .hatex-block {
+        margin: 1.2rem 0;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        background: var(--surface);
+        overflow: hidden;
+      }
+      .blog-content .hatex-block-title {
+        padding: 0.45rem 0.9rem;
+        background: var(--sand);
+        border-bottom: 1px solid var(--border);
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--ink);
+      }
+      .blog-content .hatex-block.alert .hatex-block-title { color: var(--danger); }
+      .blog-content .hatex-block.example .hatex-block-title { color: var(--tok-env); }
+      .blog-content .hatex-block-body { padding: 0.7rem 0.9rem; }
+      .blog-content .hatex-block-body > :first-child { margin-top: 0; }
+      .blog-content .hatex-block-body > :last-child { margin-bottom: 0; }
       .latex-theorem.latex-thm p {
         font-style: italic;
         color: var(--ink);
@@ -4048,9 +4069,9 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- HaTeX (github.com/mejistus/hatex, the hatex/core submodule) renders the posts. -->
-    <script src="hatex/core/dist/hatex.js?v=10.0.0"></script>
-    <script src="assets/latex-complete.js?v=10.0.0"></script>
-    <script src="assets/vim.js?v=10.0.0"></script>
+    <script src="hatex/core/dist/hatex.js?v=10.1.0"></script>
+    <script src="assets/latex-complete.js?v=10.1.0"></script>
+    <script src="assets/vim.js?v=10.1.0"></script>
     <script>
       let poems = [];
       let current = 0;
@@ -5015,7 +5036,7 @@
           }
           host.dataset.theme = document.documentElement.hasAttribute('data-dark') ? 'dark' : 'light';
           HaTeX.render(host, src,
-            Object.assign({ tikzSvgBase: 'notes/tikz/', zoom: false, animate: false }, options));
+            Object.assign({ tikzSvgBase: 'notes/tikz/', zoom: false, animate: false, deckBar: false }, options));
           applyStagedImages(host);
         };
         if (hatexCssReady) { draw(); return; }

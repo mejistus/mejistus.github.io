@@ -1,5 +1,12 @@
 [
   {
+    "file": "Slides/From-Samples-to-Bits-讲稿.tex",
+    "title": "From Samples to Bits：讲稿与背景知识",
+    "date": "2026-10-02",
+    "tag": "Slides",
+    "excerpt": "配合幻灯片 From Samples to Bits 的讲稿。第一部分从傅里叶变换讲起，补齐采样定理、熵与率失真、变换编码、JPEG、小波、学习型压缩和压缩感知等全部背景，让演讲者真正理解要讲的内容；第二部分是逐页要对观众说的话；第三部分是提问准备、公式卡和参考文献。"
+  },
+  {
     "file": "Slides/From-Samples-to-Bits.tex",
     "title": "From Samples to Bits: Sampling Theory and Image Compression",
     "date": "2026-09-30",
