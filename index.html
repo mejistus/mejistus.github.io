@@ -1470,6 +1470,10 @@
         height: auto;
         overflow: visible;
       }
+      /* TikZJax's fonts claim a tiny ascent; an invisible stroke widens each
+         label's paint area to the whole glyph, so no label loses its top half
+         (Safari; Chrome and Firefox also get ascent-override, loadTikzFonts). */
+      .latex-tikz svg text { stroke: transparent; stroke-width: 1.4em; }
       /* Author-chosen backgrounds (\rowcolor, \cellcolor, \hl) are light, so
          their text turns dark to stay readable in the dark theme. */
       :root[data-dark] .latex-table [style*="background"],
@@ -4069,9 +4073,9 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- HaTeX (github.com/mejistus/hatex, the hatex/core submodule) renders the posts. -->
-    <script src="hatex/core/dist/hatex.js?v=10.1.0"></script>
-    <script src="assets/latex-complete.js?v=10.1.0"></script>
-    <script src="assets/vim.js?v=10.1.0"></script>
+    <script src="hatex/core/dist/hatex.js?v=10.1.1"></script>
+    <script src="assets/latex-complete.js?v=10.1.1"></script>
+    <script src="assets/vim.js?v=10.1.1"></script>
     <script>
       let poems = [];
       let current = 0;
@@ -5492,13 +5496,25 @@
       const tikzMissing = new Set(); // hashes with no pre-rendered SVG on the server
       let tikzFontsLoaded = false, tikzJaxLoaded = false;
 
+      // The same faces HaTeX declares: TikZJax's fonts.css with ascent-override
+      // and descent-override, since the fonts claim an ascent of 0.1em and
+      // macOS browsers then leave the top of a label unpainted.
       function loadTikzFonts() {
         if (tikzFontsLoaded) return;
         tikzFontsLoaded = true;
-        const css = document.createElement('link');
-        css.rel = 'stylesheet';
-        css.href = TIKZJAX_BASE + 'fonts.css';
-        document.head.appendChild(css);
+        const from = new URL(TIKZJAX_BASE + 'fonts.css');
+        fetch(from).then(r => r.ok ? r.text() : Promise.reject(new Error(r.status))).then(text => {
+          const style = document.createElement('style');
+          style.textContent = text
+            .replace(/url\((['"]?)([^'")]+)\1\)/g, (m, q, u) => `url("${new URL(u, from).href}")`)
+            .replace(/@font-face\s*\{/g, '@font-face { ascent-override: 75%; descent-override: 25%; line-gap-override: 0%;');
+          document.head.appendChild(style);
+        }).catch(() => {
+          const css = document.createElement('link');
+          css.rel = 'stylesheet';
+          css.href = from.href;
+          document.head.appendChild(css);
+        });
       }
       function loadTikzJaxScript() {
         loadTikzFonts();
