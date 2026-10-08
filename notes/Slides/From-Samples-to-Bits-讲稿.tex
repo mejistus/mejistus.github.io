@@ -241,6 +241,36 @@ $|X(f)|$ 说明频率 $f$ 的成分有多强。图像里的“频率”是明暗
   \item \textbf{矩形与 sinc 互为变换。}频域里的矩形 $\mathbf 1[|f|<W]$ 对应时域的 $2W\sinc(2Wt)$，$\sinc(u)=\sin(\pi u)/(\pi u)$。频域里直角截断，时域里就是向两边振荡、按 $1/t$ 衰减的波纹。它同时解释了第 6 页的插值和第 14 页的振铃。
 \end{itemize}
 
+\textbf{推导：时域相乘等效于频域卷积。}设有两个连续时间信号 $x_1(t)$ 和 $x_2(t)$，它们各自的傅里叶变换分别为 $X_1(\omega)$ 和 $X_2(\omega)$。这里用角频率 $\omega=2\pi f$，变换对写作
+\[
+X(\omega)=\int_{-\infty}^{\infty}x(t)\,e^{-j\omega t}\,\mathrm dt,\qquad
+x(t)=\frac{1}{2\pi}\int_{-\infty}^{\infty}X(\omega)\,e^{j\omega t}\,\mathrm d\omega .
+\]
+令 $y(t)=x_1(t)\,x_2(t)$，求其傅里叶变换 $Y(\omega)$。按定义，
+\[
+Y(\omega)=\int_{-\infty}^{\infty}x_1(t)\,x_2(t)\,e^{-j\omega t}\,\mathrm dt .
+\]
+把 $x_1(t)$ 用逆变换写开，积分变量记作 $\omega'$，以免和 $\omega$ 混淆：
+\[
+x_1(t)=\frac{1}{2\pi}\int_{-\infty}^{\infty}X_1(\omega')\,e^{j\omega' t}\,\mathrm d\omega' .
+\]
+代入，再交换两个积分的次序：
+\[
+Y(\omega)=\frac{1}{2\pi}\int_{-\infty}^{\infty}X_1(\omega')\left[\int_{-\infty}^{\infty}x_2(t)\,e^{-j(\omega-\omega')t}\,\mathrm dt\right]\mathrm d\omega' .
+\]
+方括号里正是 $x_2$ 的傅里叶变换在 $\omega-\omega'$ 处的值，即 $X_2(\omega-\omega')$。于是
+\[
+Y(\omega)=\frac{1}{2\pi}\int_{-\infty}^{\infty}X_1(\omega')\,X_2(\omega-\omega')\,\mathrm d\omega'
+=\frac{1}{2\pi}\,\big(X_1*X_2\big)(\omega).
+\]
+时域相乘，频域卷积，只多一个系数 $1/(2\pi)$。若改用频率 $f$（单位 Hz）作变量，$\mathrm d\omega=2\pi\,\mathrm df$ 正好把这个系数抵掉，得到上面列表里的 $x_1x_2\leftrightarrow X_1*X_2$。交换积分次序要求 $x_1$、$x_2$ 足够好，例如绝对可积或平方可积；冲激这类广义函数按分布理解，结论照样成立。
+
+\textbf{用在采样上。}取 $x_1=x$，$x_2=s(t)=\sum_n\delta(t-nT)$。$s$ 以 $T$ 为周期，傅里叶级数的系数全是 $1/T$，所以 $s(t)=\frac1T\sum_k e^{jk\omega_s t}$，其中 $\omega_s=2\pi/T$。每一项 $e^{jk\omega_s t}$ 的变换是 $2\pi\,\delta(\omega-k\omega_s)$，于是 $S(\omega)=\omega_s\sum_k\delta(\omega-k\omega_s)$：冲激梳的变换还是冲激梳。和冲激卷积就是平移，代入上式得
+\[
+X_s(\omega)=\frac{1}{2\pi}\,\big(X*S\big)(\omega)=\frac{\omega_s}{2\pi}\sum_k X(\omega-k\omega_s)=\frac1T\sum_k X(\omega-k\omega_s).
+\]
+频谱每隔 $\omega_s$，也就是每隔一个采样率，复制一份，幅度乘 $1/T=f_s$。换回 $f$ 就是第 4 页的 $X_s(f)=f_s\sum_k X(f-kf_s)$。
+
 \subsection{采样定理与混叠（第 4--7 页）}\label{sec:sampling}
 采样写成乘冲激梳：$x_s(t)=x(t)\sum_n\delta(t-nT)$。由上面第二、三条，
 \[
