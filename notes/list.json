@@ -4,14 +4,14 @@
     "title": "From Samples to Bits：讲稿与背景知识",
     "date": "2026-10-02",
     "tag": "Slides",
-    "excerpt": "配合幻灯片 From Samples to Bits 的讲稿。第一部分从傅里叶变换讲起，补齐采样定理、熵与率失真、变换编码、JPEG、小波、学习型压缩和压缩感知等全部背景，让演讲者真正理解要讲的内容；第二部分是逐页要对观众说的话；第三部分是提问准备、公式卡和参考文献。"
+    "excerpt": "配合幻灯片 From Samples to Bits 的讲稿。全场只回答一个问题：一张图到底需要多少个数？先讲需要多少样本（采样定理），再沿着频谱这条线讲每个样本要多少比特（图像压缩七十年，以及神经网络里的上下采样为什么也是采样），最后说明两个答案为什么相关。讲稿给出主线、逐页承上启下的讲词、按幻灯片顺序排列的背景知识和提问准备。"
   },
   {
     "file": "Slides/From-Samples-to-Bits.tex",
     "title": "From Samples to Bits: Sampling Theory and Image Compression",
     "date": "2026-09-30",
     "tag": "Slides",
-    "excerpt": "A 20-minute talk in beamer slides: the Nyquist–Shannon sampling theorem in five minutes, a tour of image compression from JPEG to learned and generative codecs, and where the two really meet: rate–distortion theory, sampling below Nyquist when bits are scarce, and compressed sensing."
+    "excerpt": "A 20-minute talk built on one question: how many numbers does an image need? First the sampling theorem (how many samples), then seventy years of image compression read through the spectrum (how many bits per sample, and why the ↓2 and ↑2 inside neural codecs are sampling too), and finally why the two answers are linked: when bits are scarce, fewer samples are better."
   },
   {
     "file": "Example/LaTeX-写作示例.tex",
