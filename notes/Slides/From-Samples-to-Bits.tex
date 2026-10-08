@@ -4,8 +4,8 @@
 % tag: Slides
 % excerpt: A 20-minute talk built on one question: how many numbers does an image need? First the sampling theorem (how many samples), then seventy years of image compression read through the spectrum (how many bits per sample, and why the ↓2 and ↑2 inside neural codecs are sampling too), and finally why the two answers are linked: when bits are scarce, fewer samples are better.
 % ---
-% About 17-18 minutes: opening 1 min, Part I (how many samples?) 5 min,
-% Part II (how many bits per sample?) 9.5 min, Part III (are the two
+% About 19 minutes: opening 1 min, Part I (how many samples?) 5.5 min,
+% Part II (how many bits per sample?) 11 min, Part III (are the two
 % answers linked?) 2 min. Each slide answers the question the one before
 % it raised; the comment above each frame gives a suggested time.
 \documentclass[aspectratio=169]{beamer}
@@ -82,7 +82,7 @@
   \textbf{cannot wiggle too fast} between them, and ``too fast'' is a statement about frequency.
 \end{frame}
 
-% 0:45
+% 1:00
 \begin{frame}{Sampling copies the spectrum}
   \begin{columns}[T]
     \begin{column}{0.5\textwidth}
@@ -151,7 +151,7 @@
   $2B$ is the \textbf{Nyquist rate}. Two cases follow: how to get $x$ back, and what goes wrong below it.
 \end{frame}
 
-% 0:50
+% 1:05
 \begin{frame}{Inside the band: a sinc puts the signal back}
   \begin{columns}[T]
     \begin{column}{0.44\textwidth}
@@ -209,7 +209,7 @@
   \end{itemize}
 \end{frame}
 
-% 1:00
+% 1:05
 \begin{frame}{Images: a low-pass around every resize}
   \begin{columns}[T]
     \begin{column}{0.56\textwidth}
@@ -278,7 +278,7 @@
   \end{itemize}
 \end{frame}
 
-% 1:00
+% 1:05
 \begin{frame}{The limit: spend bits only above the water level}
   \begin{columns}[T]
     \begin{column}{0.46\textwidth}
@@ -437,7 +437,7 @@
   To lose the blocks: transform the \emph{whole} image, at every scale.
 \end{frame}
 
-% 1:05
+% 1:10
 \begin{frame}{Wavelets (JPEG 2000): aliasing that cancels}
   \begin{columns}[T]
     \begin{column}{0.64\textwidth}
@@ -493,8 +493,54 @@
   \begin{itemize}
     \item Split into low and high half-bands, \textbf{downsample each by 2}; repeat on the low band \cite{mallat1989}.
     \item Each $\downarrow2$ aliases, but $G_0,G_1$ are designed so the two aliases \alert{cancel exactly}. No blocks, every resolution in one bitstream \cite{skodras2001}.
-    \item Then WebP, HEIC and AVIF borrowed prediction from video codecs. Still every filter was designed by hand.
+    \item Another road, taken by video codecs: do not transform everything, \alert{predict}.
   \end{itemize}
+\end{frame}
+
+% 1:10
+\begin{frame}{Prediction: code only the surprise}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[font=\small, scale=0.72]
+        \fill[sig!18] (0,0) rectangle (3,1);
+        \fill[sig!18] (0,0) rectangle (1,-1);
+        \fill[hot!15] (1,0) rectangle (2,-1);
+        \draw[soft, step=1] (0,-1) grid (3,1);
+        \draw[hot, very thick] (1,0) rectangle (2,-1);
+        \node at (0.5,0.5) {$C$};
+        \node at (1.5,0.5) {$B$};
+        \node at (0.5,-0.5) {$A$};
+        \node[hot] at (1.5,-0.5) {$X$};
+        \node[soft, font=\scriptsize] at (2.5,-0.5) {next};
+      \end{tikzpicture}
+      \end{center}
+      \textbf{PNG} (1996), lossless \cite{boutell1997}
+      \begin{itemize}
+        \item Guess each pixel from its left and upper neighbours; keep only the error, mostly near $0$.
+        \item DEFLATE (LZ77 + Huffman) packs the errors. No quantizer: nothing is lost.
+        \item Small for screenshots, large for photos.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[font=\small, scale=0.8, >={Stealth[length=1.4mm]}]
+        \fill[sig!18] (-0.4,0.4) rectangle (1.6,0.8);
+        \fill[sig!18] (-0.4,-1.2) rectangle (0,0.4);
+        \fill[hot!12] (0,-1.2) rectangle (1.6,0.4);
+        \draw[soft, step=0.4] (-0.4,-1.2) grid (1.6,0.8);
+        \draw[hot, very thick] (0,-1.2) rectangle (1.6,0.4);
+        \foreach \x in {0.2,0.6,1.0,1.4} \draw[->, hot, thick] (\x,0.6) -- (\x,-1.0);
+      \end{tikzpicture}
+      \end{center}
+      \textbf{WebP} (2010), lossy \cite{bankoski2011,zern2024}
+      \begin{itemize}
+        \item From the VP8 video codec: guess a whole block from the decoded pixels above and to its left.
+        \item DCT and quantize only the error: JPEG on the surprise; a deblocking filter smooths block edges.
+        \item HEIC and AVIF push the same idea further.
+      \end{itemize}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 % 1:00
@@ -694,6 +740,9 @@
     \bibitem{bruckstein2003} A. M. Bruckstein, M. Elad, R. Kimmel. Down-scaling for better transform compression. \emph{IEEE Trans. Image Processing}, 2003.
     \bibitem{av1overview} J. Han et al. A technical overview of AV1. \emph{Proc. IEEE}, 2021.
     \bibitem{netflix2015} A. Aaron et al. Per-title encode optimization. Netflix Technology Blog, 2015.
+    \bibitem{boutell1997} T. Boutell et al. PNG (Portable Network Graphics) Specification, Version 1.0. RFC 2083, 1997.
+    \bibitem{bankoski2011} J. Bankoski et al. VP8 Data Format and Decoding Guide. RFC 6386, 2011.
+    \bibitem{zern2024} J. Zern, P. Massimino, J. Alakuijala. WebP Image Format. RFC 9649, 2024.
   \end{thebibliography}
 \end{frame}
 
