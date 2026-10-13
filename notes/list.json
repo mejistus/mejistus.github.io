@@ -1,5 +1,12 @@
 [
   {
+    "file": "Slides/Recent-Image-Compression.tex",
+    "title": "Recent Image Compression: Four Branches, 2023–2026",
+    "date": "2026-10-13",
+    "tag": "Slides",
+    "excerpt": "A follow-up to From Samples to Bits. Since learned codecs caught up with VVC in 2020, research has split four ways, each with two key papers: fewer bits at the same error (TCM, DCAE), real-looking images from a few hundred bytes (PerCo, StableCodec), decoders small enough for a CPU (Cool-Chic, C3), and images compressed for models rather than people (TransTIC, a transform-neck for multimodal LLMs). For each, the problem it solves and how. JPEG AI (2025) shows where the four meet."
+  },
+  {
     "file": "Slides/From-Samples-to-Bits-讲稿.tex",
     "title": "From Samples to Bits：讲稿与背景知识",
     "date": "2026-10-02",

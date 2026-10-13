@@ -1,0 +1,560 @@
+% ---
+% title: Recent Image Compression: Four Branches, 2023–2026
+% date: 2026-10-13
+% tag: Slides
+% excerpt: A follow-up to From Samples to Bits. Since learned codecs caught up with VVC in 2020, research has split four ways, each with two key papers: fewer bits at the same error (TCM, DCAE), real-looking images from a few hundred bytes (PerCo, StableCodec), decoders small enough for a CPU (Cool-Chic, C3), and images compressed for models rather than people (TransTIC, a transform-neck for multimodal LLMs). For each, the problem it solves and how. JPEG AI (2025) shows where the four meet.
+% ---
+% About 18 minutes: opening 2 min, the four branches 2.5-4 min each, JPEG AI,
+% summary and open problems 3.5 min. The comment above each frame gives a
+% suggested time.
+\documentclass[aspectratio=169]{beamer}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\definecolor{sig}{HTML}{1F5FAD}
+\definecolor{hot}{HTML}{C0392B}
+\definecolor{accent}{HTML}{C77C02}
+\definecolor{soft}{HTML}{8C8C8C}
+\definecolor{video}{HTML}{2E7D6B}
+
+\title[Recent Image Compression]{Recent Image Compression}
+\subtitle{Four branches of learned codecs, 2023--2026}
+\author{Xu Chen}
+\date{October 2026}
+
+\begin{document}
+
+% 0:15
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% 1:00
+\begin{frame}{Where we left off: one pipeline, one loss}
+  \begin{center}
+  \begin{tikzpicture}[nn, node distance=4mm, nndata/.append style={minimum width=8mm},
+      mk/.style={circle, draw=#1, fill=#1!15, text=#1!70!black, inner sep=0pt, minimum size=5mm, font=\footnotesize\bfseries}]
+    \node[nndata] (x) {$x$};
+    \node[nnenc, right=of x] (ga) {$g_a$};
+    \node[nnbox={nnactc}{9mm}, right=of ga] (q) {$Q$};
+    \node[nnbox={nnfcc}{10mm}, right=of q] (ae) {AE};
+    \node[right=of ae, font=\ttfamily\small] (bits) {bits};
+    \node[nnbox={nnfcc}{10mm}, right=of bits] (ad) {AD};
+    \node[nndec, right=of ad] (gs) {$g_s$};
+    \node[nndata, right=of gs] (xh) {$\hat x$};
+    \node[nnbox={nnnormc}{20mm}, above=6mm of bits] (p) {entropy model $p(\hat y)$};
+    \draw[nnflow] (x) -- (ga);
+    \draw[nnflow] (ga) -- (q);
+    \draw[nnflow] (q) -- (ae);
+    \draw[nnflow] (ae) -- (bits);
+    \draw[nnflow] (bits) -- (ad);
+    \draw[nnflow] (ad) -- (gs);
+    \draw[nnflow] (gs) -- (xh);
+    \draw[nnflow, dashed] (p) -| (ae);
+    \draw[nnflow, dashed] (p) -| (ad);
+    \draw[video, thick, dashed, rounded corners=3pt] ($(ad.west |- gs.south)+(-0.15,-0.15)$) rectangle ($(gs.north east)+(0.15,0.05)$);
+    \node[mk=sig] at ($(ga.north)+(0,0.4)$) {1};
+    \node[mk=sig] at ($(p.west)+(-0.4,0)$) {1};
+    \node[mk=accent] at ($(gs.north)+(0,0.55)$) {2};
+    \node[mk=video] at ($(ad.west |- gs.south)+(-0.15,-0.15)$) {3};
+    \node[mk=hot] at ($(xh.north)+(0,0.4)$) {4};
+  \end{tikzpicture}
+  \end{center}
+  \[ \mathcal L \;=\; R + \lambda D \;=\; \mathbb E\big[-\log_2 p(\hat y)\big] + \lambda\,\mathbb E\big[\|x-\hat x\|^2\big] \]
+  It matched VVC by 2020 \cite{balle2018,cheng2020}. Since then, four branches:
+  \begin{center}
+  \begin{tabular}{llll}
+    \textcolor{sig}{\textbf{1 Rate}} & fewer bits, same error &
+    \textcolor{video}{\textbf{3 Complexity}} & a decoder a phone can run \\
+    \textcolor{accent}{\textbf{2 Perception}} & look real at 0.01 bpp &
+    \textcolor{hot}{\textbf{4 Receiver}} & compress for a model \\
+  \end{tabular}
+  \end{center}
+\end{frame}
+
+% 0:50
+\begin{frame}{Four branches, eight papers, one standard}
+  \begin{center}
+  \footnotesize
+  \begin{tabular}{llll}
+    \toprule
+    Branch & Question & Key works & Venue \\
+    \midrule
+    \textcolor{sig}{1 Rate} & Fewer bits, same PSNR? & TCM \cite{liu2023tcm}, DCAE \cite{lu2025dcae} & CVPR 2023, CVPR 2025 \\
+    \textcolor{accent}{2 Perception} & A real image from 150 bytes? & PerCo \cite{careil2024perco}, StableCodec \cite{zhang2025stablecodec} & ICLR 2024, ICCV 2025 \\
+    \textcolor{video}{3 Complexity} & VVC quality, decoded on a CPU? & Cool-Chic \cite{ladune2023coolchic}, C3 \cite{kim2024c3} & ICCV 2023, CVPR 2024 \\
+    \textcolor{hot}{4 Receiver} & Bits for a model, not an eye? & TransTIC \cite{chen2023transtic}, transform-neck \cite{kao2025neck} & ICCV 2023, ICLR 2025 \\
+    \midrule
+    All four & What does a standard adopt? & JPEG AI \cite{jpegai2025,esenlik2025} & ISO/IEC 2025 \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \medskip
+  Yardstick: \textbf{BD-rate} against VTM (H.266/VVC, intra), the change in bits at equal quality; $-10\%$ means $10\%$ fewer bits.
+\end{frame}
+
+\section{Fewer bits at the same error}
+
+% 1:00
+\begin{frame}{Branch 1: the bits are only as good as the model}
+  \begin{columns}[T]
+    \begin{column}{0.56\textwidth}
+      \begin{itemize}
+        \item $\hat y_i$ costs $-\log_2 p(\hat y_i\mid\text{context})$ bits: better prediction, fewer bits.
+        \item \textbf{Transform} $g_a$: pack the image into few numbers. Needs local texture \emph{and} long-range structure.
+        \item \textbf{Entropy model} $p$: predict from what the decoder already has \cite{balle2018,he2022elic}.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[font=\small, >={Stealth[length=1.6mm]}]
+        \foreach \i in {0,1}
+          \filldraw[draw=sig!70!black, fill=sig!22] (0.8*\i,0) rectangle ++(0.6,2);
+        \filldraw[draw=accent!80!black, fill=accent!30, thick] (1.6,0) rectangle ++(0.6,2);
+        \foreach \i in {3,4}
+          \draw[soft] (0.8*\i,0) rectangle ++(0.6,2);
+        \foreach \i in {1,...,5}
+          \node[below] at ({0.8*\i-0.5},0) {$\hat y_{\i}$};
+        \node[sig, font=\scriptsize] at (0.7,-0.75) {decoded};
+        \node[accent!80!black, font=\scriptsize] at (1.9,-0.75) {now};
+        \node[soft, font=\scriptsize] at (3.1,-0.75) {later};
+        \node[draw=soft, fill=soft!12, rounded corners=2pt] (z) at (3.7,3.2) {hyperprior $\hat z$};
+        \draw[->, thick] (z.west) to[out=180, in=60] (2.05,2.05);
+        \draw[->, thick, sig] (0.7,2.05) to[out=70, in=110] node[above, font=\scriptsize] {earlier slices} (1.8,2.05);
+      \end{tikzpicture}
+      \end{center}
+      {\small Slices of $\hat y$ are decoded in order.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% 1:10
+\begin{frame}{TCM (CVPR 2023): local and global, side by side}
+  \begin{center}
+  \begin{tikzpicture}[nn, node distance=5mm]
+    \node[nndata] (in) {in};
+    \node[nnconv, minimum width=11mm, right=of in] (c1) {$1{\times}1$};
+    \node[nnattn, minimum width=27mm, above right=1mm and 9mm of c1] (swin) {Swin Transformer\\(windows)};
+    \node[nnconv, minimum width=27mm, below right=1mm and 9mm of c1] (res) {residual conv\\block};
+    \node[nnbox={nnfcc}{12mm}, right=48mm of c1] (cat) {concat};
+    \node[nnconv, minimum width=11mm, right=of cat] (c2) {$1{\times}1$};
+    \node[nnsum, right=of c2] (plus) {$+$};
+    \node[nndata, right=of plus] (out) {out};
+    \draw[nnflow] (in) -- (c1);
+    \draw[nnflow] (c1.east) -- ++(0.35,0) |- (swin.west);
+    \draw[nnflow] (c1.east) -- ++(0.35,0) |- (res.west);
+    \draw[nnflow] (swin.east) -| (cat.north);
+    \draw[nnflow] (res.east) -| (cat.south);
+    \draw[nnflow] (cat) -- (c2);
+    \draw[nnflow] (c2) -- (plus);
+    \draw[nnflow] (plus) -- (out);
+    \draw[nnskip] ($(in.east)!0.5!(c1.west)$) -- ++(0,-1.95) -| (plus.south);
+  \end{tikzpicture}
+  \end{center}
+  \begin{itemize}
+    \item \textbf{Problem.} Convolutions see local texture, Transformers long-range structure; stacking both is slow.
+    \item \textbf{Method} \cite{liu2023tcm}. Split the channels between the two, \emph{in parallel}. Swin attention also in the entropy model, at $\frac{1}{16}$ of the pixels.
+    \item \textbf{Result.} $-12.3\%$, $-13.7\%$, $-11.9\%$ vs.\ VTM-12.1 on Kodak, Tecnick, CLIC.
+  \end{itemize}
+\end{frame}
+
+% 1:10
+\begin{frame}{DCAE (CVPR 2025): a dictionary as prior}
+  \begin{center}
+  \begin{tikzpicture}[nn, node distance=5mm]
+    \node[nnbox={soft}{30mm}] (ctx) {hyperprior and\\decoded slices};
+    \node[nnattn, right=9mm of ctx] (att) {cross-\\attention};
+    \node[nnfc, minimum width=10mm, right=of att] (ffn) {FFN};
+    \node[nnbox={nnnormc}{26mm}, right=9mm of ffn] (p) {$\mu,\sigma$ of slice $\hat y_i$};
+    \node[nnbox={accent}{34mm}, left=6mm of att.south west, anchor=north east, yshift=-4mm] (dict) {dictionary $128\times640$, no bits};
+    \draw[nnflow] (ctx) -- node[nnlabel, above] {query} (att);
+    \draw[nnflow] (dict.east) -| node[nnlabel, pos=0.75, right] {keys, values} (att.south);
+    \draw[nnflow] (att) -- (ffn);
+    \draw[nnflow] (ffn) -- (p);
+    \draw[nnskip] (ctx.north) -- ++(0,0.3) -| (p.north);
+  \end{tikzpicture}
+  \end{center}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}
+        \item \textbf{Problem.} Entropy models look only \emph{inside} the image, but edges and textures recur across the training set.
+        \item \textbf{Method} \cite{lu2025dcae}. A learned dictionary of typical structures, queried by cross-attention.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{center}
+      \footnotesize
+      \begin{tabular}{lcccc}
+        \toprule
+        vs.\ VTM & Kodak & Tecnick & CLIC & ms \\
+        \midrule
+        ELIC 2022 \cite{he2022elic} & $-7.1\%$ & -- & -- & 210 \\
+        TCM 2023 & $-11.8\%$ & $-12.0\%$ & $-12.0\%$ & 293 \\
+        MLIC++ 2023 \cite{jiang2023mlic} & $-15.1\%$ & $-18.6\%$ & $-16.9\%$ & 772 \\
+        \textbf{DCAE 2025} & $\mathbf{-17.0\%}$ & $\mathbf{-21.1\%}$ & $\mathbf{-19.7\%}$ & \textbf{193} \\
+        \bottomrule
+      \end{tabular}
+      \end{center}
+      {\scriptsize All from \cite{lu2025dcae}, Table 1; ms on Kodak.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\section{Real-looking images from a few hundred bytes}
+
+% 1:10
+\begin{frame}{Branch 2: exact or realistic, not both}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{itemize}
+        \item At low rates the MSE-optimal decoder outputs the \textbf{average} $\mathbb E[x\mid\text{bits}]$: blurry.
+        \item At a fixed rate, more realism costs more distortion \cite{blau2018,blau2019}.
+        \item So: send \textbf{structure}, let diffusion \textbf{invent texture}.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[x=1.3cm, y=1.1cm, font=\small, >={Stealth[length=1.6mm]}]
+        \draw[->] (0,0) -- (4.2,0) node[below left] {distortion $D$};
+        \draw[->] (0,0) -- (0,3.1) node[above right] {unrealism $P$};
+        \draw[sig, very thick, domain=0.5:2] plot (\x, {1.15*(2-\x)^2});
+        \draw[hot, very thick, domain=1.4:3.2] plot (\x, {0.8*(3.2-\x)^2});
+        \node[sig] at (0.75,0.7) {high $R$};
+        \node[hot] at (2.85,1.0) {low $R$};
+        \fill[hot] (1.4,2.59) circle (2.2pt) node[right, black, font=\footnotesize] {MSE-optimal: blurry};
+        \fill[hot] (3.2,0) circle (2.2pt) node[above right, black, font=\footnotesize, align=left] {perfectly\\realistic};
+      \end{tikzpicture}
+      \end{center}
+      {\small Schematic, after \cite{blau2019}.}
+    \end{column}
+  \end{columns}
+  \medskip
+  \alert{Generated, not transmitted}: it looks right, but may not be what the camera saw.
+\end{frame}
+
+% 1:20
+\begin{frame}{PerCo (ICLR 2024): a caption plus a coarse map}
+  \begin{center}
+  \begin{tikzpicture}[nn]
+    \node[nndata] (x) at (0,0) {$x$};
+    \node[nnenc] (enc) at (2.3,0.8) {LDM enc.\\hyper-enc.};
+    \node[nnbox={nnactc}{11mm}] (vq) at (4.6,0.8) {VQ};
+    \node[nnembed] (cap) at (2.3,-0.8) {BLIP-2};
+    \node[nnbox={nnfcc}{11mm}] (zip) at (4.6,-0.8) {zlib};
+    \node[font=\ttfamily\small] (bits) at (6.6,0) {bits};
+    \node[nndec, minimum width=22mm] (dm) at (9.0,0) {diffusion\\decoder};
+    \node[nndata] (xh) at (11.3,0) {$\hat x$};
+    \draw[nnflow] (x.north) |- (enc.west);
+    \draw[nnflow] (x.south) |- (cap.west);
+    \draw[nnflow] (enc) -- (vq);
+    \draw[nnflow] (cap) -- (zip);
+    \draw[nnflow] (vq.east) -- node[nnlabel, above, sloped] {indices} (bits);
+    \draw[nnflow] (zip.east) -- node[nnlabel, below, sloped] {caption} (bits);
+    \draw[nnflow] (bits) -- (dm);
+    \draw[nnflow] (dm) -- (xh);
+  \end{tikzpicture}
+  \end{center}
+  \begin{itemize}
+    \item \textbf{Problem.} $0.003$ bpp (a Kodak image in 153 bytes) that still looks real.
+    \item \textbf{Method} \cite{careil2024perco}. VQ indices on a coarse grid ($8\times8\times8$ bits $\approx0.002$ bpp) plus a BLIP-2 caption \cite{li2023blip2}; a 1.4B latent diffusion model decodes both.
+    \item \textbf{Result.} Best FID on MS-COCO down to $0.003$ bpp; lower PSNR; 20 steps.
+  \end{itemize}
+\end{frame}
+
+% 1:20
+\begin{frame}{StableCodec (ICCV 2025): diffusion in one step}
+  \begin{center}
+  \begin{tikzpicture}[nn, node distance=5mm]
+    \node[nnfeat] (y) {$\hat y$};
+    \node[nndec, right=of y] (gs) {$g_s$};
+    \node[nndata, right=of gs] (lt) {$l_T$};
+    \node[nnattn, right=of lt] (unet) {U-Net\\1 step};
+    \node[nndata, right=of unet] (l0) {$l_0$};
+    \node[nnsum, right=of l0] (plus) {$+$};
+    \node[nndec, right=of plus] (vae) {VAE\\dec.};
+    \node[nndata, right=of vae] (xh) {$\hat x$};
+    \node[nndec, below=3mm of unet] (aux) {$D_{\mathrm{aux}}$};
+    \draw[nnflow] (y) -- (gs);
+    \draw[nnflow] (gs) -- (lt);
+    \draw[nnflow] (lt) -- (unet);
+    \draw[nnflow] (unet) -- (l0);
+    \draw[nnflow] (l0) -- (plus);
+    \draw[nnflow] (plus) -- (vae);
+    \draw[nnflow] (vae) -- (xh);
+    \draw[nnflow] (y.south) |- (aux.west);
+    \draw[nnflow] (aux.east) -| (plus.south);
+    \node[nnlabel, above=1mm of lt] {noisy latent};
+    \node[nnlabel, above=1mm of unet] {generates detail};
+    \node[nnlabel, right=1mm of aux.east, anchor=north west, yshift=-1mm] {carries structure};
+  \end{tikzpicture}
+  \end{center}
+  \begin{columns}[T]
+    \begin{column}{0.56\textwidth}
+      \begin{itemize}
+        \item \textbf{Problem.} 20--50 steps, and drift from the pixels.
+        \item \textbf{Method} \cite{zhang2025stablecodec}. Send a \emph{noisy latent} that one-step SD-Turbo \cite{sauer2024} can clean; an auxiliary branch carries the structure.
+        \item \textbf{Result.} Best FID and DISTS down to $0.005$ bpp.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{center}
+      \footnotesize
+      \begin{tabular}{lrr}
+        \toprule
+        Kodak, RTX 3090 & steps & decoding \\
+        \midrule
+        DiffEIC \cite{li2024diffeic} & 50 & 7.42 s \\
+        PerCo & 20 & 3.74 s \\
+        \textbf{StableCodec} & \textbf{1} & \textbf{0.33 s} \\
+        MS-ILLM (GAN) \cite{muckley2023} & -- & 0.32 s \\
+        \bottomrule
+      \end{tabular}
+      \end{center}
+      {\scriptsize From \cite{zhang2025stablecodec}, Table 2.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\section{Decoders small enough for a CPU}
+
+% 1:20
+\begin{frame}{Branch 3: fit a tiny decoder to each image}
+  \begin{center}
+  \begin{tikzpicture}[nn, >={Stealth[length=1.6mm]}]
+    \filldraw[draw=nnfeatc!75!black, fill=nnfeatc!14] (0,0) rectangle (1.6,1.6);
+    \draw[nnfeatc!60!black, step=0.2] (0,0) grid (1.6,1.6);
+    \filldraw[draw=nnfeatc!75!black, fill=nnfeatc!26] (2.0,0.4) rectangle (2.8,1.2);
+    \draw[nnfeatc!60!black, step=0.2] (2.0,0.4) grid (2.8,1.2);
+    \filldraw[draw=nnfeatc!75!black, fill=nnfeatc!38] (3.2,0.6) rectangle (3.6,1.0);
+    \draw[nnfeatc!60!black, step=0.2] (3.2,0.6) grid (3.6,1.0);
+    \node[nnlabel] at (0.8,-0.25) {full};
+    \node[nnlabel] at (2.4,0.15) {half};
+    \node[nnlabel] at (3.4,0.35) {quarter};
+    \node[nnlabel, anchor=south] at (1.8,1.65) {latent grids $\hat y$};
+    \node[nnfeat=3, minimum height=12mm] (v) at (5.4,0.8) {};
+    \draw[nnflow] (3.75,0.8) -- node[nnlabel, above] {upsample} (v.west);
+    \node[nnfc, minimum width=10mm, right=6mm of v] (mlp) {MLP};
+    \node[right=6mm of mlp] (rgb) {RGB};
+    \draw[nnflow] (v) -- (mlp);
+    \draw[nnflow] (mlp) -- (rgb);
+    \node[nnlabel, anchor=north] at (6.7,0.1) {synthesis, per pixel};
+    \draw[soft, dashed] (9.0,-0.3) -- (9.0,1.9);
+    \begin{scope}[xshift=9.4cm, yshift=0.45cm]
+      \foreach \i in {0,...,4}
+        \foreach \j in {0,1,2}
+          \draw[soft] (0.25*\i,0.25*\j) rectangle ++(0.25,0.25);
+      \foreach \i in {0,...,4}
+        \fill[sig!35] (0.25*\i+0.02,0.52) rectangle ++(0.21,0.21);
+      \foreach \i in {0,1}
+        \fill[sig!35] (0.25*\i+0.02,0.27) rectangle ++(0.21,0.21);
+      \fill[accent!60] (0.52,0.27) rectangle ++(0.21,0.21);
+      \node[nnlabel, anchor=south west] at (0,0.8) {decoded neighbours};
+      \node[nnfc, minimum width=10mm] (amlp) at (2.2,0.37) {MLP};
+      \draw[nnflow] (1.3,0.37) -- (amlp.west);
+      \node[anchor=west, font=\small] at (2.85,0.37) {$\mu, b$};
+      \node[nnlabel, anchor=north] at (1.5,-0.35) {entropy model, per latent};
+    \end{scope}
+  \end{tikzpicture}
+  \end{center}
+  \begin{itemize}
+    \item \textbf{Problem.} One decoder for \emph{every} image is big: JPEG AI's take 13--215 kMAC per pixel \cite{esenlik2025}.
+    \item \textbf{Idea: overfit.} Train a small model on \emph{this} image, send the model.
+    \item \textbf{Cool-Chic} \cite{ladune2023coolchic}: 629 parameters, 680 multiplications per pixel, near HEVC.
+  \end{itemize}
+\end{frame}
+
+% 1:10
+\begin{frame}{C3 (CVPR 2024): VVC quality, 3k MACs per pixel}
+  \begin{itemize}
+    \item \textbf{Problem.} Cool-Chic was cheap, but only near HEVC.
+    \item \textbf{Method} \cite{kim2024c3}. Same idea, better training: soft rounding and Kumaraswamy noise, then true rounding; a small architecture search per image.
+    \item \textbf{Result.} Matches VTM on CLIC2020 at \alert{under 3k MACs per pixel}; decodes on a CPU in under 100 ms.
+  \end{itemize}
+  \begin{center}
+  \footnotesize
+  \begin{tabular}{lll}
+    \toprule
+    & Autoencoder codecs & Overfitted codecs (C3) \\
+    \midrule
+    Trained & once, on a dataset & for each image, while encoding \\
+    Encoding & one forward pass & up to 110k gradient steps on a GPU \\
+    Decoding & 13k--215k MAC/pixel (JPEG AI) & under 3k MAC/pixel \\
+    Bitstream & latents & latents and network weights \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \alert{The cost moves to the encoder.}
+\end{frame}
+
+\section{Compressing for a model, not an eye}
+
+% 1:20
+\begin{frame}{Branch 4: when the receiver is a model}
+  \begin{itemize}
+    \item \textbf{Problem.} Many images are only read by models. MSE codecs waste bits on what they ignore; one codec per task does not scale.
+  \end{itemize}
+  \begin{center}
+  \begin{tikzpicture}[nn, node distance=5mm]
+    \node[nndata] (x) {$x$};
+    \node[nnenc, draw=soft!80!black, fill=soft!15, right=8mm of x] (enc) {encoder\\(frozen)};
+    \node[right=of enc, font=\ttfamily\small] (bits) {bits};
+    \node[nndec, draw=soft!80!black, fill=soft!15, right=of bits] (dec) {decoder\\(frozen)};
+    \node[nndata, right=of dec] (xt) {$\tilde x$};
+    \node[nnout, right=of xt] (task) {task network};
+    \node[nnbox={accent}{24mm}, above=4mm of enc] (pg) {prompt generator};
+    \node[nnbox={accent}{24mm}, above=4mm of dec] (tp) {task prompts};
+    \draw[nnflow] (x) -- (enc);
+    \draw[nnflow] (enc) -- (bits);
+    \draw[nnflow] (bits) -- (dec);
+    \draw[nnflow] (dec) -- (xt);
+    \draw[nnflow] (xt) -- (task);
+    \draw[nnflow] (x.north) |- (pg.west);
+    \draw[nnflow, draw=accent!80!black] (pg) -- (enc);
+    \draw[nnflow, draw=accent!80!black] (tp) -- (dec);
+    \node[nnlabel, below=1mm of task] {class, boxes, masks};
+  \end{tikzpicture}
+  \end{center}
+  \begin{itemize}
+    \item \textbf{TransTIC} (ICCV 2023) \cite{chen2023transtic}: freeze a codec trained for people; train only prompts \cite{jia2022vpt}, on rate plus task loss.
+    \item One codec serves classification, detection and segmentation.
+  \end{itemize}
+\end{frame}
+
+% 1:20
+\begin{frame}{Transform-neck (ICLR 2025): skip the pixels}
+  \begin{center}
+  \begin{tikzpicture}[nn]
+    \node[font=\ttfamily\small] (bits) at (0,0) {bits};
+    \node[nndec, draw=soft!80!black, fill=soft!12] (gs) at (2.3,0.85) {$g_s$};
+    \node[nndata, draw=soft!80!black, fill=soft!12] (xh) at (4.3,0.85) {$\hat x$};
+    \node[nnattn, draw=soft!80!black, fill=soft!12, minimum width=30mm] (clip1) at (7.0,0.85) {CLIP layers $1$ to $L$};
+    \node[nnbox={accent}{24mm}] (neck) at (3.3,-0.85) {transform-neck};
+    \node[nnattn, minimum width=30mm] (clip3) at (7.0,-0.85) {CLIP layers $3$ to $L$};
+    \node[nnout, minimum height=22mm] (llm) at (10.0,0) {LLM};
+    \draw[nnflow, draw=soft, dashed] (bits.north) |- (gs.west);
+    \draw[nnflow, draw=soft, dashed] (gs) -- (xh);
+    \draw[nnflow, draw=soft, dashed] (xh) -- (clip1);
+    \draw[nnflow, draw=soft, dashed] (clip1.east) -- (llm.west |- clip1.east);
+    \draw[nnflow] (bits.south) |- node[nnlabel, pos=0.75, below] {$\hat y$} (neck.west);
+    \draw[nnflow] (neck) -- (clip3);
+    \draw[nnflow] (clip3.east) -- (llm.west |- clip3.east);
+    \node[nnlabel, anchor=south west] at (0.6,1.65) {usual: decode pixels, then encode them again};
+    \node[nnlabel, anchor=north west] at (0.6,-1.4) {transform-neck: no pixels};
+  \end{tikzpicture}
+  \end{center}
+  \begin{itemize}
+    \item \textbf{Problem.} Decoded images hurt MLLM accuracy at low rates; the LLM is too big to train through.
+    \item \textbf{Method} \cite{kao2025neck}. A 13M-parameter neck maps $\hat y$ into CLIP \cite{radford2021clip}, trained on CLIP's features alone.
+    \item \textbf{Result.} 60--80\% fewer bits at equal accuracy; $\sim$95\% less decoding compute.
+  \end{itemize}
+\end{frame}
+
+\section{Where the branches meet}
+
+% 1:20
+\begin{frame}{JPEG AI (2025): where the branches meet}
+  \begin{columns}[T]
+    \begin{column}{0.42\textwidth}
+      \begin{center}
+      \begin{tikzpicture}[nn]
+        \node[font=\ttfamily\small] (bs) at (0,0) {one bitstream};
+        \node[nnbox={nnfcc}{34mm}] (ed) at (0,-1.1) {entropy decoding\\integer, bit-exact};
+        \node[nndata] (y) at (0,-2.3) {$\hat y$};
+        \foreach \n/\xx/\k/\pn in {a/-1.9/13/Simple, b/0/28/Base, c/1.9/215/High} {
+          \node[nndec, shape border rotate=0, minimum width=13mm, minimum height=9mm] (s\n) at (\xx,-3.7) {\k};
+          \node[nnlabel, below=1mm of s\n] {\pn};
+          \draw[nnflow] (y.south) -- (s\n.north);
+        }
+        \draw[nnflow] (bs) -- (ed);
+        \draw[nnflow] (ed) -- (y);
+        \node[nnlabel] at (0,-4.85) {synthesis transforms, kMAC per pixel};
+      \end{tikzpicture}
+      \end{center}
+    \end{column}
+    \begin{column}{0.58\textwidth}
+      \begin{itemize}
+        \item The first learned image standard: ISO/IEC 6048-1, 2025 \cite{jpegai2025,esenlik2025}.
+        \item \textcolor{sig}{\textbf{Rate}}: $-14\%$ to $-27\%$ vs.\ VVC intra (mean of 7 metrics).
+        \item \textcolor{video}{\textbf{Complexity}}: one bitstream, three decoders; a device picks one.
+        \item \textbf{Bit-exact}: integer entropy decoding, same probabilities on every device.
+        \item \textcolor{hot}{\textbf{Receiver}}: machine analysis in scope; v1 targets viewing.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% 1:00
+\begin{frame}{Four branches in one table}
+  \begin{center}
+  \footnotesize
+  \begin{tabular}{llll}
+    \toprule
+    Branch & Problem & Method & What it reached \\
+    \midrule
+    \textcolor{sig}{1~Rate} & fewer bits, same PSNR & richer transforms, more context & $-7\%\to-17\%$ vs.\ VTM (Kodak) \\
+    \textcolor{accent}{2~Perception} & real-looking below 0.05 bpp & send structure, generate texture & $0.003$ bpp; 1 step instead of 20--50 \\
+    \textcolor{video}{3~Complexity} & decode on a CPU & overfit a tiny decoder per image & VTM quality under 3k MAC/pixel \\
+    \textcolor{hot}{4~Receiver} & images read by models & adapt the latents to the model & 60--80\% fewer bits, same accuracy \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \bigskip
+  Each branch \alert{moves a cost}: larger models (1), invented detail (2), slow encoding (3), no picture for people (4).
+\end{frame}
+
+% 1:00
+\begin{frame}{Open problems}
+  \begin{itemize}
+    \item \textbf{Trusting generated detail}: text and faces can be invented; metrics cannot tell sent from made up.
+    \item \textbf{Fast encoding} for overfitted codecs: each image is a training run.
+    \item \textbf{Decoding everywhere}: bit-exact on every device, and parallel.
+    \item \textbf{One bitstream, many receivers}: people and models from the same bits.
+    \item \textbf{Trend}: codecs built on pretrained latents (diffusion VAEs, CLIP).
+  \end{itemize}
+\end{frame}
+
+% 0:00
+\begin{frame}[t]
+  \tiny
+  \begin{thebibliography}{99}
+    \bibitem{balle2018} J. Ball\'e, D. Minnen, S. Singh, S. J. Hwang, N. Johnston. Variational image compression with a scale hyperprior. \emph{ICLR}, 2018.
+    \bibitem{cheng2020} Z. Cheng, H. Sun, M. Takeuchi, J. Katto. Learned image compression with discretized Gaussian mixture likelihoods and attention modules. \emph{CVPR}, 2020.
+    \bibitem{liu2023tcm} J. Liu, H. Sun, J. Katto. Learned image compression with mixed Transformer-CNN architectures. \emph{CVPR}, 2023.
+    \bibitem{lu2025dcae} J. Lu, L. Zhang, X. Zhou, M. Li, W. Li, S. Gu. Learned image compression with dictionary-based entropy model. \emph{CVPR}, 2025.
+    \bibitem{careil2024perco} M. Careil, M. J. Muckley, J. Verbeek, S. Lathuili\`ere. Towards image compression with perfect realism at ultra-low bitrates. \emph{ICLR}, 2024.
+    \bibitem{zhang2025stablecodec} T. Zhang, X. Luo, L. Li, D. Liu. StableCodec: taming one-step diffusion for extreme image compression. \emph{ICCV}, 2025.
+    \bibitem{ladune2023coolchic} T. Ladune, P. Philippe, F. Henry, G. Clare, T. Leguay. COOL-CHIC: coordinate-based low complexity hierarchical image codec. \emph{ICCV}, 2023.
+    \bibitem{kim2024c3} H. Kim, M. Bauer, L. Theis, J. R. Schwarz, E. Dupont. C3: high-performance and low-complexity neural compression from a single image or video. \emph{CVPR}, 2024.
+    \bibitem{chen2023transtic} Y.-H. Chen, Y.-C. Weng, C.-H. Kao, C. Chien, W.-C. Chiu, W.-H. Peng. TransTIC: transferring Transformer-based image compression from human perception to machine perception. \emph{ICCV}, 2023.
+    \bibitem{kao2025neck} C.-H. Kao et al. Bridging compressed image latents and multimodal large language models. \emph{ICLR}, 2025.
+    \bibitem{jpegai2025} ISO/IEC 6048-1:2025. JPEG AI learning-based image coding system, Part 1: Core coding system.
+  \end{thebibliography}
+\end{frame}
+
+% 0:00
+\begin{frame}[t]
+  \tiny
+  \begin{thebibliography}{99}
+    \bibitem{esenlik2025} S. Esenlik et al. An overview of the JPEG AI learning-based image coding standard. \emph{IEEE TCSVT}, 2025.
+    \bibitem{he2022elic} D. He et al. ELIC: efficient learned image compression with unevenly grouped space-channel contextual adaptive coding. \emph{CVPR}, 2022.
+    \bibitem{jiang2023mlic} W. Jiang et al. MLIC++: linear complexity multi-reference entropy modeling for learned image compression. arXiv:2307.15421, 2023.
+    \bibitem{blau2018} Y. Blau, T. Michaeli. The perception--distortion tradeoff. \emph{CVPR}, 2018.
+    \bibitem{blau2019} Y. Blau, T. Michaeli. Rethinking lossy compression: the rate-distortion-perception tradeoff. \emph{ICML}, 2019.
+    \bibitem{li2023blip2} J. Li, D. Li, S. Savarese, S. Hoi. BLIP-2: bootstrapping language-image pre-training with frozen image encoders and large language models. \emph{ICML}, 2023.
+    \bibitem{sauer2024} A. Sauer, D. Lorenz, A. Blattmann, R. Rombach. Adversarial diffusion distillation. \emph{ECCV}, 2024.
+    \bibitem{li2024diffeic} Z. Li et al. Towards extreme image compression with latent feature guidance and diffusion prior. arXiv:2404.18820, 2024.
+    \bibitem{muckley2023} M. J. Muckley, A. El-Nouby, K. Ullrich, H. J\'egou, J. Verbeek. Improving statistical fidelity for neural image compression with implicit local likelihood models. \emph{ICML}, 2023.
+    \bibitem{jia2022vpt} M. Jia et al. Visual prompt tuning. \emph{ECCV}, 2022.
+    \bibitem{radford2021clip} A. Radford et al. Learning transferable visual models from natural language supervision. \emph{ICML}, 2021.
+  \end{thebibliography}
+\end{frame}
+
+% 0:10
+\begin{frame}[plain]
+  \begin{center}
+    {\Huge Thank you}
+
+    \bigskip
+    {\Large Questions?}
+  \end{center}
+\end{frame}
+
+\end{document}
