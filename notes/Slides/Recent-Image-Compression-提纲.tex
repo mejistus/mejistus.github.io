@@ -1,0 +1,225 @@
+% ---
+% title: Recent Image Compression：演讲提纲
+% date: 2026-10-14
+% tag: Slides
+% excerpt: 配合幻灯片 Recent Image Compression 的脱稿提纲。先记住一句主线和四字口诀“省、真、轻、机”，再按页记每页第一句和接下一页的过渡句；数字都在幻灯片上，不用背。附时间检查点、卡住时的办法和可能的提问。
+% ---
+\definecolor{sig}{HTML}{1F5FAD}
+\definecolor{hot}{HTML}{C0392B}
+\definecolor{accent}{HTML}{C77C02}
+\definecolor{soft}{HTML}{8C8C8C}
+\definecolor{video}{HTML}{2E7D6B}
+
+\begin{abstract}
+这是幻灯片 \href{https://mejistus.github.io/\#post=Slides/Recent-Image-Compression.tex}{Recent Image Compression} 的提纲，给没有提词器、要脱稿讲完全场的情况用。
+要背的只有三样：\textbf{第~\ref{sec:spine}~节}的一句主线和四字口诀；\textbf{第~\ref{sec:pages}~节}每页的“接”（过渡句）；以及每篇论文都按 Problem、Method、Result 三拍讲。
+数字、会议、年份都印在幻灯片上，讲的时候指着读，不用背。
+准备顺序：先能不看稿说出主线和四支的表；再对着幻灯片把第~\ref{sec:pages}~节出声讲两遍；最后只看幻灯片讲一遍，计时。
+\end{abstract}
+
+%======================================================================
+\section{主线：一句话，四个字}\label{sec:spine}
+
+\textbf{一句话：}学习型编码在 2020 年追平了 VVC；之后分成四支，每支改同一条流水线上的一个地方，也都把代价挪到了别处；2025 年的 JPEG AI 把它们收进了一个标准。
+
+\textbf{口诀：省、真、轻、机。}四支的顺序、颜色和幻灯片第 2 页的四个圆圈一致：
+
+\begin{center}
+\begin{tabular}{lllll}
+\toprule
+口诀 & 分支 & 问的问题 & 两篇代表作 & 代价挪到哪 \\
+\midrule
+\textcolor{sig}{\textbf{省}} & 1 Rate & 同样误差，能少几个比特？ & TCM, DCAE & 模型更大 \\
+\textcolor{accent}{\textbf{真}} & 2 Perception & 比特极少时，图还像真的吗？ & PerCo, StableCodec & 细节是编出来的 \\
+\textcolor{video}{\textbf{轻}} & 3 Complexity & 解码能便宜到 CPU 吗？ & Cool-Chic, C3 & 编码变慢 \\
+\textcolor{hot}{\textbf{机}} & 4 Receiver & 看图的是模型，怎么压？ & TransTIC, transform-neck & 人看不到图 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{每支同一个节奏：}先一页“这一支在问什么”，再两页论文。论文页上的三行粗体就是提示：\textbf{Problem}（它要解决什么）$\to$ \textbf{Method}（怎么做，指着图讲）$\to$ \textbf{Result}（念数字）。最后补半句“代价是……”。
+
+%======================================================================
+\section{逐页提纲}\label{sec:pages}
+
+每页三行：\textbf{说}是要讲到的点，按顺序；\textbf{接}是翻页前的最后一句，它引出下一页的标题。括号里是这一页的时长和讲完时的累计时间。
+
+\subsection*{开场}
+
+\textbf{第 1 页\quad 标题}（0:15，0:15）
+\begin{itemize}
+  \item 说：这是上次 From Samples to Bits 的续篇。上次讲到学习型编码追平了 VVC；今天讲之后三年它往哪几个方向走。
+  \item 接：“先回顾上次停在哪。”
+\end{itemize}
+
+\textbf{第 2 页\quad Where we left off}（1:00，1:15）
+\begin{itemize}
+  \item 说：图从左往右读：$x$ 经过变换 $g_a$、量化 $Q$、熵编码 AE 变成比特；解码端反过来，AD、$g_s$，得到 $\hat x$。上面的熵模型 $p$ 告诉编解码器每个符号有多可能。
+  \item 说：公式 $R+\lambda D$：$R$ 是比特数，$D$ 是误差，$\lambda$ 调两者的比重。2020 年这一套追平了 VVC。
+  \item 说：之后分成四支，四个圆圈就是各自改的地方：1 改熵模型和变换；2 改解码器，让它会“画”；3 把解码器变小；4 换掉接收者。
+  \item 接：“每一支问一个问题，下一页是总表。”
+\end{itemize}
+
+\textbf{第 3 页\quad Four branches, eight papers, one standard}（0:50，2:05）
+\begin{itemize}
+  \item 说：按行读，每支一个问题、两篇代表作、发表在哪；最后一行是 JPEG AI 标准。
+  \item 说：底下的尺子 BD-rate：同样质量下比特变化的百分比，负数是省，$-10\%$ 就是省一成。
+  \item 接：“先看第一支：同样的误差，能不能少几个比特。”
+\end{itemize}
+
+\subsection*{\textcolor{sig}{第一支：省}（2:05 开始）}
+
+\textbf{第 4 页\quad Branch 1}（1:00，3:05）
+\begin{itemize}
+  \item 说：一个符号要花 $-\log_2 p$ 个比特，预测越准，比特越少。
+  \item 说：能改的零件有两个：变换 $g_a$，要同时抓住局部纹理和长程结构；熵模型 $p$，要用解码端已有的信息去预测。
+  \item 说（指图）：$\hat y$ 分成几片按顺序解码；橙色这一片用已经解出的片和超先验 $\hat z$ 来预测。
+  \item 接：“TCM 改的是变换。”
+\end{itemize}
+
+\textbf{第 5 页\quad TCM}（1:10，4:15）
+\begin{itemize}
+  \item Problem：卷积看局部、Transformer 看全局，串起来堆又慢。
+  \item Method（指图）：$1{\times}1$ 卷积后把通道一分为二，一半走 Swin，一半走残差卷积，\emph{并行}，再拼回来，加一条跳连。熵模型里也用 Swin 注意力，只在 $\frac{1}{16}$ 的像素上算。
+  \item Result：比 VTM 省 12.3\%、13.7\%、11.9\%。
+  \item 接：“TCM 改变换；DCAE 改熵模型。”
+\end{itemize}
+
+\textbf{第 6 页\quad DCAE}（1:10，5:25）
+\begin{itemize}
+  \item Problem：熵模型只看这张图自己，可边缘、纹理在整个训练集里反复出现。
+  \item Method（指图）：学一本字典，$128\times640$，存在模型里，不占比特。超先验和已解码的片当 query，交叉注意力去查字典，输出这一片的 $\mu,\sigma$。
+  \item Result（指表最后一行）：Kodak 上 $-17.0\%$，193 毫秒，比 MLIC++ 快四倍。
+  \item 接：“第一支一直在省比特。可比特很少的时候，还有一个问题：图会糊。”
+\end{itemize}
+
+\subsection*{\textcolor{accent}{第二支：真}（5:25 开始）}
+
+\textbf{第 7 页\quad Branch 2}（1:10，6:35）
+\begin{itemize}
+  \item 说：低码率时，MSE 最优的解码器输出的是条件平均，平均出来就是糊的。
+  \item 说（指红线）：码率固定时，越真实，误差越大。线的一头是“MSE 最优、糊”，另一头是“完全真实”；Blau 和 Michaeli 证明，完全真实最多让 MSE 翻倍。
+  \item 说：所以只传结构，纹理让扩散模型去生成。（指红字）代价：生成的不是传过来的。
+  \item 接：“PerCo 把这个想法推到了极端。”
+\end{itemize}
+
+\textbf{第 8 页\quad PerCo}（1:20，7:55）
+\begin{itemize}
+  \item Problem：0.003 bpp，一张 Kodak 图只有 153 字节，还要像真的。
+  \item Method（指图，两路）：上路把图编码成粗网格上的 VQ 索引，约 0.002 bpp；下路用 BLIP-2 写一句描述，zlib 压缩。解码端 1.4B 的潜扩散模型按这两样画出图。
+  \item Result：MS-COCO 上 FID 最好；PSNR 低；要 20 步。
+  \item 接：“20 步太慢。StableCodec 把它压到了 1 步。”
+\end{itemize}
+
+\textbf{第 9 页\quad StableCodec}（1:20，9:15）
+\begin{itemize}
+  \item Problem：扩散要 20 到 50 步，而且会偏离原图。
+  \item Method（指图）：传一个带噪的潜变量 $l_T$，正好让一步的 SD-Turbo 去噪；下面加一路辅助解码器 $D_{\mathrm{aux}}$，把结构拉回来。
+  \item Result（指表）：0.33 秒，和 GAN 一样快，比 PerCo 快十倍；0.005 bpp 时 FID、DISTS 最好。
+  \item 接：“前两支的模型越来越大。第三支反过来问：解码器能不能小到 CPU 就能跑。”
+\end{itemize}
+
+\subsection*{\textcolor{video}{第三支：轻}（9:15 开始）}
+
+\textbf{第 10 页\quad Branch 3}（1:20，10:35）
+\begin{itemize}
+  \item Problem：一个解码器要应付所有图，所以很大，JPEG AI 的每像素要 1.3 万到 21.5 万次乘加。
+  \item 说：想法是过拟合，只为这一张图训练一个小模型，把模型和图一起发出去。
+  \item 说（指图）：左边是几层不同分辨率的潜变量，上采样后每个像素过一个小 MLP 出 RGB；右边熵模型也是一个小 MLP，看已解码的邻居，给出 $\mu$ 和 $b$。
+  \item Result：Cool-Chic 只有 629 个参数，每像素 680 次乘法，接近 HEVC。
+  \item 接：“Cool-Chic 很便宜，但只到 HEVC。C3 把它推到了 VVC。”
+\end{itemize}
+
+\textbf{第 11 页\quad C3}（1:10，11:45）
+\begin{itemize}
+  \item Method：思路不变，训练更好：先软取整加 Kumaraswamy 噪声，最后换成真取整；每张图再做一点小的结构搜索。
+  \item Result：CLIC2020 上追平 VTM，每像素不到 3k 次乘加，CPU 上 100 毫秒内解完。
+  \item 说（指表和红字）：代价挪到了编码端，每张图都要训练，最多 11 万步梯度。
+  \item 接：“前三支的接收者都是人眼。第四支问：如果看图的是模型呢？”
+\end{itemize}
+
+\subsection*{\textcolor{hot}{第四支：机}（11:45 开始）}
+
+\textbf{第 12 页\quad Branch 4}（1:20，13:05）
+\begin{itemize}
+  \item Problem：很多图只给模型看；按 MSE 训练的编码器把比特花在模型不关心的地方；每个任务训练一个编码器又不现实。
+  \item Method（指图）：TransTIC 冻结一个为人眼训练好的编解码器，只训练提示：编码端一个提示生成器，解码端一组任务提示，用“码率加任务损失”来训练。
+  \item Result：一个编码器同时服务分类、检测、分割。
+  \item 接：“如果下游是多模态大模型，还能更进一步：连像素都不要了。”
+\end{itemize}
+
+\textbf{第 13 页\quad Transform-neck}（1:20，14:25）
+\begin{itemize}
+  \item Problem：低码率解出的图会拉低多模态大模型的准确率；LLM 太大，没法连着一起训练。
+  \item Method（指图）：上面灰色虚线是常规做法，先解成像素，再让 CLIP 重新编码一遍；下面是 transform-neck，一个 13M 参数的小网络把 $\hat y$ 直接接进 CLIP 的中间层，跳过像素。只用 CLIP 的特征训练，不碰 LLM。
+  \item Result：准确率相同时省 60\% 到 80\% 的比特，解码计算少约 95\%。
+  \item 接：“四支讲完了。它们在哪里汇合？JPEG AI。”
+\end{itemize}
+
+\subsection*{收尾（14:25 开始）}
+
+\textbf{第 14 页\quad JPEG AI}（1:20，15:45）
+\begin{itemize}
+  \item 说：第一个学习型图像标准，ISO/IEC 6048-1，2025 年发布。
+  \item 说（按颜色读右边）：\textcolor{sig}{率}，比 VVC intra 省 14\% 到 27\%；\textcolor{video}{复杂度}，一个码流配三种解码器，设备自己挑一个；比特精确，熵解码全用整数，每台设备算出的概率都一样；\textcolor{hot}{接收者}，机器分析在范围内，但第一版面向人眼。
+  \item 接：“最后用一张表把四支收起来。”
+\end{itemize}
+
+\textbf{第 15 页\quad Four branches in one table}（1:00，16:45）
+\begin{itemize}
+  \item 说：按行读，问题、方法、做到了什么。
+  \item 说（全场结论，放慢）：每一支都只是把代价挪了个地方：更大的模型、编出来的细节、更慢的编码、人看不到的图。
+  \item 接：“还有哪些没解决？”
+\end{itemize}
+
+\textbf{第 16 页\quad Open problems}（1:00，17:45）
+\begin{itemize}
+  \item 说：五条，各一句：生成的细节能不能信；过拟合编码怎么变快；所有设备上比特精确地解码；一个码流同时给人和模型；趋势是编码器越来越多地建在预训练的潜空间上，比如扩散模型的 VAE、CLIP。
+  \item 接：“谢谢，欢迎提问。”（两页参考文献直接翻过，停在 Thank you 页。）
+\end{itemize}
+
+%======================================================================
+\section{时间检查点}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+到这一页 & 应该在 & 慢了怎么办 \\
+\midrule
+第 7 页（分支 2） & 5:30 & 第 8 页少讲两路的细节，只说“描述加粗网格” \\
+第 10 页（分支 3） & 9:15 & 第 11 页只讲结果和“代价挪到编码端” \\
+第 12 页（分支 4） & 11:45 & 第 13 页只讲上下两条路的对比和结果 \\
+第 14 页（JPEG AI） & 14:30 & 第 16 页只说前两条 \\
+第 19 页（结束） & 18:00 & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%======================================================================
+\section{卡住时}
+
+\begin{itemize}
+  \item \textbf{先念标题。}每页标题都是这一页的结论，念出来再解释。
+  \item \textbf{论文页按三行粗体讲。}Problem、Method、Result 印在幻灯片上，顺着念就不会乱。
+  \item \textbf{数字不背。}指着表或那一行念出来，听众也在看。
+  \item \textbf{忘了过渡句，就用通用句：}“这一支解决了……，代价是……；下一支要问的是……”。“代价是什么”在第~\ref{sec:spine}~节的表里。
+  \item \textbf{整段忘了，回到口诀：}省、真、轻、机，说出现在讲到第几个字，再接着讲。
+\end{itemize}
+
+%======================================================================
+\section{可能被问到的}
+
+\textbf{为什么第 5 页和第 6 页 TCM 的数字不一样？}
+第 5 页是 TCM 论文自己报的，对比 VTM-12.1；第 6 页那张表出自 DCAE 论文，测试设置和 TCM 原文不同，所以是 $-11.8\%$。比较时只在同一张表里比。
+
+\textbf{生成式压缩的细节能信吗？}
+不能保证。纹理是生成的，不是传过来的，文字和人脸可能被编出来。所以医疗、取证一类场景不宜用，这也是开放问题的第一条。
+
+\textbf{过拟合编码这么慢，有什么用？}
+适合编码一次、解码很多次的场景，比如网页和应用里的图片：编码在服务器上慢慢做，用户的手机解码很便宜。
+
+\textbf{为什么每支选这两篇？}
+每支一篇提出思路或开路，一篇把它推进到目前最好或最实用：TCM 到 DCAE，PerCo 到 StableCodec，Cool-Chic 到 C3，TransTIC 到 transform-neck。八篇都发表在 CVPR、ICCV 或 ICLR。
+
+\textbf{JPEG AI 用的是哪一支？}
+主要是第一支和第三支：码率比 VVC intra 低，又按复杂度分了三档解码器。第四支在它的范围内，但第一版面向人眼。
