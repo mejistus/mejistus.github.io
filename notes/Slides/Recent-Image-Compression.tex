@@ -48,13 +48,15 @@
     \draw[nnflow] (bits) -- (ad);
     \draw[nnflow] (ad) -- (gs);
     \draw[nnflow] (gs) -- (xh);
-    \draw[nnflow, dashed] (p) -| (ae);
-    \draw[nnflow, dashed] (p) -| (ad);
-    \draw[video, thick, dashed, rounded corners=3pt] ($(ad.west |- gs.south)+(-0.15,-0.15)$) rectangle ($(gs.north east)+(0.15,0.05)$);
+    \draw[nnflow, dashed] (p.south -| ae) -- (ae);
+    \draw[nnflow, dashed] (p.south -| ad) -- (ad);
+    \coordinate (dl) at ($(ad.west |- gs.south)+(0,-0.2)$);
+    \coordinate (dr) at ($(gs.east |- gs.south)+(0,-0.2)$);
+    \draw[video, thick] (dl) -- ++(0,-0.2) -- ($(dr)+(0,-0.2)$) -- (dr);
     \node[mk=sig] at ($(ga.north)+(0,0.4)$) {1};
     \node[mk=sig] at ($(p.west)+(-0.4,0)$) {1};
     \node[mk=accent] at ($(gs.north)+(0,0.55)$) {2};
-    \node[mk=video] at ($(ad.west |- gs.south)+(-0.15,-0.15)$) {3};
+    \node[mk=video] at ($($(dl)!0.5!(dr)$)+(0,-0.55)$) {3};
     \node[mk=hot] at ($(xh.north)+(0,0.4)$) {4};
   \end{tikzpicture}
   \end{center}
@@ -78,12 +80,12 @@
     \toprule
     Branch & Question & Key works & Venue \\
     \midrule
-    \textcolor{sig}{1 Rate} & Fewer bits, same PSNR? & TCM \cite{liu2023tcm}, DCAE \cite{lu2025dcae} & CVPR 2023, CVPR 2025 \\
-    \textcolor{accent}{2 Perception} & A real image from 150 bytes? & PerCo \cite{careil2024perco}, StableCodec \cite{zhang2025stablecodec} & ICLR 2024, ICCV 2025 \\
-    \textcolor{video}{3 Complexity} & VVC quality, decoded on a CPU? & Cool-Chic \cite{ladune2023coolchic}, C3 \cite{kim2024c3} & ICCV 2023, CVPR 2024 \\
-    \textcolor{hot}{4 Receiver} & Bits for a model, not an eye? & TransTIC \cite{chen2023transtic}, transform-neck \cite{kao2025neck} & ICCV 2023, ICLR 2025 \\
+    \textcolor{sig}{1 Rate} & Fewer bits, same PSNR? & TCM~\cite{liu2023tcm}, DCAE~\cite{lu2025dcae} & CVPR 2023, CVPR 2025 \\
+    \textcolor{accent}{2 Perception} & A real image from 150 bytes? & PerCo~\cite{careil2024perco}, StableCodec~\cite{zhang2025stablecodec} & ICLR 2024, ICCV 2025 \\
+    \textcolor{video}{3 Complexity} & VVC quality, decoded on a CPU? & Cool-Chic~\cite{ladune2023coolchic}, C3~\cite{kim2024c3} & ICCV 2023, CVPR 2024 \\
+    \textcolor{hot}{4 Receiver} & Bits for a model, not an eye? & TransTIC~\cite{chen2023transtic}, transform-neck~\cite{kao2025neck} & ICCV 2023, ICLR 2025 \\
     \midrule
-    All four & What does a standard adopt? & JPEG AI \cite{jpegai2025,esenlik2025} & ISO/IEC 2025 \\
+    All four & What does a standard adopt? & JPEG AI~\cite{jpegai2025,esenlik2025} & ISO/IEC 2025 \\
     \bottomrule
   \end{tabular}
   \end{center}
@@ -147,6 +149,8 @@
     \draw[nnflow] (c2) -- (plus);
     \draw[nnflow] (plus) -- (out);
     \draw[nnskip] ($(in.east)!0.5!(c1.west)$) -- ++(0,-1.95) -| (plus.south);
+    \fill[black!65] ($(in.east)!0.5!(c1.west)$) circle (1.3pt);
+    \fill[black!65] ($(c1.east)+(0.35,0)$) circle (1.3pt);
   \end{tikzpicture}
   \end{center}
   \begin{itemize}
@@ -161,11 +165,11 @@
   \begin{center}
   \begin{tikzpicture}[nn, node distance=5mm]
     \node[nnbox={soft}{30mm}] (ctx) {hyperprior and\\decoded slices};
-    \node[nnattn, right=9mm of ctx] (att) {cross-\\attention};
+    \node[nnattn, right=13mm of ctx] (att) {cross-\\attention};
     \node[nnfc, minimum width=10mm, right=of att] (ffn) {FFN};
     \node[nnbox={nnnormc}{26mm}, right=9mm of ffn] (p) {$\mu,\sigma$ of slice $\hat y_i$};
     \node[nnbox={accent}{34mm}, left=6mm of att.south west, anchor=north east, yshift=-4mm] (dict) {dictionary $128\times640$, no bits};
-    \draw[nnflow] (ctx) -- node[nnlabel, above] {query} (att);
+    \draw[nnflow] (ctx) -- node[nnlabel, above=2pt] {query} (att);
     \draw[nnflow] (dict.east) -| node[nnlabel, pos=0.75, right] {keys, values} (att.south);
     \draw[nnflow] (att) -- (ffn);
     \draw[nnflow] (ffn) -- (p);
@@ -173,23 +177,23 @@
   \end{tikzpicture}
   \end{center}
   \begin{columns}[T]
-    \begin{column}{0.5\textwidth}
+    \begin{column}{0.36\textwidth}
       \begin{itemize}
         \item \textbf{Problem.} Entropy models look only \emph{inside} the image, but edges and textures recur across the training set.
         \item \textbf{Method} \cite{lu2025dcae}. A learned dictionary of typical structures, queried by cross-attention.
       \end{itemize}
     \end{column}
-    \begin{column}{0.5\textwidth}
+    \begin{column}{0.64\textwidth}
       \begin{center}
       \footnotesize
       \begin{tabular}{lcccc}
         \toprule
         vs.\ VTM & Kodak & Tecnick & CLIC & ms \\
         \midrule
-        ELIC 2022 \cite{he2022elic} & $-7.1\%$ & -- & -- & 210 \\
-        TCM 2023 & $-11.8\%$ & $-12.0\%$ & $-12.0\%$ & 293 \\
-        MLIC++ 2023 \cite{jiang2023mlic} & $-15.1\%$ & $-18.6\%$ & $-16.9\%$ & 772 \\
-        \textbf{DCAE 2025} & $\mathbf{-17.0\%}$ & $\mathbf{-21.1\%}$ & $\mathbf{-19.7\%}$ & \textbf{193} \\
+        ELIC~\cite{he2022elic} & $-7.1\%$ & -- & -- & 210 \\
+        TCM & $-11.8\%$ & $-12.0\%$ & $-12.0\%$ & 293 \\
+        MLIC++~\cite{jiang2023mlic} & $-15.1\%$ & $-18.6\%$ & $-16.9\%$ & 772 \\
+        \textbf{DCAE} & $\mathbf{-17.0\%}$ & $\mathbf{-21.1\%}$ & $\mathbf{-19.7\%}$ & \textbf{193} \\
         \bottomrule
       \end{tabular}
       \end{center}
@@ -215,15 +219,16 @@
       \begin{tikzpicture}[x=1.3cm, y=1.1cm, font=\small, >={Stealth[length=1.6mm]}]
         \draw[->] (0,0) -- (4.2,0) node[below left] {distortion $D$};
         \draw[->] (0,0) -- (0,3.1) node[above right] {unrealism $P$};
-        \draw[sig, very thick, domain=0.5:2] plot (\x, {1.15*(2-\x)^2});
-        \draw[hot, very thick, domain=1.4:3.2] plot (\x, {0.8*(3.2-\x)^2});
-        \node[sig] at (0.75,0.7) {high $R$};
-        \node[hot] at (2.85,1.0) {low $R$};
-        \fill[hot] (1.4,2.59) circle (2.2pt) node[right, black, font=\footnotesize] {MSE-optimal: blurry};
-        \fill[hot] (3.2,0) circle (2.2pt) node[above right, black, font=\footnotesize, align=left] {perfectly\\realistic};
+        \draw[sig, very thick, domain=0.7:1.35] plot (\x, {3.787*(1.35-\x)^2});
+        \draw[hot, very thick, domain=1.6:3.1] plot (\x, {1.156*(3.1-\x)^2});
+        \fill[sig] (0.7,1.6) circle (2.2pt) node[above, font=\small] {high $R$};
+        \fill[sig] (1.35,0) circle (2.2pt);
+        \node[hot] at (2.75,1.1) {low $R$};
+        \fill[hot] (1.6,2.6) circle (2.2pt) node[right, black, font=\footnotesize] {MSE-optimal: blurry};
+        \fill[hot] (3.1,0) circle (2.2pt) node[above right, black, font=\footnotesize, align=left] {perfectly\\realistic};
       \end{tikzpicture}
       \end{center}
-      {\small Schematic, after \cite{blau2019}.}
+      {\small Schematic, after \cite{blau2019}: perfect realism at most doubles the MSE.}
     \end{column}
   \end{columns}
   \medskip
@@ -246,8 +251,8 @@
     \draw[nnflow] (x.south) |- (cap.west);
     \draw[nnflow] (enc) -- (vq);
     \draw[nnflow] (cap) -- (zip);
-    \draw[nnflow] (vq.east) -- node[nnlabel, above, sloped] {indices} (bits);
-    \draw[nnflow] (zip.east) -- node[nnlabel, below, sloped] {caption} (bits);
+    \draw[nnflow] (vq.east) -- node[nnlabel, above=3pt, sloped] {indices} (bits);
+    \draw[nnflow] (zip.east) -- node[nnlabel, below=3pt, sloped] {caption} (bits);
     \draw[nnflow] (bits) -- (dm);
     \draw[nnflow] (dm) -- (xh);
   \end{tikzpicture}
@@ -287,21 +292,21 @@
   \end{tikzpicture}
   \end{center}
   \begin{columns}[T]
-    \begin{column}{0.56\textwidth}
+    \begin{column}{0.5\textwidth}
       \begin{itemize}
         \item \textbf{Problem.} 20--50 steps, and drift from the pixels.
         \item \textbf{Method} \cite{zhang2025stablecodec}. Send a \emph{noisy latent} that one-step SD-Turbo \cite{sauer2024} can clean; an auxiliary branch carries the structure.
         \item \textbf{Result.} Best FID and DISTS down to $0.005$ bpp.
       \end{itemize}
     \end{column}
-    \begin{column}{0.44\textwidth}
+    \begin{column}{0.5\textwidth}
       \begin{center}
       \footnotesize
       \begin{tabular}{lrr}
         \toprule
-        Kodak, RTX 3090 & steps & decoding \\
+        Kodak,~RTX~3090 & steps & decoding \\
         \midrule
-        DiffEIC \cite{li2024diffeic} & 50 & 7.42 s \\
+        DiffEIC~\cite{li2024diffeic} & 50 & 7.42 s \\
         PerCo & 20 & 3.74 s \\
         \textbf{StableCodec} & \textbf{1} & \textbf{0.33 s} \\
         MS-ILLM (GAN) \cite{muckley2023} & -- & 0.32 s \\
@@ -349,7 +354,8 @@
       \node[nnlabel, anchor=south west] at (0,0.8) {decoded neighbours};
       \node[nnfc, minimum width=10mm] (amlp) at (2.2,0.37) {MLP};
       \draw[nnflow] (1.3,0.37) -- (amlp.west);
-      \node[anchor=west, font=\small] at (2.85,0.37) {$\mu, b$};
+      \node[right=5mm of amlp, font=\small] (mub) {$\mu, b$};
+      \draw[nnflow] (amlp) -- (mub);
       \node[nnlabel, anchor=north] at (1.5,-0.35) {entropy model, per latent};
     \end{scope}
   \end{tikzpicture}
