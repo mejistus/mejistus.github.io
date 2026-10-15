@@ -4,14 +4,14 @@
     "title": "Recent Image Compression：演讲提纲",
     "date": "2026-10-14",
     "tag": "Slides",
-    "excerpt": "配合幻灯片 Recent Image Compression 的脱稿提纲。先记住一句主线和四字口诀“省、真、轻、机”，再按页记每页第一句和接下一页的过渡句；数字都在幻灯片上，不用背。附时间检查点、卡住时的办法和可能的提问。"
+    "excerpt": "配合幻灯片 Recent Image Compression 的脱稿提纲。先记住一句主线和四字口诀“省、真、轻、机”，再按页记每页要讲的点和接下一页的过渡句；论文页的图是原论文的 pipeline，指着图从左往右讲；数字都在幻灯片上，不用背。附时间检查点、卡住时的办法和可能的提问。"
   },
   {
     "file": "Slides/Recent-Image-Compression.tex",
-    "title": "Recent Image Compression: Four Branches, 2023–2026",
+    "title": "Recent Image Compression: Four Branches, 2025–2026",
     "date": "2026-10-13",
     "tag": "Slides",
-    "excerpt": "A follow-up to From Samples to Bits. Since learned codecs caught up with VVC in 2020, research has split four ways, each with two key papers: fewer bits at the same error (TCM, DCAE), real-looking images from a few hundred bytes (PerCo, StableCodec), decoders small enough for a CPU (Cool-Chic, C3), and images compressed for models rather than people (TransTIC, a transform-neck for multimodal LLMs). For each, the problem it solves and how. JPEG AI (2025) shows where the four meet."
+    "excerpt": "A follow-up to From Samples to Bits. Since learned codecs caught up with VVC in 2020, research has split four ways. For each, two papers from 2025–2026, shown with their own pipeline figures: fewer bits at the same error (DCAE, HPCM), real-looking images from one diffusion step (StableCodec, OneDC), decoders small enough for a CPU (LotteryCodec, Good-Cheap-Fast), and images compressed for multimodal LLMs (transform-neck, CoTAM). JPEG AI (2025) shows where the four meet."
   },
   {
     "file": "Slides/From-Samples-to-Bits-讲稿.tex",
