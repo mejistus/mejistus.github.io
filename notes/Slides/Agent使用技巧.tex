@@ -6,9 +6,10 @@
 % ---
 % About 15 minutes: 开场 1 min，「说清楚」2.5 min，「放它做」2 min，
 % 「盯结果」2.5 min，反模式与清单 2 min。三个环节各三条技巧，
-% 每条一页；页面顶端的注释给出建议时长。
+% 每条一页；页面顶端的注释给出建议时长。图中文字只用 ASCII
+% （TikZJax 用 Computer Modern 编译，没有中文字形）。
 \documentclass[aspectratio=169]{beamer}
-\usetikzlibrary{arrows.meta,positioning,calc}
+\usetikzlibrary{arrows.meta,positioning}
 \definecolor{sig}{HTML}{1F5FAD}
 \definecolor{hot}{HTML}{C0392B}
 \definecolor{accent}{HTML}{C77C02}
@@ -30,19 +31,19 @@
 % 1:00
 \begin{frame}{Agent 是你手的延伸，不是替你上班的员工}
   \begin{center}
-  \begin{tikzpicture}[>={Stealth[length=2mm]}, font=\small, node distance=6mm,
+  \begin{tikzpicture}[>={Stealth[length=2mm]}, font=\footnotesize, node distance=4mm,
       box/.style={draw=#1, fill=#1!12, text=#1!75!black, rounded corners=2pt, minimum height=7mm, inner sep=4pt}]
-    \node[box=sig] (you) {你};
-    \node[box=soft, right=of you] (ctx) {给上下文 + 任务};
-    \node[box=accent, right=of ctx] (agent) {Agent：读 · 改 · 跑};
-    \node[box=sig, right=of agent] (check) {你检查};
-    \node[box=video, right=of check] (done) {交付};
-    \node[box=hot, below=8mm of agent] (fix) {改原因，再来};
+    \node[box=sig] (you) {you};
+    \node[box=soft, right=of you] (ctx) {context + task};
+    \node[box=accent, right=of ctx] (agent) {agent: read, edit, run};
+    \node[box=sig, right=of agent] (check) {you check};
+    \node[box=video, right=of check] (done) {done};
+    \node[box=hot, below=8mm of agent] (fix) {fix the cause};
     \draw[thick, ->] (you) -- (ctx);
     \draw[thick, ->] (ctx) -- (agent);
     \draw[thick, ->] (agent) -- (check);
     \draw[thick, ->] (check) -- (done);
-    \draw[thick, ->, hot] (check.south) to[out=270, in=0] node[right, font=\scriptsize] {不通过} (fix.east);
+    \draw[thick, ->, hot] (check.south) to[out=270, in=0] node[right, font=\scriptsize] {not OK} (fix.east);
     \draw[thick, ->, hot] (fix.west) to[out=180, in=270] (agent.south);
   \end{tikzpicture}
   \end{center}
@@ -55,11 +56,11 @@
 % 0:30
 \begin{frame}{三个环节，九条技巧}
   \begin{center}
-  \begin{tikzpicture}[font=\small, node distance=4mm,
-      box/.style={draw=#1, fill=#1!12, text=#1!75!black, rounded corners=2pt, minimum height=9mm, minimum width=42mm, inner sep=4pt, align=center}]
-    \node[box=sig] (a) {\textbf{说清楚}\\上下文 · 拆小步 · 验收};
-    \node[box=accent, right=of a] (b) {\textbf{放它做}\\让它读 · 并行 · 先计划};
-    \node[box=video, right=of b] (c) {\textbf{盯结果}\\读 diff · 改原因 · 沉淀};
+  \begin{tikzpicture}[font=\footnotesize, node distance=4mm,
+      box/.style={draw=#1, fill=#1!12, text=#1!75!black, rounded corners=2pt, minimum height=9mm, minimum width=40mm, inner sep=4pt, align=center}]
+    \node[box=sig] (a) {\textbf{Be clear}\\context / steps / done};
+    \node[box=accent, right=of a] (b) {\textbf{Let it run}\\read / parallel / plan};
+    \node[box=video, right=of b] (c) {\textbf{Check it}\\diff / why / rules};
     \draw[thick, ->] (a) -- (b);
     \draw[thick, ->] (b) -- (c);
   \end{tikzpicture}
@@ -108,11 +109,11 @@
   \begin{center}
   \begin{tikzpicture}[>={Stealth[length=2mm]}, font=\footnotesize, node distance=5mm,
       box/.style={draw=soft, fill=soft!10, rounded corners=2pt, minimum height=7mm, inner sep=4pt}]
-    \node[box] (l) {列改动点};
-    \node[box, right=of l] (a) {改文件 A};
-    \node[box, right=of a] (t) {跑测试};
-    \node[box, right=of t] (b) {改文件 B};
-    \node[box, right=of b] (t2) {跑测试};
+    \node[box] (l) {list changes};
+    \node[box, right=of l] (a) {edit file A};
+    \node[box, right=of a] (t) {test};
+    \node[box, right=of t] (b) {edit file B};
+    \node[box, right=of b] (t2) {test};
     \draw[thick, ->] (l) -- (a);
     \draw[thick, ->] (a) -- (t);
     \draw[thick, ->] (t) -- (b);
@@ -125,11 +126,7 @@
 % 0:40
 \begin{frame}{技巧 3：说清「完成」长什么样}
   \begin{center}
-  \begin{tikzpicture}[font=\small]
-    \node[draw=video, fill=video!10, text=video!75!black, rounded corners=2pt, align=left, inner sep=8pt] {
-      \textbf{「改完跑 \texttt{npm test}，}\\ \textbf{3 个新用例通过，}\\ \textbf{不动 \texttt{public/} 下的任何文件。」}
-    };
-  \end{tikzpicture}
+  \alert{「改完跑 \texttt{npm test}，3 个新用例通过，不动 \texttt{public/} 下的任何文件。」}
   \end{center}
   \bigskip
   验收标准 = \textbf{跑哪个命令} + \textbf{预期输出} + \textbf{允许/禁止碰的东西}。
@@ -165,12 +162,12 @@
     \end{column}
     \begin{column}{0.45\textwidth}
       \begin{center}
-      \begin{tikzpicture}[font=\footnotesize, node distance=4mm,
-          box/.style={draw=accent, fill=accent!10, text=accent!75!black, rounded corners=2pt, minimum height=7mm, minimum width=26mm, align=center, inner sep=3pt}]
-        \node[box] (q) {方案 A\\\tiny 查资料};
-        \node[box, right=of q] (r) {方案 B\\\tiny 查资料};
-        \node[box, right=of r] (s) {方案 C\\\tiny 查资料};
-        \node[draw=sig, fill=sig!10, text=sig!75!black, rounded corners=2pt, minimum height=7mm, minimum width=26mm, align=center, inner sep=3pt, below=6mm of r] (y) {你：综合下结论};
+      \begin{tikzpicture}[font=\footnotesize, node distance=3mm,
+          box/.style={draw=accent, fill=accent!10, text=accent!75!black, rounded corners=2pt, minimum height=7mm, minimum width=22mm, align=center, inner sep=3pt}]
+        \node[box] (q) {plan A\\research};
+        \node[box, right=of q] (r) {plan B\\research};
+        \node[box, right=of r] (s) {plan C\\research};
+        \node[draw=sig, fill=sig!10, text=sig!75!black, rounded corners=2pt, minimum height=7mm, minimum width=22mm, align=center, inner sep=3pt, below=6mm of r] (y) {you: synthesize};
         \draw[thick, ->] (q) -- (y);
         \draw[thick, ->] (r) -- (y);
         \draw[thick, ->] (s) -- (y);
@@ -190,10 +187,10 @@
   \begin{center}
   \begin{tikzpicture}[>={Stealth[length=2mm]}, font=\footnotesize, node distance=6mm,
       box/.style={draw=soft, fill=soft!10, rounded corners=2pt, minimum height=7mm, inner sep=4pt}]
-    \node[box] (p) {给方案};
-    \node[box, right=of p] (y) {你确认};
-    \node[box=accent, right=of y] (c) {写代码};
-    \node[box=video, right=of c] (v) {验收};
+    \node[box] (p) {plan};
+    \node[box, right=of p] (y) {you approve};
+    \node[box=accent, right=of y] (c) {code};
+    \node[box=video, right=of c] (v) {verify};
     \draw[thick, ->] (p) -- (y);
     \draw[thick, ->] (y) -- (c);
     \draw[thick, ->] (c) -- (v);
@@ -211,12 +208,12 @@
     \item 读 \texttt{diff}、跑测试、盯关键路径；把它当一个熟练但会犯错的新人，不盲信。
   \end{itemize}
   \begin{center}
-  \begin{tikzpicture}[font=\small, node distance=6mm,
+  \begin{tikzpicture}[font=\footnotesize, node distance=6mm,
       box/.style={draw=#1, fill=#1!10, text=#1!75!black, rounded corners=2pt, minimum height=7mm, inner sep=4pt}]
-    \node[box=soft] (c) {Agent 说「改好了」};
-    \node[box=sig, right=of c] (d) {读 diff};
-    \node[box=sig, right=of d] (t) {跑测试};
-    \node[box=video, right=of t] (y) {你拍板};
+    \node[box=soft] (c) {agent: ``done''};
+    \node[box=sig, right=of c] (d) {read diff};
+    \node[box=sig, right=of d] (t) {run tests};
+    \node[box=video, right=of t] (y) {you decide};
     \draw[thick, ->] (c) -- (d);
     \draw[thick, ->] (d) -- (t);
     \draw[thick, ->] (t) -- (y);
