@@ -2,11 +2,11 @@
 % title: Agent 的使用技巧
 % date: 2026-10-22
 % tag: Slides
-% excerpt: 一场约 17 分钟的实操分享：把 coding agent 用进 AIGC 图像检测研究。先厘清 agent 能做什么、做不好什么；再讲调研（先下载 PDF 再喂，避开文献幻觉）、改实验（自己维护领域 code base 仓库，让 agent 照着改而非自由发挥——如 VAE 重建要 crop 到 32 倍数、坚决不 resize、底层伪影存 PNG，且务必 human in the loop）、工作区整理（Zotero 管论文、把规则外置成文件），最后是低成本实操：opencode go plan + 开源模型、vibe-fork 需要的插件（mejistus/llm-for-zotero）、subagent 并行，以及用拆解过程 + 显式定义完成状态来避免任务漂移。
+% excerpt: 一场约 17 分钟的分享，主旨是「你能验证多少，Agent 就能做多少」。围绕三条主线展开：外置领域规则（维护领域 code base 仓库——如 AIGC 图像检测中 VAE 重建须裁剪到 32 的整数倍、禁止 resize、底层伪影以 PNG 保存）、落地原始材料（自行下载 PDF 至 Zotero，令 agent 只读本地，避免参考文献幻觉）、显式验收（human in the loop 与显式定义完成状态，以防任务漂移）；最后给出低成本运行方案：opencode go plan + 开源模型、subagent 并行、vibe-fork 所需插件（mejistus/llm-for-zotero）。
 % ---
-% About 17 minutes: 开场 2 min，「调研」3 min，「改实验」4 min，
-% 「工作区」3 min，「低成本实操」4 min，清单 1 min。图中文字只用
-% ASCII（TikZJax 用 Computer Modern 编译，没有中文字形）。
+% About 17 minutes: 开篇 2 min，外置规则 4 min，落地材料 3 min，
+% 显式验收 3 min，低成本运行 3 min，清单 1 min。图中文字只用 ASCII
+% （TikZJax 用 Computer Modern 编译，没有中文字形）。
 \documentclass[aspectratio=169]{beamer}
 \usetikzlibrary{arrows.meta,positioning}
 \definecolor{sig}{HTML}{1F5FAD}
@@ -15,9 +15,9 @@
 \definecolor{soft}{HTML}{8C8C8C}
 \definecolor{video}{HTML}{2E7D6B}
 
-\title[Agent 使用技巧]{Agent 的使用技巧}
-\subtitle{把 agent 用进 AIGC 图像检测研究的实操}
-\author{Xu Chen}
+\title[Agent 的使用技巧]{Agent 的使用技巧}
+\subtitle{领域知识的外置、落地与验收}
+\author[Xu Chen]{Xu Chen}
 \date{October 2026}
 
 \begin{document}
@@ -28,94 +28,97 @@
 \end{frame}
 
 % 0:50
-\begin{frame}{Agent 能做什么、做不好什么}
+\begin{frame}{主旨}
+  \begin{center}
+  {\Large Agent 能交付多少，取决于三件事是否就位：}\\[4pt]
+  {\Large 领域规则是否\alert{外置}，}\\
+  {\Large 原始材料是否\alert{落地}，}\\
+  {\Large 每一步是否可\alert{验证}。}
+  \end{center}
+  \bigskip
   \begin{columns}[T]
-    \begin{column}{0.5\textwidth}
-      \textbf{\textcolor{video}{有参考就能做好}}\\[2pt]
-      \begin{itemize}
-        \item 读代码、顺着符号跳转、改代码、补测试
-        \item 写样板/脚手架、格式化、翻译、写文档
-        \item 跑命令、查日志、总结、做表、对比
-      \end{itemize}
+    \begin{column}{0.32\textwidth}
+      \textcolor{sig}{\textbf{外置规则}}\\[2pt]
+      \small 让 agent 以领域约定为参考修改代码，而非自由发挥。
     \end{column}
-    \begin{column}{0.5\textwidth}
-      \textbf{\textcolor{hot}{没参考就做不好}}\\[2pt]
-      \begin{itemize}
-        \item 编参考文献
-        \item 凭空实现领域特有的规则
-        \item 替你做主观判断（这结果对不对、审稿人买不买账）
-      \end{itemize}
+    \begin{column}{0.32\textwidth}
+      \textcolor{accent}{\textbf{落地材料}}\\[2pt]
+      \small 让 agent 仅基于本地文献作答，而非凭记忆与检索。
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \textcolor{video}{\textbf{显式验收}}\\[2pt]
+      \small 让每一步都有可验证的完成标准，并由人逐一确认。
     \end{column}
   \end{columns}
   \bigskip
-  Agent 是\textbf{加速器}，不是\textbf{领域专家}。领域规则在你脑子里，不在它的训练数据里；
-  这一整场要解决的，就是怎么把这些规则「外置」给它。
-\end{frame}
-
-% 0:30
-\begin{frame}{五个部分}
   \begin{center}
-  \footnotesize
-  \begin{tabular}{ll}
-    \toprule
-    \textbf{环节} & \textbf{核心} \\
-    \midrule
-    \textcolor{sig}{1~调研工作} & 先下载 PDF 再喂，避开文献幻觉 \\
-    \textcolor{accent}{2~修改实验} & 自己维护领域 code base，human in the loop \\
-    \textcolor{video}{3~工作区整理} & Zotero 管论文，规则外置成文件 \\
-    \textcolor{hot}{4~低成本实操} & opencode + 开源模型、subagent 并行、防任务漂移 \\
-    \bottomrule
-  \end{tabular}
-  \end{center}
-  \medskip
-  每一条都对应一个具体的坑，和一个能立刻照做的动作。
-\end{frame}
-
-\section{调研工作}
-
-% 0:50
-\begin{frame}{调研里 agent 能做什么}
-  \begin{itemize}
-    \item 给关键词/问题，抓 arXiv、搜论文、按主题分组、筛相关性。
-    \item 精读单篇：提炼方法、贡献、关键数字、和别家的差异。
-    \item 把多篇整理成对比表：方法 / 数据集 / 指标 / 结论。
-    \item 生成综述段落、Related Work、给每篇写一句话摘要。
-  \end{itemize}
-  \medskip
-  前提只有一个：\alert{给它读得到原文}。读不到，它就会编——下一张讲。
-\end{frame}
-
-% 0:50
-\begin{frame}{调研最大的坑：文献幻觉}
-  \begin{itemize}
-    \item Agent 下载不了、访问不到某篇时，不会老实说「读不到」，
-      而是被「给出答案」的奖励驱动，编一条像模像样的引用。
-    \item 编出来的\alert{不容易察觉}：作者、年份、venue 都合风格，编号还顺。
-    \item 应对：\textbf{自己先把 PDF 下载下来}，让它只读本地文件；
-      读不到就明说，绝不凭印象。
-  \end{itemize}
-  \begin{center}
-  \textcolor{soft}{\small 幻觉不来自它「傻」，来自它「够不到还要硬答」。给它真东西，它才不编。}
+  \textbf{一句话：你能验证多少，Agent 就能做多少。}
   \end{center}
 \end{frame}
 
-\section{修改实验}
+% 0:40
+\begin{frame}{能力与边界}{Agent 是加速器，而非领域专家}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \begin{exampleblock}{有参考即胜任}
+        \begin{itemize}
+          \item 阅读与修改代码、补充测试
+          \item 生成样板与文档、格式化
+          \item 运行命令、检索日志、总结与制表
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{alertblock}{缺少参考即不可靠}
+        \begin{itemize}
+          \item 编造参考文献
+          \item 凭空实现领域规则
+          \item 替代研究者作出主观判断
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+  \bigskip
+  领域知识并不在其训练数据之中。使用 agent 的核心，是把领域知识转化为
+  它能读的\structure{参考}，以及你能核验的\structure{输出}。
+\end{frame}
+
+% 0:20
+\begin{frame}{大纲}
+  \tableofcontents
+\end{frame}
+
+\section[外置规则]{外置领域规则}
 
 % 0:50
-\begin{frame}{自己维护一个领域 code base 仓库}
-  \begin{itemize}
-    \item 通用 agent 的训练数据里是「教科书式」实现；你的领域有一堆\textbf{不成文的规则}。
-    \item 把这些规则沉淀成一个仓库：已验证的最小可运行代码、踩过的坑、约定的预处理。
-    \item 让 agent 以它为\alert{参考}去改代码，而不是从零自由发挥。
-  \end{itemize}
-  \medskip
+\begin{frame}{通用实现与领域规则的冲突}
+  \begin{block}{问题}
+    Agent 的训练数据偏向教科书式的通用实现；领域规则通常是隐式且不成文的，
+    不会出现在任何默认写法之中。
+  \end{block}
+  \begin{alertblock}{后果}
+    缺乏参考时，模型自第一步（预处理）即偏离领域约定，其后的全部结果随之失效。
+  \end{alertblock}
+  \bigskip
+  因此，第一步不是给它一个任务，而是给它一份\structure{可参考的领域约定}。
+\end{frame}
+
+% 0:50
+\begin{frame}{维护一个领域 code base 仓库}
+  \begin{block}{沉淀}
+    将已验证的最小可运行代码、既往踩过的坑、约定的预处理流程，整理为一个仓库。
+  \end{block}
+  \begin{block}{用法}
+    令 agent 以该仓库为参考修改代码，而非从零自由发挥。
+  \end{block}
+  \bigskip
   \begin{center}
-  \textcolor{soft}{\small 没有参考，模型给的代码从第一步就会错；有参考，它才有对的模板可抄。}
+  \textcolor{soft}{\small 有参考，agent 才有正确的模板可循；无参考，代码从第一步即错。}
   \end{center}
 \end{frame}
 
 % 1:00
-\begin{frame}{一个 AIGC 的例子：VAE 重建}
+\begin{frame}{案例：VAE 重建的三条规则}{AIGC 图像检测中的领域约定}
   \begin{center}
   \begin{tikzpicture}[>={Stealth[length=2mm]}, font=\footnotesize, node distance=4mm,
       box/.style={draw=#1, fill=#1!12, text=#1!75!black, rounded corners=2pt, minimum height=7mm, inner sep=4pt}]
@@ -130,16 +133,51 @@
     \draw[thick, ->] (dec) -- (png);
   \end{tikzpicture}
   \end{center}
-  \begin{itemize}
-    \item \textbf{crop 到长宽 32 的倍数}再做重建：长宽不整除会重建出黑图/黑边。
-    \item \textbf{坚决不用 resize}：插值会改变伪影（artifacts），检测器对伪影敏感。
-    \item \textbf{底层伪影用 PNG 保存}：JPEG 二次有损会再次引入/抹掉伪影。
-  \end{itemize}
-  这些规则不在任何教科书的默认里；没有参考，模型从预处理这第一步就写错，后面实验全白做。
+  \begin{block}{三条规则}
+    \begin{enumerate}
+      \item 重建前将图像裁剪为长宽 32 的整数倍；否则长宽不整除时输出黑图或黑边。
+      \item 禁止 \texttt{resize}：插值会改变伪影，而检测器对伪影高度敏感。
+      \item 底层伪影以 PNG 保存：JPEG 的二次有损压缩会再次引入或抹除伪影。
+    \end{enumerate}
+  \end{block}
+  \textcolor{soft}{\small 这些约定不在任何通用实现的默认中；无参考时，模型从预处理起即出错。}
+\end{frame}
+
+\section[落地材料]{落地原始材料}
+
+% 0:50
+\begin{frame}{调研中的参考文献幻觉}{编造，而非检索失败}
+  \begin{block}{机制}
+    Agent 无法下载或访问某篇文献时，通常不会报告失败，而是在「给出答案」
+    这一后训练奖励的驱动下，生成一条难以察觉的伪造引用。
+  \end{block}
+  \begin{alertblock}{特征}
+    伪造条目在作者、年份、venue 与编号上均合乎格式，不易识别。
+  \end{alertblock}
+  \bigskip
+  对策见于下一页：自行下载，令其仅基于本地文件作答。
 \end{frame}
 
 % 0:50
-\begin{frame}{Agent 务必 Human in the loop}
+\begin{frame}{先下载，再作答}
+  \begin{block}{原则}
+    自行将文献 PDF 下载至本地，令 agent 仅基于本地文件作答；
+    无法访问时须如实说明，而非凭印象补全。
+  \end{block}
+  \begin{block}{工具}
+    Zotero 统一管理论文（编号、标签、笔记），\texttt{llm-for-zotero}
+    将本地库接入 agent。
+  \end{block}
+  \bigskip
+  \begin{center}
+  \textcolor{soft}{\small 落地原始材料，是切断编造入口最直接的手段。}
+  \end{center}
+\end{frame}
+
+\section[显式验收]{显式验收}
+
+% 0:50
+\begin{frame}{Human in the loop}{每一步都需人工确认}
   \begin{center}
   \begin{tikzpicture}[>={Stealth[length=2mm]}, font=\footnotesize, node distance=4mm,
       box/.style={draw=#1, fill=#1!12, text=#1!75!black, rounded corners=2pt, minimum height=7mm, inner sep=4pt}]
@@ -155,84 +193,50 @@
     \draw[thick, ->, hot] (fix.west) to[out=180, in=270] (agent.south);
   \end{tikzpicture}
   \end{center}
-  \begin{itemize}
-    \item 别让它一次跑完再一起看：错在第一步，后面全是错的。
-    \item 每步都能验证：预处理对不对（看张图）、指标对不对、基线复现没。
-    \item 小步 + 显式验收：改完跑什么、看什么、什么算过。你才是那个知道「这张图对不对」的人。
-  \end{itemize}
+  \begin{block}{要点}
+    每一步须可验证——预处理是否正确、指标是否合理、基线是否复现。
+    错误若发生在第一步，后续结果即全部失效。
+  \end{block}
+  \textcolor{soft}{\small 研究者才是判断「结果是否正确」的那个人。}
 \end{frame}
-
-\section{工作区整理}
 
 % 0:50
-\begin{frame}{工作区：论文、代码、笔记各就各位}
-  \begin{center}
-  \footnotesize
-  \begin{tabular}{lll}
-    \toprule
-    \textbf{资产} & \textbf{放哪} & \textbf{为什么} \\
-    \midrule
-    论文 & Zotero 统一管理，PDF 落本地 & 编号/标签/笔记可检索，agent 读得到 \\
-    领域规则 & 自己的 code base 仓库 & 让 agent 照着改，而不是自由发挥 \\
-    偏好/约定/坑 & 写成规则文件 & 交代一次，往后自动生效 \\
-    \bottomrule
-  \end{tabular}
-  \end{center}
-  \bigskip
-  目的只有一个：把「在脑子里的」都\textbf{外置}成 agent 能读到的文件。
-  你整理得越细，它越不需要猜，也就越少错。
+\begin{frame}{定义完成，避免任务漂移}
+  \begin{block}{拆解过程}
+    将大目标拆为具有先后顺序的小步，每步产出一个可检查的产物。
+  \end{block}
+  \begin{block}{显式定义完成}
+    明确完成后的形态、需运行的命令，以及不可改动的部分。
+  \end{block}
+  \begin{alertblock}{反例}
+    未定义完成时，agent 会将「看起来完成」误判为完成，并持续偏离目标。
+  \end{alertblock}
+  \textcolor{soft}{\small 每完成一步，回到目标检查一次：是否仍在原路。}
 \end{frame}
 
-% 0:40
-\begin{frame}{幻觉为什么产生——以及为什么「先下载」}
-  \begin{itemize}
-    \item 机制：agent 被训练成「给出答案」会得奖励；读不到某篇论文时，
-      最像答案的行为就是\textbf{编一个}。
-    \item 编造更难被察觉，因为它熟悉引用格式，能编出作者/年份/venue 都顺眼的条目。
-    \item 所以「自己先把文献下载下来」不是省事，是\alert{切断编造的入口}：
-      给它能读到的本地 PDF，它才不编。
-  \end{itemize}
-  \begin{center}
-  \textcolor{soft}{\small 应对文献幻觉最有效的办法，是别让它「够不到」。}
-  \end{center}
-\end{frame}
-
-\section{低成本实操}
+\section[低成本]{低成本运行}
 
 % 0:50
-\begin{frame}{低成本：opencode go plan + 开源模型}
-  \begin{itemize}
-    \item \textbf{opencode 的 go plan}：先出计划 → 你确认 → 再执行；省钱，也防跑偏。
-    \item 开源模型性能很强、价格极低，\textbf{90\%+ 的活足够胜任}：
-      读代码、改代码、写样板、总结、查日志。
-    \item 贵的模型只留给最难的那 10\%：新算法设计、疑难 bug。
-  \end{itemize}
-  \medskip
-  \begin{center}
-  \textcolor{soft}{\small 安利：opencode 配开源模型，日常研究基本够用，还便宜。}
-  \end{center}
+\begin{frame}{低成本工作流}{opencode 与开源模型}
+  \begin{block}{规划先行}
+    opencode 的 \texttt{go plan} 先给出计划、经确认后执行，兼顾成本与方向。
+  \end{block}
+  \begin{block}{开源模型}
+    性能与价格俱佳，足以覆盖约九成的工作（读改代码、生成样板、总结、查日志）；
+    高成本模型仅用于算法设计与疑难缺陷。
+  \end{block}
 \end{frame}
 
 % 0:40
-\begin{frame}{vibe-fork 你需要的一切插件}
-  \begin{itemize}
-    \item 缺什么工具，直接 fork 一个开源项目自己接，别等别人适配。
-    \item 例：\texttt{llm-for-zotero} 原本不支持我的工作流，
-      我 fork 了 \texttt{mejistus/llm-for-zotero}，加上了 opencode 支持。
-    \item 思路：开源 + vibe 编码，一下午就能把常用工具接进你的 agent——
-      Zotero 本地库 $\to$ llm-for-zotero $\to$ agent 只读本地 PDF（接回第 3 节）。
-  \end{itemize}
-\end{frame}
-
-% 0:40
-\begin{frame}{subagent 提高并行效率}
+\begin{frame}{subagent 与并行}
   \begin{columns}[T]
     \begin{column}{0.52\textwidth}
-      \begin{itemize}
-        \item 互不依赖的活拆开\alert{并行}：同时精读三篇、分头改三个模块、一边审一边写。
-        \item 你只收结论，不收文件转储；串行的活不值得并行。
-        \item 判断标准：两件事有没有先后依赖？没有，就并行。
-      \end{itemize}
+      \begin{block}{并行}
+        将无依赖的任务拆开并行执行，仅保留结论，不保留文件转储。
+      \end{block}
+      \begin{block}{判据}
+        两任务是否存在先后依赖；无依赖即可并行。
+      \end{block}
     \end{column}
     \begin{column}{0.48\textwidth}
       \begin{center}
@@ -251,50 +255,39 @@
   \end{columns}
 \end{frame}
 
-% 0:50
-\begin{frame}{设置 goal，但别任务漂移}
+% 0:40
+\begin{frame}{自行适配所需工具}
+  \begin{block}{做法}
+    缺少适配时，\texttt{fork} 开源项目自行接入，而非等待上游支持。
+  \end{block}
+  \begin{block}{案例}
+    \texttt{mejistus/llm-for-zotero}——为 \texttt{llm-for-zotero}
+    增加 opencode 支持。
+  \end{block}
+  \bigskip
   \begin{center}
-  \begin{tikzpicture}[>={Stealth[length=2mm]}, font=\footnotesize, node distance=4mm,
-      box/.style={draw=#1, fill=#1!12, text=#1!75!black, rounded corners=2pt, minimum height=7mm, inner sep=4pt}]
-    \node[box=sig] (g) {goal};
-    \node[box=soft, right=of g] (s1) {step 1};
-    \node[box=soft, right=of s1] (s2) {step 2};
-    \node[box=soft, right=of s2] (s3) {step 3};
-    \node[box=video, right=of s3] (done) {done state};
-    \draw[thick, ->] (g) -- (s1);
-    \draw[thick, ->] (s1) -- (s2);
-    \draw[thick, ->] (s2) -- (s3);
-    \draw[thick, ->] (s3) -- (done);
-  \end{tikzpicture}
+  \textcolor{soft}{\small 开源生态与 agent 编码的结合，可在较短时间内置所需工具。}
   \end{center}
-  漂移来自：goal 太大 + 没有「完成」的定义，agent 越做越偏还停不下来。两条对策：
-  \begin{itemize}
-    \item \textbf{拆解过程}：把大 goal 拆成带顺序的小步，每步一个产物。
-    \item \textbf{显式定义完成}：做完是什么样、跑什么、别动什么——没定义完成，
-      它就把「看起来做完了」当完成。每完成一步，回到 goal 检查一次：还在不在原路上。
-  \end{itemize}
 \end{frame}
 
 % 0:40
-\begin{frame}{一张检查清单}
+\begin{frame}{检查清单}
   \begin{center}
   \footnotesize
-  \begin{tabular}{ll}
+  \begin{tabular}{lll}
     \toprule
-    \textbf{开工前} & \textbf{过程中 / 收尾} \\
+    \textbf{开工前} & \textbf{过程中} & \textbf{收尾} \\
     \midrule
-    领域规则落到 code base 了吗？ & 每步可验证吗？ \\
-    PDF 在本地吗？ & human in the loop 了吗？ \\
-    goal 拆了吗？ & 能并行的并行了吗？ \\
-    「完成」定义了吗？ & 读 diff、跑测试了吗？ \\
-    & 每条引用都能在本地 PDF 找到吗？ \\
+    领域规则已落入 code base & 每一步可验证 & 已读 diff、跑测试 \\
+    文献 PDF 已在本地 & human in the loop & 每条引用可溯源 \\
+    目标已拆解 & 无依赖的任务已并行 & 结果符合完成定义 \\
+    完成状态已定义 & — & — \\
     \bottomrule
   \end{tabular}
   \end{center}
   \bigskip
   \begin{center}
-  \textbf{一句话：} 把领域规则外置、把 PDF 落本地、把每一步变可验证，
-  agent 才会从「会聊天的玩具」变成「能交付的帮手」。
+  \textbf{一句话：你能验证多少，Agent 就能做多少。}
   \end{center}
 \end{frame}
 
