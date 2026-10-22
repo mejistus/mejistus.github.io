@@ -4,7 +4,7 @@
     "title": "Agent 的使用技巧",
     "date": "2026-10-22",
     "tag": "Slides",
-    "excerpt": "一场约 15 分钟的分享：把「用 coding agent」拆成三个环节——说清楚、放它做、盯结果。给上下文而不是让它猜，把大任务拆成可验证的小步，说清「完成」长什么样；让它读代码、独立的事并行、大改动先计划；最后读 diff、跑测试，错了改原因而不只是结果，并把反馈沉淀成规则。附四个反模式与开工前的检查清单。"
+    "excerpt": "一场约 17 分钟的实操分享：把 coding agent 用进 AIGC 图像检测研究。先厘清 agent 能做什么、做不好什么；再讲调研（先下载 PDF 再喂，避开文献幻觉）、改实验（自己维护领域 code base 仓库，让 agent 照着改而非自由发挥——如 VAE 重建要 crop 到 32 倍数、坚决不 resize、底层伪影存 PNG，且务必 human in the loop）、工作区整理（Zotero 管论文、把规则外置成文件），最后是低成本实操：opencode go plan + 开源模型、vibe-fork 需要的插件（mejistus/llm-for-zotero）、subagent 并行，以及用拆解过程 + 显式定义完成状态来避免任务漂移。"
   },
   {
     "file": "Slides/Recent-Image-Compression-提纲.tex",

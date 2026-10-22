@@ -2,12 +2,11 @@
 % title: Agent 的使用技巧
 % date: 2026-10-22
 % tag: Slides
-% excerpt: 一场约 15 分钟的分享：把「用 coding agent」拆成三个环节——说清楚、放它做、盯结果。给上下文而不是让它猜，把大任务拆成可验证的小步，说清「完成」长什么样；让它读代码、独立的事并行、大改动先计划；最后读 diff、跑测试，错了改原因而不只是结果，并把反馈沉淀成规则。附四个反模式与开工前的检查清单。
+% excerpt: 一场约 17 分钟的实操分享：把 coding agent 用进 AIGC 图像检测研究。先厘清 agent 能做什么、做不好什么；再讲调研（先下载 PDF 再喂，避开文献幻觉）、改实验（自己维护领域 code base 仓库，让 agent 照着改而非自由发挥——如 VAE 重建要 crop 到 32 倍数、坚决不 resize、底层伪影存 PNG，且务必 human in the loop）、工作区整理（Zotero 管论文、把规则外置成文件），最后是低成本实操：opencode go plan + 开源模型、vibe-fork 需要的插件（mejistus/llm-for-zotero）、subagent 并行，以及用拆解过程 + 显式定义完成状态来避免任务漂移。
 % ---
-% About 15 minutes: 开场 1 min，「说清楚」2.5 min，「放它做」2 min，
-% 「盯结果」2.5 min，反模式与清单 2 min。三个环节各三条技巧，
-% 每条一页；页面顶端的注释给出建议时长。图中文字只用 ASCII
-% （TikZJax 用 Computer Modern 编译，没有中文字形）。
+% About 17 minutes: 开场 2 min，「调研」3 min，「改实验」4 min，
+% 「工作区」3 min，「低成本实操」4 min，清单 1 min。图中文字只用
+% ASCII（TikZJax 用 Computer Modern 编译，没有中文字形）。
 \documentclass[aspectratio=169]{beamer}
 \usetikzlibrary{arrows.meta,positioning}
 \definecolor{sig}{HTML}{1F5FAD}
@@ -17,7 +16,7 @@
 \definecolor{video}{HTML}{2E7D6B}
 
 \title[Agent 使用技巧]{Agent 的使用技巧}
-\subtitle{从一句话到一个可交付的结果}
+\subtitle{把 agent 用进 AIGC 图像检测研究的实操}
 \author{Xu Chen}
 \date{October 2026}
 
@@ -28,146 +27,221 @@
   \titlepage
 \end{frame}
 
-% 1:00
-\begin{frame}{Agent 是你手的延伸，不是替你上班的员工}
-  \begin{center}
-  \begin{tikzpicture}[>={Stealth[length=2mm]}, font=\footnotesize, node distance=4mm,
-      box/.style={draw=#1, fill=#1!12, text=#1!75!black, rounded corners=2pt, minimum height=7mm, inner sep=4pt}]
-    \node[box=sig] (you) {you};
-    \node[box=soft, right=of you] (ctx) {context + task};
-    \node[box=accent, right=of ctx] (agent) {agent: read, edit, run};
-    \node[box=sig, right=of agent] (check) {you check};
-    \node[box=video, right=of check] (done) {done};
-    \node[box=hot, below=8mm of agent] (fix) {fix the cause};
-    \draw[thick, ->] (you) -- (ctx);
-    \draw[thick, ->] (ctx) -- (agent);
-    \draw[thick, ->] (agent) -- (check);
-    \draw[thick, ->] (check) -- (done);
-    \draw[thick, ->, hot] (check.south) to[out=270, in=0] node[right, font=\scriptsize] {not OK} (fix.east);
-    \draw[thick, ->, hot] (fix.west) to[out=180, in=270] (agent.south);
-  \end{tikzpicture}
-  \end{center}
-  \medskip
-  一个 agent 只有三个旋钮：\textbf{上下文}（它知道什么）、\textbf{任务}（它要做什么）、
-  \textbf{验收}（你怎么知道做对了）。它不会猜你的意图，只会做你说清楚、你能检查的事。
-  所以用它的技巧，就是在这三个旋钮上各拧到位。
-\end{frame}
-
-% 0:30
-\begin{frame}{三个环节，九条技巧}
-  \begin{center}
-  \begin{tikzpicture}[font=\footnotesize, node distance=4mm,
-      box/.style={draw=#1, fill=#1!12, text=#1!75!black, rounded corners=2pt, minimum height=9mm, minimum width=40mm, inner sep=4pt, align=center}]
-    \node[box=sig] (a) {\textbf{Be clear}\\context / steps / done};
-    \node[box=accent, right=of a] (b) {\textbf{Let it run}\\read / parallel / plan};
-    \node[box=video, right=of b] (c) {\textbf{Check it}\\diff / why / rules};
-    \draw[thick, ->] (a) -- (b);
-    \draw[thick, ->] (b) -- (c);
-  \end{tikzpicture}
-  \end{center}
-  \medskip
-  \begin{itemize}
-    \item 大多数人只在「任务」上用力，却漏了上下文和验收——这正是 agent 出错的源头。
-    \item 每个环节三条技巧，都是能立刻照做的动作，不是心态口号。
-  \end{itemize}
-\end{frame}
-
-\section{说清楚}
-
 % 0:50
-\begin{frame}{技巧 1：给上下文，别让它猜}
+\begin{frame}{Agent 能做什么、做不好什么}
   \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-      \textbf{\textcolor{hot}{它猜不着}}\\[2pt]
-      「帮我改一下这个函数。」
+    \begin{column}{0.5\textwidth}
+      \textbf{\textcolor{video}{有参考就能做好}}\\[2pt]
       \begin{itemize}
-        \item 哪个文件、哪个函数？
-        \item 有哪些约束不能碰？
-        \item 为什么要改？
+        \item 读代码、顺着符号跳转、改代码、补测试
+        \item 写样板/脚手架、格式化、翻译、写文档
+        \item 跑命令、查日志、总结、做表、对比
       \end{itemize}
     \end{column}
-    \begin{column}{0.52\textwidth}
-      \textbf{\textcolor{video}{它照着做}}\\[2pt]
-      「在 \texttt{src/foo.ts:120} 的 \texttt{Foo()} 里，
-      同一个数组被循环读了两次；合并成一次。
-      别改公共接口——有两处调用依赖它。
-      原因：这一行在热路径上。」
+    \begin{column}{0.5\textwidth}
+      \textbf{\textcolor{hot}{没参考就做不好}}\\[2pt]
+      \begin{itemize}
+        \item 编参考文献
+        \item 凭空实现领域特有的规则
+        \item 替你做主观判断（这结果对不对、审稿人买不买账）
+      \end{itemize}
     \end{column}
   \end{columns}
   \bigskip
-  上下文 = \textbf{位置} + \textbf{约束（别动什么）} + \textbf{动机（为什么）}。
-  三条里缺一条，它就用自己的默认值补上——而你多半不会喜欢那个默认值。
+  Agent 是\textbf{加速器}，不是\textbf{领域专家}。领域规则在你脑子里，不在它的训练数据里；
+  这一整场要解决的，就是怎么把这些规则「外置」给它。
+\end{frame}
+
+% 0:30
+\begin{frame}{五个部分}
+  \begin{center}
+  \footnotesize
+  \begin{tabular}{ll}
+    \toprule
+    \textbf{环节} & \textbf{核心} \\
+    \midrule
+    \textcolor{sig}{1~调研工作} & 先下载 PDF 再喂，避开文献幻觉 \\
+    \textcolor{accent}{2~修改实验} & 自己维护领域 code base，human in the loop \\
+    \textcolor{video}{3~工作区整理} & Zotero 管论文，规则外置成文件 \\
+    \textcolor{hot}{4~低成本实操} & opencode + 开源模型、subagent 并行、防任务漂移 \\
+    \bottomrule
+  \end{tabular}
+  \end{center}
+  \medskip
+  每一条都对应一个具体的坑，和一个能立刻照做的动作。
+\end{frame}
+
+\section{调研工作}
+
+% 0:50
+\begin{frame}{调研里 agent 能做什么}
+  \begin{itemize}
+    \item 给关键词/问题，抓 arXiv、搜论文、按主题分组、筛相关性。
+    \item 精读单篇：提炼方法、贡献、关键数字、和别家的差异。
+    \item 把多篇整理成对比表：方法 / 数据集 / 指标 / 结论。
+    \item 生成综述段落、Related Work、给每篇写一句话摘要。
+  \end{itemize}
+  \medskip
+  前提只有一个：\alert{给它读得到原文}。读不到，它就会编——下一张讲。
 \end{frame}
 
 % 0:50
-\begin{frame}{技巧 2：大任务拆成可验证的小步}
+\begin{frame}{调研最大的坑：文献幻觉}
   \begin{itemize}
-    \item 一次只给一个想法；\textbf{每一步结束都有一个你能检查的产物}。
-    \item 「重构认证系统」一步到位 → 几十个文件一起变，跑偏了都不知道从哪追。
-    \item 拆成：先列改动点 → 你确认 → 逐文件改 → 每步跑一次测试。
+    \item Agent 下载不了、访问不到某篇时，不会老实说「读不到」，
+      而是被「给出答案」的奖励驱动，编一条像模像样的引用。
+    \item 编出来的\alert{不容易察觉}：作者、年份、venue 都合风格，编号还顺。
+    \item 应对：\textbf{自己先把 PDF 下载下来}，让它只读本地文件；
+      读不到就明说，绝不凭印象。
   \end{itemize}
   \begin{center}
-  \begin{tikzpicture}[>={Stealth[length=2mm]}, font=\footnotesize, node distance=5mm,
-      box/.style={draw=soft, fill=soft!10, rounded corners=2pt, minimum height=7mm, inner sep=4pt}]
-    \node[box] (l) {list changes};
-    \node[box, right=of l] (a) {edit file A};
-    \node[box, right=of a] (t) {test};
-    \node[box, right=of t] (b) {edit file B};
-    \node[box, right=of b] (t2) {test};
-    \draw[thick, ->] (l) -- (a);
-    \draw[thick, ->] (a) -- (t);
-    \draw[thick, ->] (t) -- (b);
-    \draw[thick, ->] (b) -- (t2);
+  \textcolor{soft}{\small 幻觉不来自它「傻」，来自它「够不到还要硬答」。给它真东西，它才不编。}
+  \end{center}
+\end{frame}
+
+\section{修改实验}
+
+% 0:50
+\begin{frame}{自己维护一个领域 code base 仓库}
+  \begin{itemize}
+    \item 通用 agent 的训练数据里是「教科书式」实现；你的领域有一堆\textbf{不成文的规则}。
+    \item 把这些规则沉淀成一个仓库：已验证的最小可运行代码、踩过的坑、约定的预处理。
+    \item 让 agent 以它为\alert{参考}去改代码，而不是从零自由发挥。
+  \end{itemize}
+  \medskip
+  \begin{center}
+  \textcolor{soft}{\small 没有参考，模型给的代码从第一步就会错；有参考，它才有对的模板可抄。}
+  \end{center}
+\end{frame}
+
+% 1:00
+\begin{frame}{一个 AIGC 的例子：VAE 重建}
+  \begin{center}
+  \begin{tikzpicture}[>={Stealth[length=2mm]}, font=\footnotesize, node distance=4mm,
+      box/.style={draw=#1, fill=#1!12, text=#1!75!black, rounded corners=2pt, minimum height=7mm, inner sep=4pt}]
+    \node[box=soft] (img) {image};
+    \node[box=accent, right=of img] (crop) {crop to 32x};
+    \node[box=sig, right=of crop] (enc) {VAE encode};
+    \node[box=sig, right=of enc] (dec) {VAE decode};
+    \node[box=video, right=of dec] (png) {save PNG};
+    \draw[thick, ->] (img) -- (crop);
+    \draw[thick, ->] (crop) -- (enc);
+    \draw[thick, ->] (enc) -- (dec);
+    \draw[thick, ->] (dec) -- (png);
   \end{tikzpicture}
   \end{center}
-  一大坨请求会漂移；小步让每一处偏离都被\alert{当场}抓住，而不是最后一起爆炸。
+  \begin{itemize}
+    \item \textbf{crop 到长宽 32 的倍数}再做重建：长宽不整除会重建出黑图/黑边。
+    \item \textbf{坚决不用 resize}：插值会改变伪影（artifacts），检测器对伪影敏感。
+    \item \textbf{底层伪影用 PNG 保存}：JPEG 二次有损会再次引入/抹掉伪影。
+  \end{itemize}
+  这些规则不在任何教科书的默认里；没有参考，模型从预处理这第一步就写错，后面实验全白做。
 \end{frame}
 
-% 0:40
-\begin{frame}{技巧 3：说清「完成」长什么样}
+% 0:50
+\begin{frame}{Agent 务必 Human in the loop}
   \begin{center}
-  \alert{「改完跑 \texttt{npm test}，3 个新用例通过，不动 \texttt{public/} 下的任何文件。」}
+  \begin{tikzpicture}[>={Stealth[length=2mm]}, font=\footnotesize, node distance=4mm,
+      box/.style={draw=#1, fill=#1!12, text=#1!75!black, rounded corners=2pt, minimum height=7mm, inner sep=4pt}]
+    \node[box=sig] (you) {you set the rule};
+    \node[box=accent, right=of you] (agent) {agent step};
+    \node[box=sig, right=of agent] (verify) {you verify};
+    \node[box=video, right=of verify] (next) {next step};
+    \node[box=hot, below=8mm of agent] (fix) {fix and retry};
+    \draw[thick, ->] (you) -- (agent);
+    \draw[thick, ->] (agent) -- (verify);
+    \draw[thick, ->] (verify) -- (next);
+    \draw[thick, ->, hot] (verify.south) to[out=270, in=0] node[right, font=\scriptsize] {not OK} (fix.east);
+    \draw[thick, ->, hot] (fix.west) to[out=180, in=270] (agent.south);
+  \end{tikzpicture}
+  \end{center}
+  \begin{itemize}
+    \item 别让它一次跑完再一起看：错在第一步，后面全是错的。
+    \item 每步都能验证：预处理对不对（看张图）、指标对不对、基线复现没。
+    \item 小步 + 显式验收：改完跑什么、看什么、什么算过。你才是那个知道「这张图对不对」的人。
+  \end{itemize}
+\end{frame}
+
+\section{工作区整理}
+
+% 0:50
+\begin{frame}{工作区：论文、代码、笔记各就各位}
+  \begin{center}
+  \footnotesize
+  \begin{tabular}{lll}
+    \toprule
+    \textbf{资产} & \textbf{放哪} & \textbf{为什么} \\
+    \midrule
+    论文 & Zotero 统一管理，PDF 落本地 & 编号/标签/笔记可检索，agent 读得到 \\
+    领域规则 & 自己的 code base 仓库 & 让 agent 照着改，而不是自由发挥 \\
+    偏好/约定/坑 & 写成规则文件 & 交代一次，往后自动生效 \\
+    \bottomrule
+  \end{tabular}
   \end{center}
   \bigskip
-  验收标准 = \textbf{跑哪个命令} + \textbf{预期输出} + \textbf{允许/禁止碰的东西}。
-  \begin{itemize}
-    \item 没有验收标准，「完成」就被 agent 自己定义——它往往定义成「看起来写完了」。
-    \item 验收标准同时也是你的检查清单：做完照着验一遍就行。
-  \end{itemize}
+  目的只有一个：把「在脑子里的」都\textbf{外置}成 agent 能读到的文件。
+  你整理得越细，它越不需要猜，也就越少错。
 \end{frame}
 
-\section{放它做}
-
 % 0:40
-\begin{frame}{技巧 4：让它读代码，别粘贴}
+\begin{frame}{幻觉为什么产生——以及为什么「先下载」}
   \begin{itemize}
-    \item Agent 搜索、读文件很快，还能顺着符号、引用一路跳转。\textbf{指向它，而不是喂给它}。
-    \item 给 \texttt{文件:行号}、符号名、目录，它会自己去看；你粘贴反而又慢又容易截断关键上下文。
-    \item 只粘贴它\alert{看不到}的东西：截图、运行日志、报错、外部网页。
+    \item 机制：agent 被训练成「给出答案」会得奖励；读不到某篇论文时，
+      最像答案的行为就是\textbf{编一个}。
+    \item 编造更难被察觉，因为它熟悉引用格式，能编出作者/年份/venue 都顺眼的条目。
+    \item 所以「自己先把文献下载下来」不是省事，是\alert{切断编造的入口}：
+      给它能读到的本地 PDF，它才不编。
   \end{itemize}
   \begin{center}
-  \textcolor{soft}{\small 你只需留下结论，而不是把整个仓库塞进对话。}
+  \textcolor{soft}{\small 应对文献幻觉最有效的办法，是别让它「够不到」。}
+  \end{center}
+\end{frame}
+
+\section{低成本实操}
+
+% 0:50
+\begin{frame}{低成本：opencode go plan + 开源模型}
+  \begin{itemize}
+    \item \textbf{opencode 的 go plan}：先出计划 → 你确认 → 再执行；省钱，也防跑偏。
+    \item 开源模型性能很强、价格极低，\textbf{90\%+ 的活足够胜任}：
+      读代码、改代码、写样板、总结、查日志。
+    \item 贵的模型只留给最难的那 10\%：新算法设计、疑难 bug。
+  \end{itemize}
+  \medskip
+  \begin{center}
+  \textcolor{soft}{\small 安利：opencode 配开源模型，日常研究基本够用，还便宜。}
   \end{center}
 \end{frame}
 
 % 0:40
-\begin{frame}{技巧 5：独立的事并行}
+\begin{frame}{vibe-fork 你需要的一切插件}
+  \begin{itemize}
+    \item 缺什么工具，直接 fork 一个开源项目自己接，别等别人适配。
+    \item 例：\texttt{llm-for-zotero} 原本不支持我的工作流，
+      我 fork 了 \texttt{mejistus/llm-for-zotero}，加上了 opencode 支持。
+    \item 思路：开源 + vibe 编码，一下午就能把常用工具接进你的 agent——
+      Zotero 本地库 $\to$ llm-for-zotero $\to$ agent 只读本地 PDF（接回第 3 节）。
+  \end{itemize}
+\end{frame}
+
+% 0:40
+\begin{frame}{subagent 提高并行效率}
   \begin{columns}[T]
-    \begin{column}{0.55\textwidth}
+    \begin{column}{0.52\textwidth}
       \begin{itemize}
-        \item 互不依赖的活交给子 agent \textbf{并行}做：同时查三套候选方案、分头审不同文件。
-        \item 你只收结论，不收「文件转储」。
-        \item 判断标准：两件事之间有没有先后依赖？没有，就可以并行。
+        \item 互不依赖的活拆开\alert{并行}：同时精读三篇、分头改三个模块、一边审一边写。
+        \item 你只收结论，不收文件转储；串行的活不值得并行。
+        \item 判断标准：两件事有没有先后依赖？没有，就并行。
       \end{itemize}
     \end{column}
-    \begin{column}{0.45\textwidth}
+    \begin{column}{0.48\textwidth}
       \begin{center}
       \begin{tikzpicture}[font=\footnotesize, node distance=3mm,
           box/.style={draw=accent, fill=accent!10, text=accent!75!black, rounded corners=2pt, minimum height=7mm, minimum width=22mm, align=center, inner sep=3pt}]
-        \node[box] (q) {plan A\\research};
-        \node[box, right=of q] (r) {plan B\\research};
-        \node[box, right=of r] (s) {plan C\\research};
-        \node[draw=sig, fill=sig!10, text=sig!75!black, rounded corners=2pt, minimum height=7mm, minimum width=22mm, align=center, inner sep=3pt, below=6mm of r] (y) {you: synthesize};
+        \node[box] (q) {paper A\\summarize};
+        \node[box, right=of q] (r) {paper B\\summarize};
+        \node[box, right=of r] (s) {paper C\\summarize};
+        \node[draw=sig, fill=sig!10, text=sig!75!black, rounded corners=2pt, minimum height=7mm, minimum width=22mm, align=center, inner sep=3pt, below=6mm of r] (y) {you: merge};
         \draw[thick, ->] (q) -- (y);
         \draw[thick, ->] (r) -- (y);
         \draw[thick, ->] (s) -- (y);
@@ -177,124 +251,50 @@
   \end{columns}
 \end{frame}
 
-% 0:40
-\begin{frame}{技巧 6：大改动先计划}
-  \begin{itemize}
-    \item 多文件重构、新功能、改架构——先让它给\alert{方案}，你点头，再让它写代码。
-    \item 对齐的是「\textbf{怎么做}」：动哪些文件、引入什么、迁移顺序是什么。
-    \item 计划比代码便宜得多；先把路选对，省掉后面整段推倒重来。
-  \end{itemize}
-  \begin{center}
-  \begin{tikzpicture}[>={Stealth[length=2mm]}, font=\footnotesize, node distance=6mm,
-      box/.style={draw=soft, fill=soft!10, rounded corners=2pt, minimum height=7mm, inner sep=4pt}]
-    \node[box] (p) {plan};
-    \node[box, right=of p] (y) {you approve};
-    \node[box=accent, right=of y] (c) {code};
-    \node[box=video, right=of c] (v) {verify};
-    \draw[thick, ->] (p) -- (y);
-    \draw[thick, ->] (y) -- (c);
-    \draw[thick, ->] (c) -- (v);
-  \end{tikzpicture}
-  \end{center}
-\end{frame}
-
-\section{盯结果}
-
 % 0:50
-\begin{frame}{技巧 7：读 diff、跑测试，它报告你拍板}
-  \begin{itemize}
-    \item Agent 报告，\textbf{你}决定。它可能很自信地错，把错的也说得头头是道。
-    \item 「能编译」$\neq$「对」；「测试通过」$\neq$「对」——测试本身可能没覆盖到。
-    \item 读 \texttt{diff}、跑测试、盯关键路径；把它当一个熟练但会犯错的新人，不盲信。
-  \end{itemize}
+\begin{frame}{设置 goal，但别任务漂移}
   \begin{center}
-  \begin{tikzpicture}[font=\footnotesize, node distance=6mm,
-      box/.style={draw=#1, fill=#1!10, text=#1!75!black, rounded corners=2pt, minimum height=7mm, inner sep=4pt}]
-    \node[box=soft] (c) {agent: ``done''};
-    \node[box=sig, right=of c] (d) {read diff};
-    \node[box=sig, right=of d] (t) {run tests};
-    \node[box=video, right=of t] (y) {you decide};
-    \draw[thick, ->] (c) -- (d);
-    \draw[thick, ->] (d) -- (t);
-    \draw[thick, ->] (t) -- (y);
+  \begin{tikzpicture}[>={Stealth[length=2mm]}, font=\footnotesize, node distance=4mm,
+      box/.style={draw=#1, fill=#1!12, text=#1!75!black, rounded corners=2pt, minimum height=7mm, inner sep=4pt}]
+    \node[box=sig] (g) {goal};
+    \node[box=soft, right=of g] (s1) {step 1};
+    \node[box=soft, right=of s1] (s2) {step 2};
+    \node[box=soft, right=of s2] (s3) {step 3};
+    \node[box=video, right=of s3] (done) {done state};
+    \draw[thick, ->] (g) -- (s1);
+    \draw[thick, ->] (s1) -- (s2);
+    \draw[thick, ->] (s2) -- (s3);
+    \draw[thick, ->] (s3) -- (done);
   \end{tikzpicture}
   \end{center}
-\end{frame}
-
-% 0:40
-\begin{frame}{技巧 8：改原因，不只是结果}
-  \begin{columns}[T]
-    \begin{column}{0.48\textwidth}
-      \textbf{\textcolor{hot}{治标}}\\[2pt]
-      「把第 5 行改对。」
-      \begin{itemize}
-        \item 它照最后一句重来，可能换个地方再犯同样的错。
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.52\textwidth}
-      \textbf{\textcolor{video}{治本}}\\[2pt]
-      「这里你用了同步 API，会阻塞事件循环；换成 \texttt{async}，
-      并在调用处 \texttt{await} 它。」
-      \begin{itemize}
-        \item 给它\alert{原因}，它会顺着原因把整类问题一起修。
-      \end{itemize}
-    \end{column}
-  \end{columns}
-  \bigskip
-  纠错时说清「\textbf{为什么错了}」，它就学到你的判断标准；只说「错了」，它只学会改这一处。
-\end{frame}
-
-% 0:40
-\begin{frame}{技巧 9：把反馈沉淀成规则}
+  漂移来自：goal 太大 + 没有「完成」的定义，agent 越做越偏还停不下来。两条对策：
   \begin{itemize}
-    \item 说过一遍的偏好，写进项目规则文件、记忆或偏好设置，\textbf{下次自动生效}，不用再讲第二遍。
-    \item 例：「提交信息不要带 Co-Authored-By」「每次发版 bump \texttt{?v=}」「用 \texttt{x} 而不是 \texttt{y}」。
-    \item 一遍遍口头纠正，是把自己变成 agent 的配置中心；沉淀下来，规则替你纠正。
+    \item \textbf{拆解过程}：把大 goal 拆成带顺序的小步，每步一个产物。
+    \item \textbf{显式定义完成}：做完是什么样、跑什么、别动什么——没定义完成，
+      它就把「看起来做完了」当完成。每完成一步，回到 goal 检查一次：还在不在原路上。
   \end{itemize}
-  \begin{center}
-  \textcolor{soft}{\small 一次反馈 = 一次纠正；一条规则 = 从今往后每次都纠正。}
-  \end{center}
 \end{frame}
 
 % 0:40
-\begin{frame}{四个反模式}
-  \begin{center}
-  \footnotesize
-  \begin{tabular}{lll}
-    \toprule
-    \textbf{反模式} & \textbf{结果} & \textbf{改法} \\
-    \midrule
-    任务模糊 & 它按默认值乱猜 & 补上位置、约束、动机（技巧 1） \\
-    一大坨任务一次给 & 中途跑偏找不回 & 拆成可验证的小步（技巧 2） \\
-    不检查就接受 & 自信地交付错的 & 读 diff、跑测试（技巧 7） \\
-    原样重试 & 同样的错再来一遍 & 换思路、给原因（技巧 8） \\
-    \bottomrule
-  \end{tabular}
-  \end{center}
-  \medskip
-  四个反模式，正好对应前面九条技巧里最常被跳过的那四条。
-\end{frame}
-
-% 0:40
-\begin{frame}{开工前的检查清单}
+\begin{frame}{一张检查清单}
   \begin{center}
   \footnotesize
   \begin{tabular}{ll}
     \toprule
-    \textbf{开工前问自己} & \textbf{对应} \\
+    \textbf{开工前} & \textbf{过程中 / 收尾} \\
     \midrule
-    它知道文件在哪、别动什么、为什么吗？ & 上下文（技巧 1） \\
-    这一步结束时，我能验证吗？ & 拆小步（技巧 2） \\
-    「完成」长什么样？ & 验收标准（技巧 3） \\
-    哪些部分可以并行？ & 子 agent（技巧 5） \\
-    要不要先看方案？ & 先计划（技巧 6） \\
-    我准备读 diff、跑测试了吗？ & 盯结果（技巧 7） \\
+    领域规则落到 code base 了吗？ & 每步可验证吗？ \\
+    PDF 在本地吗？ & human in the loop 了吗？ \\
+    goal 拆了吗？ & 能并行的并行了吗？ \\
+    「完成」定义了吗？ & 读 diff、跑测试了吗？ \\
+    & 每条引用都能在本地 PDF 找到吗？ \\
     \bottomrule
   \end{tabular}
   \end{center}
   \bigskip
   \begin{center}
-  \textbf{一句话：} Agent 的价值上限，由你给的\alert{上下文}和你做的\alert{检查}决定。
+  \textbf{一句话：} 把领域规则外置、把 PDF 落本地、把每一步变可验证，
+  agent 才会从「会聊天的玩具」变成「能交付的帮手」。
   \end{center}
 \end{frame}
 
