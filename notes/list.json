@@ -4,7 +4,7 @@
     "title": "Agent 的使用技巧",
     "date": "2026-10-22",
     "tag": "Slides",
-    "excerpt": "一场约 17 分钟的分享，主旨是「你能验证多少，Agent 就能做多少」。围绕三条主线展开：外置领域规则（维护领域 code base 仓库——如 AIGC 图像检测中 VAE 重建须裁剪到 32 的整数倍、禁止 resize、底层伪影以 PNG 保存）、落地原始材料（自行下载 PDF 至 Zotero，令 agent 只读本地，避免参考文献幻觉）、显式验收（human in the loop 与显式定义完成状态，以防任务漂移）；最后给出低成本运行方案：opencode go plan + 开源模型、subagent 并行、vibe-fork 所需插件（mejistus/llm-for-zotero）。"
+    "excerpt": "一场约 15 分钟的分享，主旨「你能验证多少，Agent 就能做多少」。每个环节按「典型痛点 → 原因/方案 → 最佳实践」三拍展开：外置领域规则（代码从第一步就错——VAE 重建须裁剪到 32 整数倍、禁止 resize、底层伪影存 PNG，规则落 code base）、落地原始材料（引用是编的——自行下载 PDF 至 Zotero，令 agent 只读本地）、显式验收（一次跑完全错、任务漂移——human in the loop + 显式定义完成）、低成本运行（opencode go plan + 开源模型、subagent 并行、vibe-fork 插件如 mejistus/llm-for-zotero）。"
   },
   {
     "file": "Slides/Recent-Image-Compression-提纲.tex",

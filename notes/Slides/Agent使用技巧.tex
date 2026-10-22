@@ -2,11 +2,11 @@
 % title: Agent 的使用技巧
 % date: 2026-10-22
 % tag: Slides
-% excerpt: 一场约 17 分钟的分享，主旨是「你能验证多少，Agent 就能做多少」。围绕三条主线展开：外置领域规则（维护领域 code base 仓库——如 AIGC 图像检测中 VAE 重建须裁剪到 32 的整数倍、禁止 resize、底层伪影以 PNG 保存）、落地原始材料（自行下载 PDF 至 Zotero，令 agent 只读本地，避免参考文献幻觉）、显式验收（human in the loop 与显式定义完成状态，以防任务漂移）；最后给出低成本运行方案：opencode go plan + 开源模型、subagent 并行、vibe-fork 所需插件（mejistus/llm-for-zotero）。
+% excerpt: 一场约 15 分钟的分享，主旨「你能验证多少，Agent 就能做多少」。每个环节按「典型痛点 → 原因/方案 → 最佳实践」三拍展开：外置领域规则（代码从第一步就错——VAE 重建须裁剪到 32 整数倍、禁止 resize、底层伪影存 PNG，规则落 code base）、落地原始材料（引用是编的——自行下载 PDF 至 Zotero，令 agent 只读本地）、显式验收（一次跑完全错、任务漂移——human in the loop + 显式定义完成）、低成本运行（opencode go plan + 开源模型、subagent 并行、vibe-fork 插件如 mejistus/llm-for-zotero）。
 % ---
-% About 17 minutes: 开篇 2 min，外置规则 4 min，落地材料 3 min，
-% 显式验收 3 min，低成本运行 3 min，清单 1 min。图中文字只用 ASCII
-% （TikZJax 用 Computer Modern 编译，没有中文字形）。
+% About 15 minutes: 开篇 2 min，四个环节各 3 min，清单 1 min。
+% 每个环节固定三拍：痛点（红 alertblock）→ 原因/方案（block）→ 最佳实践（绿 exampleblock）。
+% 图中文字只用 ASCII（TikZJax 用 Computer Modern 编译，没有中文字形）。
 \documentclass[aspectratio=169]{beamer}
 \usetikzlibrary{arrows.meta,positioning}
 \definecolor{sig}{HTML}{1F5FAD}
@@ -83,12 +83,22 @@
   它能读的\structure{参考}，以及你能核验的\structure{输出}。
 \end{frame}
 
-% 0:20
+% 0:15
 \begin{frame}{大纲}
   \tableofcontents
 \end{frame}
 
 \section[外置规则]{外置领域规则}
+
+% 0:40
+\begin{frame}{\textcolor{hot}{痛点}：代码从第一步就错}
+  \begin{alertblock}{}
+    让 agent 写一段 VAE 重建脚本，跑出来是黑图、黑边，或指标直接崩；
+    改了三轮仍不对，因为它每次都从「教科书写法」重来——而教科书里没有你领域的规则。
+  \end{alertblock}
+  \bigskip
+  你花在纠错上的时间，比它「省」下的还多；错在预处理这一步，后面的结果就全作废。
+\end{frame}
 
 % 0:50
 \begin{frame}{通用实现与领域规则的冲突}
@@ -99,22 +109,10 @@
   \begin{alertblock}{后果}
     缺乏参考时，模型自第一步（预处理）即偏离领域约定，其后的全部结果随之失效。
   \end{alertblock}
-  \bigskip
-  因此，第一步不是给它一个任务，而是给它一份\structure{可参考的领域约定}。
-\end{frame}
-
-% 0:50
-\begin{frame}{维护一个领域 code base 仓库}
-  \begin{block}{沉淀}
-    将已验证的最小可运行代码、既往踩过的坑、约定的预处理流程，整理为一个仓库。
+  \begin{block}{方案：维护一个领域 code base 仓库}
+    将已验证的最小可运行代码、既往踩过的坑、约定的预处理流程整理为一个仓库，
+    令 agent 以它为参考修改代码，而非从零自由发挥。
   \end{block}
-  \begin{block}{用法}
-    令 agent 以该仓库为参考修改代码，而非从零自由发挥。
-  \end{block}
-  \bigskip
-  \begin{center}
-  \textcolor{soft}{\small 有参考，agent 才有正确的模板可循；无参考，代码从第一步即错。}
-  \end{center}
 \end{frame}
 
 % 1:00
@@ -140,13 +138,34 @@
       \item 底层伪影以 PNG 保存：JPEG 的二次有损压缩会再次引入或抹除伪影。
     \end{enumerate}
   \end{block}
-  \textcolor{soft}{\small 这些约定不在任何通用实现的默认中；无参考时，模型从预处理起即出错。}
+\end{frame}
+
+% 0:20
+\begin{frame}{\textcolor{video}{最佳实践}：规则落仓库，agent 照着抄}
+  \begin{exampleblock}{}
+    把领域规则沉淀为 code base 仓库，令 agent 以之为参考——让它\structure{抄}，别让它\structure{想}；
+    每一步由你验证。
+  \end{exampleblock}
+  \bigskip
+  \begin{itemize}
+    \item 维护 code base $\to$ 让它先读参考再改 $\to$ 每步验证（看张图 / 对指标 / 复现基线）。
+  \end{itemize}
 \end{frame}
 
 \section[落地材料]{落地原始材料}
 
+% 0:40
+\begin{frame}{\textcolor{hot}{痛点}：综述里的引用是编的}
+  \begin{alertblock}{}
+    让 agent 写 Related Work，引用看似都对，点进去却发现某篇根本不存在，
+    或作者、年份、venue 是拼的；关键数字也对不上。
+  \end{alertblock}
+  \bigskip
+  最糟的是\alert{你没查的那几条}，很可能就是错的那几条。
+\end{frame}
+
 % 0:50
-\begin{frame}{调研中的参考文献幻觉}{编造，而非检索失败}
+\begin{frame}{编造，而非检索失败}
   \begin{block}{机制}
     Agent 无法下载或访问某篇文献时，通常不会报告失败，而是在「给出答案」
     这一后训练奖励的驱动下，生成一条难以察觉的伪造引用。
@@ -154,27 +173,32 @@
   \begin{alertblock}{特征}
     伪造条目在作者、年份、venue 与编号上均合乎格式，不易识别。
   \end{alertblock}
-  \bigskip
-  对策见于下一页：自行下载，令其仅基于本地文件作答。
+  \begin{block}{方案：先下载，再作答}
+    自行将文献 PDF 下载至本地，令 agent 仅基于本地文件作答；Zotero 统一管理论文，
+    \texttt{llm-for-zotero} 将本地库接入 agent。
+  \end{block}
 \end{frame}
 
-% 0:50
-\begin{frame}{先下载，再作答}
-  \begin{block}{原则}
-    自行将文献 PDF 下载至本地，令 agent 仅基于本地文件作答；
-    无法访问时须如实说明，而非凭印象补全。
-  \end{block}
-  \begin{block}{工具}
-    Zotero 统一管理论文（编号、标签、笔记），\texttt{llm-for-zotero}
-    将本地库接入 agent。
-  \end{block}
+% 0:20
+\begin{frame}{\textcolor{video}{最佳实践}：先落 PDF，再让 agent 读}
+  \begin{exampleblock}{}
+    不给它真东西，就不让它开口引用；读不到就明说，绝不让它凭印象补全。
+  \end{exampleblock}
   \bigskip
-  \begin{center}
-  \textcolor{soft}{\small 落地原始材料，是切断编造入口最直接的手段。}
-  \end{center}
+  \begin{itemize}
+    \item 先下好 PDF $\to$ 喂本地路径 / 库 $\to$ 要求每条引用标注来源 $\to$ 抽查。
+  \end{itemize}
 \end{frame}
 
 \section[显式验收]{显式验收}
+
+% 0:40
+\begin{frame}{\textcolor{hot}{痛点}：一次跑完，全错；goal 太大，跑偏}
+  \begin{alertblock}{}
+    让它一次跑完再一起看：错在第一步，后面全错；
+    goal 给太大，做到一半偏了，还停不下来。
+  \end{alertblock}
+\end{frame}
 
 % 0:50
 \begin{frame}{Human in the loop}{每一步都需人工确认}
@@ -194,13 +218,12 @@
   \end{tikzpicture}
   \end{center}
   \begin{block}{要点}
-    每一步须可验证——预处理是否正确、指标是否合理、基线是否复现。
-    错误若发生在第一步，后续结果即全部失效。
+    每一步须可验证——预处理是否正确、指标是否合理、基线是否复现；
+    研究者才是判断「结果是否正确」的那个人。
   \end{block}
-  \textcolor{soft}{\small 研究者才是判断「结果是否正确」的那个人。}
 \end{frame}
 
-% 0:50
+% 0:40
 \begin{frame}{定义完成，避免任务漂移}
   \begin{block}{拆解过程}
     将大目标拆为具有先后顺序的小步，每步产出一个可检查的产物。
@@ -214,74 +237,64 @@
   \textcolor{soft}{\small 每完成一步，回到目标检查一次：是否仍在原路。}
 \end{frame}
 
+% 0:20
+\begin{frame}{\textcolor{video}{最佳实践}：每步可验证，完成有定义}
+  \begin{exampleblock}{}
+    每一步都须可验证并由你确认；同时显式定义「完成」——做完什么样、跑什么、别动什么。
+  \end{exampleblock}
+  \bigskip
+  \begin{itemize}
+    \item 拆解 $\to$ 定义完成 $\to$ 每步回到目标检查一次。
+  \end{itemize}
+\end{frame}
+
 \section[低成本]{低成本运行}
 
+% 0:30
+\begin{frame}{\textcolor{hot}{痛点}：太贵、太慢、还跑偏}
+  \begin{alertblock}{}
+    全用最贵的模型，账单吓人，却大多用不上；活是串行做的，慢；goal 太大，跑偏。
+  \end{alertblock}
+\end{frame}
+
 % 0:50
-\begin{frame}{低成本工作流}{opencode 与开源模型}
-  \begin{block}{规划先行}
-    opencode 的 \texttt{go plan} 先给出计划、经确认后执行，兼顾成本与方向。
+\begin{frame}{低成本工作流}{opencode、开源模型与并行}
+  \begin{block}{规划先行 + 开源模型}
+    opencode 的 \texttt{go plan} 先给计划、经确认后执行，兼顾成本与方向；
+    开源模型性能与价格俱佳，足以覆盖约九成工作，高成本模型仅用于算法设计与疑难缺陷。
   \end{block}
-  \begin{block}{开源模型}
-    性能与价格俱佳，足以覆盖约九成的工作（读改代码、生成样板、总结、查日志）；
-    高成本模型仅用于算法设计与疑难缺陷。
+  \begin{block}{subagent 并行}
+    将无依赖的任务拆开并行执行，仅保留结论，不保留文件转储；无依赖即可并行。
+  \end{block}
+  \begin{block}{自行适配工具}
+    缺适配时 \texttt{fork} 开源项目自行接入——例 \texttt{mejistus/llm-for-zotero}
+    为 \texttt{llm-for-zotero} 增加 opencode 支持。
   \end{block}
 \end{frame}
 
-% 0:40
-\begin{frame}{subagent 与并行}
-  \begin{columns}[T]
-    \begin{column}{0.52\textwidth}
-      \begin{block}{并行}
-        将无依赖的任务拆开并行执行，仅保留结论，不保留文件转储。
-      \end{block}
-      \begin{block}{判据}
-        两任务是否存在先后依赖；无依赖即可并行。
-      \end{block}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-      \begin{center}
-      \begin{tikzpicture}[font=\footnotesize, node distance=3mm,
-          box/.style={draw=accent, fill=accent!10, text=accent!75!black, rounded corners=2pt, minimum height=7mm, minimum width=22mm, align=center, inner sep=3pt}]
-        \node[box] (q) {paper A\\summarize};
-        \node[box, right=of q] (r) {paper B\\summarize};
-        \node[box, right=of r] (s) {paper C\\summarize};
-        \node[draw=sig, fill=sig!10, text=sig!75!black, rounded corners=2pt, minimum height=7mm, minimum width=22mm, align=center, inner sep=3pt, below=6mm of r] (y) {you: merge};
-        \draw[thick, ->] (q) -- (y);
-        \draw[thick, ->] (r) -- (y);
-        \draw[thick, ->] (s) -- (y);
-      \end{tikzpicture}
-      \end{center}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-% 0:40
-\begin{frame}{自行适配所需工具}
-  \begin{block}{做法}
-    缺少适配时，\texttt{fork} 开源项目自行接入，而非等待上游支持。
-  \end{block}
-  \begin{block}{案例}
-    \texttt{mejistus/llm-for-zotero}——为 \texttt{llm-for-zotero}
-    增加 opencode 支持。
-  \end{block}
+% 0:20
+\begin{frame}{\textcolor{video}{最佳实践}：go plan + 并行 + 拆解}
+  \begin{exampleblock}{}
+    go plan 先定方向、subagent 并行、goal 拆小并定义完成；贵模型只留给最难的一成。
+  \end{exampleblock}
   \bigskip
-  \begin{center}
-  \textcolor{soft}{\small 开源生态与 agent 编码的结合，可在较短时间内置所需工具。}
-  \end{center}
+  \begin{itemize}
+    \item go plan 定方向 $\to$ 能并行就并行 $\to$ 每步回到 goal 检查。
+  \end{itemize}
 \end{frame}
 
 % 0:40
-\begin{frame}{检查清单}
+\begin{frame}{检查清单}{四句最佳实践}
   \begin{center}
   \footnotesize
-  \begin{tabular}{lll}
+  \begin{tabular}{ll}
     \toprule
-    \textbf{开工前} & \textbf{过程中} & \textbf{收尾} \\
+    \textbf{环节} & \textbf{最佳实践} \\
     \midrule
-    领域规则已落入 code base & 每一步可验证 & 已读 diff、跑测试 \\
-    文献 PDF 已在本地 & human in the loop & 每条引用可溯源 \\
-    目标已拆解 & 无依赖的任务已并行 & 结果符合完成定义 \\
-    完成状态已定义 & — & — \\
+    \textcolor{sig}{外置规则} & 规则落仓库，agent 照着抄；每步你验 \\
+    \textcolor{accent}{落地材料} & 先落 PDF，再让 agent 读；够不到就不许答 \\
+    \textcolor{video}{显式验收} & 每步可验证，完成有定义 \\
+    \textcolor{hot}{低成本} & go plan + 并行 + 拆解；贵模型留给一成 \\
     \bottomrule
   \end{tabular}
   \end{center}
