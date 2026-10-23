@@ -4171,9 +4171,9 @@
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-latex.min.js"></script>
     <!-- HaTeX (github.com/mejistus/hatex, the hatex/core submodule) renders the posts. -->
-    <script src="hatex/core/dist/hatex.js?v=10.3.4"></script>
-    <script src="assets/latex-complete.js?v=10.3.4"></script>
-    <script src="assets/vim.js?v=10.3.4"></script>
+    <script src="hatex/core/dist/hatex.js?v=10.3.5"></script>
+    <script src="assets/latex-complete.js?v=10.3.5"></script>
+    <script src="assets/vim.js?v=10.3.5"></script>
     <script>
       let poems = [];
       let current = 0;
@@ -7518,6 +7518,14 @@
         if (block) flashPreviewBlock(block);
       }
       document.getElementById('editorPreview').addEventListener('dblclick', syncPreviewToSource);
+      // A slide in the editor is still preview text, not a projector: keep the
+      // double-click for the source jump. The deck's own handler would take it
+      // over and go fullscreen, hiding the editor and losing the jump.
+      document.getElementById('editorPreview').addEventListener('dblclick', (e) => {
+        if (!(e.target.closest && e.target.closest('.hatex-slide-frame'))) return;
+        e.stopPropagation();  // keep the deck from presenting
+        syncPreviewToSource(e);
+      }, true);
 
       // ── Problems: lint the source, plus a repo lookup for missing images ──
       let problems = [];
