@@ -2,7 +2,7 @@
 % title: LaTeX 写作示例
 % date: 2026-09-20
 % tag: Example
-% excerpt: 本站 LaTeX 模式的完整示例：章节与交叉引用、公式、复杂表格、插图与子图、TikZ 绘图、伪代码、引用与参考文献等日常写作场景，可直接复制作为模板。
+% excerpt: 本站 LaTeX 模式的模板：交叉引用、公式、表格、插图、TikZ、伪代码和参考文献，源码可以直接复制。
 % ---
 \definecolor{oursbg}{HTML}{DAEEDE}
 \newcommand{\E}{\mathbb{E}}
@@ -10,7 +10,7 @@
 \newtheorem{hyp}{假设}
 
 \begin{abstract}
-这篇文章本身就是一份模板：每一节演示一类日常写作场景。打开编辑器即可看到对应的 LaTeX 源码，复制需要的片段即可使用。
+这份示例本身就是一份模板：每一节演示一类日常写作场景。打开编辑器即可看到对应的 LaTeX 源码，复制需要的片段即可使用。
 编辑器支持语法补全：输入 \verb|\| 加字母补全命令，\verb|\begin{| 补全环境，\verb|\ref{| 补全文中的标签，\verb|\cite{| 补全文献；在手写的 \verb|\begin{...}| 行尾按回车会自动补上 \verb|\end{...}|。
 常用结构还可以用代码片段快速输入：例如输入 \texttt{fig} 后按 Tab 展开整个 figure 环境，再按 Tab 依次跳到图片路径、标题和标签；全部触发词见编辑器“Menu”菜单中的“Snippets”。
 编辑器还带有语法高亮、\verb|Cmd/Ctrl+/| 注释切换，以及“Problems”检查：未闭合的环境或公式、指向不存在标签的引用、表格列数不符、缺失的图片等都会列出，点击即可跳到对应行。
@@ -232,9 +232,9 @@
 检测器这类结构图不必外挂图片：编辑器内置了一组 \texttt{nn} 样式（\texttt{nnconv}、\texttt{nnpool}、\texttt{nnattn}、\texttt{nnout}、\texttt{nndata}、\texttt{nnflow}、\texttt{nnskip} 等），
 只要图中用到其中任意一个，它们的定义就会自动补进这张图的导言区。
 图~\ref{fig:yolo26} 画的是 YOLO26 的整体组织：主干逐级下采样得到 P3/P4/P5，颈部先自顶向下、再自底向上融合（PAN-FPN），三个尺度各接一个检测头。
-虚线框标出的是 YOLO26 相对前代的改动——检测头去掉了 DFL、直接回归边框，推理端到端因而不再需要 NMS，训练侧则换用 ProgLoss、STAL 与 MuSGD。
+虚线框标出的是 YOLO26 相对前代的改动：检测头去掉了 DFL、直接回归边框，推理端端到端，不再需要 NMS，训练侧则换用 ProgLoss、STAL 与 MuSGD。
 图中的方块是示意性的分组，不逐一对应实现中的模块名。
-\emph{提示}：图内文字请用 ASCII——TikZJax 由 plain \TeX{} 编译，没有中文字体，写中文会在“Problems”里报警告。
+\emph{提示}：图内文字请用 ASCII。TikZJax 由 plain \TeX{} 编译，没有中文字体，写中文会在“Problems”里报警告。
 
 \usetikzlibrary{arrows.meta,positioning}
 \begin{figure}[htbp]

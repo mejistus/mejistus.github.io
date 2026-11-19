@@ -1,317 +1,310 @@
 [
   {
-    "file": "Slides/Agent-的使用技巧.tex",
-    "title": "Agent 的使用技巧",
-    "date": "2026-10-22",
-    "tag": "Slides",
-    "excerpt": "一场约 17 分钟的分享，主旨是「你能验证多少，Agent 就能做多少」。从三个「看起来成功」的翻车现场切入——预处理被默认 resize 改写、参考文献被编造、评测脚本被改动——对应三个动作：外置领域规则（以 AIGC 图像检测中 VAE 重建须裁剪到 32 的整数倍、禁止 resize、底层伪影存 PNG 为例，把规则写进仓库并写成可执行检查）、落地原始材料（自行下载 PDF 至 Zotero，令 agent 只读本地、附文件名与页码、查不到就写 NOT FOUND）、显式验收（用任务单定义完成，并设人工闸门）；最后对照 Claude Code、Codex CLI、opencode 的落地手段，并给出低成本运行方案：opencode Go 订阅与开源模型、subagent 并行、vibe-fork 所需插件（mejistus/llm-for-zotero）。"
-  },
-  {
     "file": "Slides/Recent-Image-Compression.tex",
     "title": "Recent Image Compression: Four Branches, 2025–2026",
     "date": "2026-10-13",
     "tag": "Slides",
-    "excerpt": "A follow-up to From Samples to Bits. Since learned codecs caught up with VVC in 2020, research has split four ways. For each, two papers from 2025–2026, shown with their own pipeline figures: fewer bits at the same error (DCAE, HPCM), real-looking images from one diffusion step (StableCodec, OneDC), decoders small enough for a CPU (LotteryCodec, Good-Cheap-Fast), and images compressed for multimodal LLMs (transform-neck, CoTAM). JPEG AI (2025) shows where the four meet."
+    "excerpt": "Learned image compression since 2020, split into four branches: fewer bits at the same error, one-step diffusion codecs, CPU-sized decoders, and compression for multimodal LLMs. Two papers per branch, shown with their own pipeline figures."
   },
   {
     "file": "Slides/From-Samples-to-Bits-讲稿.tex",
     "title": "From Samples to Bits：讲稿与背景知识",
     "date": "2026-10-02",
     "tag": "Slides",
-    "excerpt": "配合幻灯片 From Samples to Bits 的讲稿。全场只回答一个问题：一张图到底需要多少个数？先讲需要多少样本（采样定理），再沿着频谱这条线讲每个样本要多少比特（图像压缩七十年，以及神经网络里的上下采样为什么也是采样），最后说明两个答案为什么相关。讲稿给出主线、逐页承上启下的讲词、按幻灯片顺序排列的背景知识和提问准备。"
+    "excerpt": "From Samples to Bits 的讲稿和背景知识。主线是一个问题：一张图需要多少个数？先讲采样定理，再讲每个样本需要多少比特，最后把两个答案接起来。"
   },
   {
     "file": "Slides/From-Samples-to-Bits.tex",
     "title": "From Samples to Bits: Sampling Theory and Image Compression",
     "date": "2026-09-30",
     "tag": "Slides",
-    "excerpt": "A 20-minute talk built on one question: how many numbers does an image need? First the sampling theorem (how many samples), then seventy years of image compression read through the spectrum (how many bits per sample, and why the ↓2 and ↑2 inside neural codecs are sampling too), and finally why the two answers are linked: when bits are scarce, fewer samples are better."
+    "excerpt": "A 20-minute talk about how many numbers an image needs: sampling first, then seventy years of image compression read through the spectrum, and why the two answers depend on each other."
   },
   {
     "file": "Example/LaTeX-写作示例.tex",
     "title": "LaTeX 写作示例",
     "date": "2026-09-20",
     "tag": "Example",
-    "excerpt": "本站 LaTeX 模式的完整示例：章节与交叉引用、公式、复杂表格、插图与子图、TikZ 绘图、伪代码、引用与参考文献等日常写作场景，可直接复制作为模板。"
+    "excerpt": "本站 LaTeX 模式的模板：交叉引用、公式、表格、插图、TikZ、伪代码和参考文献，源码可以直接复制。"
   },
   {
     "file": "Notes/Rethink-Diffusion-Models-for-Feature-Modeling.tex",
     "title": "Rethink Diffusion Models for Feature Modeling",
     "date": "2026-06-21",
     "tag": "Notes",
-    "excerpt": "本文总结了扩散模型在特征建模中的优势与局限，重点讨论小样本特征建模和高维特征建模两个场景。"
+    "excerpt": "把扩散模型当作特征分布建模器，讨论小样本和高维特征两个场景：什么时候有用，什么时候只是在学伪分布。"
   },
   {
     "file": "ML/Krogh-Vedelsby-集成误差分解.tex",
     "title": "Krogh-Vedelsby 集成误差分解",
     "date": "2026-06-21",
     "tag": "ML",
-    "excerpt": "Krogh-Vedelsby 集成误差分解说明，集成模型的误差可以表示为单模型平均误差减去模型之间的差异性，因此好的集成不仅依赖单模型准确性，也依赖模型之间的有效分歧。"
+    "excerpt": "Krogh-Vedelsby 分解：集成误差等于单模型平均误差减去模型之间的分歧。后面接着讨论它对多专家 AIGC 检测和 MLP fusion 的意义。"
   },
   {
     "file": "Math/Parseval’s-theorem.tex",
     "title": "Parseval’s theorem",
     "date": "2026-06-01",
     "tag": "Math",
-    "excerpt": "Parseval’s theorem states that the total energy of a signal is preserved under an orthonormal change of basis, especially under Fourier transform."
+    "excerpt": "Parseval 定理的几个版本：有限维内积空间、DFT、傅里叶级数和连续傅里叶变换；顺带说明归一化常数为什么总对不上。"
   },
   {
     "file": "Math/信息论入门.tex",
     "title": "信息论入门",
     "date": "2026-06-01",
     "tag": "Math",
-    "excerpt": "Create and learn, with joy."
+    "excerpt": "从猜一个 1 到 8 的数字开始，把熵、条件熵、互信息、KL 散度、典型集和信道容量串起来。"
   },
   {
     "file": "ML/Expectation-Maximization-Algorithm.tex",
     "title": "Expectation Maximization Algorithm",
     "date": "2026-05-28",
     "tag": "ML",
-    "excerpt": "Recapped from [知乎专栏：EM算法]{https://zhuanlan.zhihu.com/p/484134651}"
+    "excerpt": "EM 的推导：用 Jensen 不等式构造似然下界，E 步和 M 步交替抬高它，最后证明似然单调不降。"
   },
   {
     "file": "ML/不同基在损失作用下的优表现.tex",
     "title": "损失与正交基",
     "date": "2026-04-26",
     "tag": "ML",
-    "excerpt": "本文从极坐标扰动、二次损失的 Hessian 和梯度流出发，说明正交基为何会改善梯度下降的条件数与方向耦合。"
+    "excerpt": "从极坐标扰动和二次损失的 Hessian 看正交基为什么有用：它让梯度方向少耦合，条件数也更小。"
   },
   {
     "file": "Math/KKT-reviews.tex",
     "title": "KKT reviews",
     "date": "2026-04-22",
     "tag": "Math",
-    "excerpt": "时隔2周再探KTT条件。"
+    "excerpt": "隔了两周再翻 KKT：原始可行性、对偶可行性、驻点和互补松弛，逐条对上几何直觉，再回头看约束规范。"
   },
   {
     "file": "Math/3-keys.tex",
     "title": "泛函与优化",
     "date": "2026-04-21",
     "tag": "Math",
-    "excerpt": "本文介绍了3个泛函优化的典型问题."
+    "excerpt": "三个泛函优化的典型问题：积分约束、归一化约束导出特征值问题，以及带高阶导数的欧拉–泊松方程。"
   },
   {
     "file": "Math/最小作用量原理.tex",
     "title": "最小作用量原理",
     "date": "2026-04-21",
     "tag": "Math",
-    "excerpt": "本文介绍了最小作用量原理、拉格朗日力学与泛函之间的联系，并解释为什么力学问题会自然落到变分法的语言中。"
+    "excerpt": "从牛顿方程走到拉格朗日力学：作用量是什么，最小作用量到底在说什么，以及为什么力学问题最后都会落到泛函上。"
   },
   {
     "file": "Math/Mixture-Distribution's-Variance.tex",
     "title": "Mixture Distribution's Variance",
     "date": "2026-04-10",
     "tag": "Math",
-    "excerpt": "This post introduces a concept about mixture distribution's variance."
+    "excerpt": "两个高斯混合时，方差不能只对条件分布求期望；把积分写全，多出来的那一项就是混合本身带来的方差。"
   },
   {
     "file": "Math/Infinite-Dimensions-$^®$.tex",
     "title": "Infinite Dimension ™",
     "date": "2026-04-07",
     "tag": "Math",
-    "excerpt": "This blog introduces the calculus of variations."
+    "excerpt": "变分法的一页笔记：泛函、函数空间、第一变分，以及为什么无穷维里的极值问题需要另一套语言。"
   },
   {
     "file": "Notes/Nabla.tex",
     "title": "Nabla Operator",
     "date": "2026-04-01",
     "tag": "Notes",
-    "excerpt": "哈密顿算子的一些直观理解"
+    "excerpt": "哈密顿算子的三个用法：梯度、散度和旋度，配上直角坐标下的定义和一点几何直觉。"
   },
   {
     "file": "RL/RL Paradigms.tex",
-    "title": "主流强化学习方法范式综述：策略梯度、值函数、Actor-Critic 及现代变体",
+    "title": "强化学习的几种范式",
     "date": "2026-03-29",
     "tag": "RL",
-    "excerpt": "系统梳理强化学习核心范式，涵盖值函数法（MC、TD、Q-Learning、DQN）、策略梯度法（REINFORCE、PPO、TRPO）、Actor-Critic 族（A2C、SAC）及面向 LLM 的 GRPO，每种方法附完整伪代码与核心公式。"
+    "excerpt": "从 MC、TD、Q-learning、DQN 到 REINFORCE、TRPO、PPO、A2C、SAC 和 GRPO，按值函数、策略梯度、Actor-Critic 三条线整理，每个方法保留伪代码和核心公式。"
   },
   {
     "file": "RL/奖励函数的梯度.tex",
     "title": "The Gradiant of Reward Function",
     "date": "2026-02-17",
     "tag": "RL",
-    "excerpt": "Why is it so important to get the gradient of the reward function?"
+    "excerpt": "为什么拿到奖励对输入的梯度会好办这么多：低方差、可反传、样本效率高；以及现实中这个梯度通常拿不到时该怎么办。"
   },
   {
     "file": "RL/Reward-hacking.tex",
     "title": "Reward Hacking",
     "date": "2026/2/9",
     "tag": "RL",
-    "excerpt": "在使用在线 RL（例如 GRPO / PPO）时，经常会出现："
+    "excerpt": "在线 RL 里 reward 被钻空子的几种样子，以及 KL 正则为什么能把更新限制在预训练模型附近。去掉 KL 之后，质量和多样性会分别怎么坏。"
   },
   {
     "file": "RL/KL-Divergence-Biased.tex",
     "title": "Difference with KL in Loss and reward",
     "date": "2026/2/9",
     "tag": "RL",
-    "excerpt": "为什么在GRPO中进行微调时，在损失（Loss）里添加散度项（Reverse KL Divergence)本质上和在奖励（Reward）中添加散度项是不同的，并且会造成Bias？"
+    "excerpt": "把 KL 放进 loss 和放进 reward 不是一回事。前者会让自动微分漏掉一项，后者不会；这篇把求导过程一步步写开。"
   },
   {
     "file": "RL/强化学习入门.tex",
     "title": "Reinforcement Learning",
     "date": "2026/3/8",
     "tag": "RL",
-    "excerpt": "本文主要讲解强化学习的基础知识，包括强化学习的概念，RL的基本算法，以及RL的应用。"
+    "excerpt": "强化学习的基础：状态、动作、奖励、策略、值函数，以及从动态规划到 Q-learning 的几条主线。"
   },
   {
     "file": "RL/兩類KL散度.tex",
     "title": "KL Divergence in Reinforcement Learning",
     "date": "2026/2/13",
     "tag": "RL",
-    "excerpt": "There are two types of KL divergence in Reinforcement Learning, forward KL and reverse KL. In this p..."
+    "excerpt": "forward KL 和 reverse KL 在 mode-covering 与 mode-seeking 上的区别，以及为什么 RL 微调通常选 reverse KL。"
   },
   {
     "file": "RL/GRPO-DAPO-λGRPO.tex",
     "title": "GRPO, DAPO and λGRPO",
     "date": "2026/1/3",
     "tag": "RL",
-    "excerpt": "This blog is a summary of GRPO, DAPO and λGRPO."
+    "excerpt": "GRPO、DAPO 和 λGRPO 的关系：去掉 value model 之后，advantage 怎么估，DAPO 改了哪几项，λGRPO 又补了什么。"
   },
   {
     "file": "Notes/usual_command.tex",
     "title": "Usual Command",
     "date": "2026/3/27",
     "tag": "Notes",
-    "excerpt": "Some whisper about Docker、Git and Latex..."
+    "excerpt": "Docker、Git 和 LaTeX 的常用命令，按类别放在表里。危险的 Docker 命令单独标出来，Git 部分记了 force-with-lease 和 rebase -i 的习惯。"
   },
   {
     "file": "Notes/i3wm-setup.tex",
-    "title": "My i3wm setup: calm aesthetics for a busy mind",
+    "title": "My i3wm setup",
     "date": "2026/1/26",
     "tag": "Notes",
-    "excerpt": "How a tiling window manager helped me find focus — and a colour palette that stays out of the way."
+    "excerpt": "My i3wm setup: polybar, rofi, kitty, picom, dunst and nvim, the bindings I actually use, and where the accent colour comes from."
   },
   {
     "file": "Math/Fubini.tex",
     "title": "富比尼定理",
     "date": "2026/2/26",
     "tag": "Math",
-    "excerpt": "富比尼定理（英語：Fubini's theorem）是數學分析中有關重積分的一個定理，由數學家圭多·富比尼在1907年提出。富比尼定理給出了使用逐次積分的方法計算雙重積分的條件。在這些條件下，不僅能夠..."
+    "excerpt": "Fubini 定理和它的 Tonelli 版本：什么时候可以把重积分拆成逐次积分，非负函数为什么不需要可积性假设。"
   },
   {
     "file": "Math/Optimal-Control.tex",
     "title": "最优控制（Optimal Control）",
     "date": "2025/12/31",
     "tag": "Math",
-    "excerpt": "最优控制理论是控制理论的一个分支，研究在一段时间内寻找动力系统的控制 )，从而优化目标函数 。[1\\] 它在科学、工程和运筹学中有广泛的应用。"
+    "excerpt": "最优控制的基本框架：动力学、代价函数、LQR、离散时间情形和几种数值解法。"
   },
   {
     "file": "Math/KKT-Conditions.tex",
     "title": "KKT-Conditions",
     "date": "2025/12/28",
     "tag": "Math",
-    "excerpt": "在數學中，卡魯什-庫恩-塔克條件（英語：Karush-Kuhn-Tucker Conditions，常見別名：Kuhn-Tucker，KKT條件，Karush-Kuhn-Tucker最優化條件，Kar..."
+    "excerpt": "KKT 条件的定义、必要性和充分性，以及约束规范在证明里起的作用。"
   },
   {
     "file": "Math/Functional-Analysis.tex",
     "title": "Functional Analysis",
     "date": "2026/3/25",
     "tag": "Math",
-    "excerpt": "This note is my study for Function Analysis."
+    "excerpt": "泛函分析的学习笔记：内积、正交基、傅里叶级数的收敛性，以及函数空间和矩阵空间哪里不一样。"
   },
   {
     "file": "ML/MiniMax.tex",
     "title": "MiniMax Loss",
     "date": "2025/11/3",
     "tag": "ML",
-    "excerpt": "“MiniMax 损失函数”通常指的是 极小极大优化目标，最常见出现在 GAN（生成对抗网络） 里。"
+    "excerpt": "GAN 的 minimax 目标：判别器和生成器分别在优化什么，原始损失为什么会饱和，non-saturating loss 改了什么。"
   },
   {
     "file": "ML/Residual.tex",
     "title": "Residual to HC, mHC, and Attention-Residual",
     "date": "2026/3/17",
     "tag": "ML",
-    "excerpt": "From Standard Residual Connection to Hyper-Connections, mHC and Attention-Residual."
+    "excerpt": "残差连接从标准 residual 到 Hyper-Connections、mHC 和 Attention-Residual 的演化：每一代在解决前一代的什么问题。"
   },
   {
     "file": "ML/Hinge Loss: An example.tex",
     "title": "Hinge loss: An example",
     "date": "2026-03-30",
     "tag": "ML",
-    "excerpt": "这是一个典型的带 margin 的排序损失，用来约束样本映射后的特征更接近正确类别文本特征，并与错误类别文本特征至少拉开一个间隔。"
+    "excerpt": "一个带 margin 的排序损失：正样本要靠近正确类别，负样本至少隔开 m；顺带和 triplet loss、交叉熵做个对比。"
   },
   {
     "file": "ML/集中不等式.tex",
     "title": "Concentration inequality",
     "date": "2025/12/19",
     "tag": "ML",
-    "excerpt": "这是一个集中不等式，更准确地说，是 McDiarmid 不等式（有界差分不等式） 的形式。"
+    "excerpt": "McDiarmid 有界差分不等式：什么时候能用，上界怎么读，以及双边形式长什么样。"
   },
   {
     "file": "ML/GUMBEL-SOFTMAX.tex",
     "title": "GUMBEL-SOFTMAX",
     "date": "2025/12/18",
     "tag": "ML",
-    "excerpt": "This post is a summary of Gumbel-Softmax, which solves the issue of categorical sampling that is not..."
+    "excerpt": "Gumbel-Max 把离散采样写成 argmax，Gumbel-Softmax 再把 argmax 换成可导的 softmax；最后是 straight-through 版本和伪代码。"
   },
   {
     "file": "ML/Variational-method.tex",
     "title": "Variational Method",
     "date": "2026/1/12",
     "tag": "ML",
-    "excerpt": "变分法 （或称变分法 ）是数学分析的一个领域，利用变分，变分是函数)中的微小变化 以及泛函 )，用于求函数的极大值和最小值：从一组函数)映射到实数的映射 )。[a\\] 泛函通常表示为包含函数及其导数的..."
+    "excerpt": "变分法的基本对象：泛函、第一变分、欧拉–拉格朗日方程，以及带高阶导数的欧拉–泊松方程。"
   },
   {
     "file": "ML/Monte Callo.tex",
     "title": "Monte Callo Method",
     "date": "2026/1/2",
     "tag": "ML",
-    "excerpt": "Monte Callo Method is a method for analyzing the uncertainty of a model."
+    "excerpt": "用蒙特卡洛做不确定性分析：给输入建分布、抽样、跑模型、看输出分布，再做敏感性分析找出哪个输入贡献最大。"
   },
   {
     "file": "Diffusion/ODE-has-no-GRPO.tex",
     "title": "ODE has no GRPO",
     "date": "2025/12/22",
     "tag": "Diffusion",
-    "excerpt": "为什么 deterministic flow 会导致计算  变得“computationally expensive”，以及“divergence estimation”到底指什么?"
+    "excerpt": "deterministic flow 为什么不能像 SDE 那样直接算条件对数概率：change-of-variables 会带出 Jacobian，实际计算就落到了 divergence estimation 上。"
   },
   {
     "file": "Diffusion/Rethinking the Design Space of RL for Diffusion Models.tex",
     "title": "Rethinking the Design Space of RL for Diffusion Models — On the Importance of Likelihood Estimation Beyond Loss Design",
     "date": "2026-03-28",
     "tag": "Diffusion",
-    "excerpt": "本文系统分析 RL fine-tuning diffusion model 的三大设计维度，发现 ELBO-based likelihood estimation 是主导效率与性能的核心因素，而非 policy-gradient loss 的具体形式；最终方法在 90 GPU hours 内将 SD3.5-M 的 GenEval 从 0.24 提升至 0.95。"
+    "excerpt": "RL 微调扩散模型的三个设计维度：likelihood 怎么估、loss 怎么选、advantage 怎么算。结论是 ELBO-based likelihood 比 loss 形式更决定成败。"
   },
   {
     "file": "Diffusion/LCM.tex",
-    "title": "Latent Consistency Models（LCM）技术说明",
+    "title": "Latent Consistency Models（LCM）",
     "date": "2025/12/22",
     "tag": "Diffusion",
-    "excerpt": "扩散模型（Diffusion Models）在图像生成任务中表现出优异性能，但其推理过程通常依赖多步逐次去噪，计算开销较大。为降低推理成本，Latent Consistency Models（LCMs..."
+    "excerpt": "LCM 用一致性约束把概率流 ODE 的轨迹压成少步生成：建模目标、蒸馏过程、latent 表示和推理流程。"
   },
   {
     "file": "Diffusion/How-to-calculate-logp.tex",
     "title": "Calculate Log Probability of Diffusion",
     "date": "2025/12/7",
     "tag": "Diffusion",
-    "excerpt": "在流匹配中，使用策略模型下的条件对数概率通过高斯概率公式计算："
+    "excerpt": "流匹配里条件对数概率的推导：把高斯转移的密度写成式子，再取 log。"
   },
   {
     "file": "Diffusion/擴散模型邊緣分布.tex",
     "title": "擴散模型邊緣分布",
     "date": "2025/12/30",
     "tag": "Diffusion",
-    "excerpt": "当前时刻的 score function 可以通过条件分布来计算：$\\nabla \\log p_t(x_t) = \\mathbb{E}_{x_0 \\sim p(x_0|x_t)}[\\nabla \\log p(x_t|x_0)]$"
+    "excerpt": "用贝叶斯公式把当前时刻的 score 写成条件 score 的期望，以及这个等式在扩散模型里为什么好用。"
   },
   {
     "file": "Diffusion/Flow-Model-rev.tex",
     "title": "the RCGM framework",
     "date": "2025/11/12",
     "tag": "Diffusion",
-    "excerpt": "所谓蒸馏即对已有的扩散模型， 减少其采样步数从而提高生成性能。"
+    "excerpt": "RCGM 框架下的蒸馏方法：consistency model、short-cut、progressive distillation、rectified flow 和 InstaFlow，各自的假设和代价。"
   },
   {
     "file": "Diffusion/Reconsidering-Noise-DDPM.tex",
     "title": "重新审视扩散模型中的噪声：理论与实验",
     "date": "2026/3/28",
     "tag": "Diffusion",
-    "excerpt": "当前绝大多数去噪扩散概率模型（DDPM）在前向扩散与反向去噪过程中，默认使用**白高斯噪声（White Gaussian Noise）**。这一选择的理由很简单——分析方便、实现简单。但这真的是最优选择吗？"
+    "excerpt": "DDPM 默认用白高斯噪声，但这篇论文问的是：换成彩色高斯或非高斯噪声会怎样。几个定理给出 MSE 下界和误差概率下界，实验里 FID 从 104 降到 70。"
   },
   {
     "file": "Diffusion/Diffusion-LogPi.tex",
     "title": "Calculate $log \\pi_\\theta$ in code",
     "date": "2025/11/17",
     "tag": "Diffusion",
-    "excerpt": "在扩散模型（Diffusion  Model）的上下文中， 指的是生成整张图片过程的对数概率。它不是一次性计算出来的，而是反向扩散（去噪）过程中每一步的对数概率的累加和。"
+    "excerpt": "扩散模型里的 log πθ 由反向去噪每一步条件对数概率累加得到；这篇写代码里怎么实现。"
   }
 ]

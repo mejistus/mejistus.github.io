@@ -3,28 +3,17 @@
 % date: 2025/11/3
 % tag: ML
 % ---
-“\textbf{MiniMax 损失函数}”通常指的是 \textbf{极小极大优化目标}，最常见出现在 \textbf{GAN（生成对抗网络）} 里。
+MiniMax 损失函数通常指极小极大优化目标，最常见的场合是 GAN（生成对抗网络）。
 
 \hrule
 
 \section{基本含义}
 
-MiniMax 就是：
-
-\begin{itemize}
-  \item 一个模型想让目标函数\textbf{尽可能大}
-  \item 另一个模型想让目标函数\textbf{尽可能小}
-\end{itemize}
+MiniMax 就是一个模型想让目标函数尽可能大，另一个模型想让它尽可能小。
 
 写成数学形式就是：\(\min_G \max_D V(D,G)\)
 
-其中：
-
-\begin{itemize}
-  \item \(G\) 是生成器（Generator）
-  \item \(D\) 是判别器（Discriminator）
-  \item \(V(D,G)\) 是两者博弈的目标函数
-\end{itemize}
+其中 \(G\) 是生成器（Generator），\(D\) 是判别器（Discriminator），\(V(D,G)\) 是两者博弈的目标函数。
 
 这就是“极小极大”损失。
 
@@ -40,26 +29,19 @@ MiniMax 就是：
 
 含义如下：
 
-\subsection{判别器\textbf{\(D\)}的目标}
+\subsection{判别器 \(D\) 的目标}
 
-希望：
+希望对真实样本 \(x\)，\(D(x)\to 1\)；对生成样本 \(G(z)\)，\(D(G(z))\to 0\)。
 
-\begin{itemize}
-  \item 对真实样本 \(x，D(x)\to 1\)
-  \item 对生成样本 \(G(z)，D(G(z))\to 0\)
-\end{itemize}
-
-所以它要\textbf{最大化}
+所以它要最大化
 
 \[
 \mathbb E_{x\sim p_{\text{data}}}[\log D(x)] + \mathbb E_{z\sim p_z}[\log(1-D(G(z)))]
 \]
 
-\subsection{生成器\textbf{\(G\)}的目标}
+\subsection{生成器 \(G\) 的目标}
 
-希望生成的样本骗过判别器，让 \(D(G(z))\to 1\)
-
-但在原始 minimax 写法里，生成器是去\textbf{最小化}
+希望生成的样本骗过判别器，让 \(D(G(z))\to 1\)。但在原始 minimax 写法里，生成器是去最小化
 
 \[
 \mathbb E_{z\sim p_z}[\log(1-D(G(z)))]
@@ -91,11 +73,7 @@ L_G^{\text{minimax}} = \mathbb E_{z\sim p_z}[\log(1-D(G(z)))]
 
 \section{原始 MiniMax 损失的问题}
 
-这个生成器损失虽然理论上对，但训练中常有一个问题：
-
-当判别器很强时，\(D(G(z))\approx 0\)，这时\(\log(1-D(G(z)))\)
-
-对生成器提供的梯度会很弱，容易出现\textbf{梯度消失}。
+这个生成器损失理论上对，但训练中常有一个问题：当判别器很强时，\(D(G(z))\approx 0\)，这时 \(\log(1-D(G(z)))\) 对生成器提供的梯度会很弱，容易出现梯度消失。
 
 所以实际中常不用这个原始 minimax 形式训练生成器。
 
@@ -111,23 +89,13 @@ L_G^{\text{NS}} = -\mathbb E_{z\sim p_z}[\log D(G(z))]
 
 这个版本梯度更强，更容易训练。
 
-所以你如果在论文里看到：
-
-\begin{itemize}
-  \item \textbf{minimax loss}：多半指原始 GAN 论文中的博弈目标
-  \item \textbf{generator loss}：实际实现里往往改成 \(\textbf{non-saturating loss}\)
-\end{itemize}
+所以如果在论文里看到 minimax loss，多半指原始 GAN 论文中的博弈目标；看到 generator loss，实际实现里往往改成了 non-saturating loss。
 
 \hrule
 
 \section{从博弈角度理解}
 
-MiniMax 的本质是一个二人零和博弈：
-
-\begin{itemize}
-  \item 判别器努力区分真假
-  \item 生成器努力伪造得更真实
-\end{itemize}
+MiniMax 是一个二人零和博弈：判别器努力区分真假，生成器努力伪造得更真实。
 
 两者不断对抗，最终理想状态下：
 
@@ -149,14 +117,6 @@ D(x)=\frac12
 
 更一般地，MiniMax 损失函数就是这种形式：\(\min_\theta \max_\phi f(\theta,\phi)\)
 
-常见于：
+常见于生成对抗网络、对抗训练、域适应、鲁棒优化和博弈论建模。
 
-\begin{itemize}
-  \item 生成对抗网络 GAN
-  \item 对抗训练
-  \item 域适应
-  \item 鲁棒优化
-  \item 博弈论建模
-\end{itemize}
-
-也就是说，“MiniMax”不是某一个固定公式，而是一类\textbf{优化结构}。
+也就是说，“MiniMax”不是某一个固定公式，而是一类优化结构。

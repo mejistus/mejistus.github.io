@@ -2,25 +2,23 @@
 % title: Parseval’s theorem
 % date: 2026-06-01
 % tag: Math
-% excerpt: Parseval’s theorem states that the total energy of a signal is preserved under an orthonormal change of basis, especially under Fourier transform.
+% excerpt: Parseval 定理的几个版本：有限维内积空间、DFT、傅里叶级数和连续傅里叶变换；顺带说明归一化常数为什么总对不上。
 % ---
 \section{Motivation}
 
-Parseval’s theorem is one of the most important results connecting the spatial domain and the frequency domain.
+Parseval’s theorem connects the spatial domain and the frequency domain.
 
-Informally, it says:
+In words: the total energy of a signal in the original domain equals the total energy of its representation in an orthonormal frequency basis.
 
-\verb|The total energy of a signal in the original domain is equal to the total energy of its representation in an orthonormal frequency basis.|
+In signal processing, a Fourier transform does not create or destroy energy. It only redistributes the same energy among different frequency components.
 
-In signal processing, this means that \verb|a Fourier transform does not create or destroy energy|. It only redistributes the same energy among different frequency components.
-
-For example, if a signal has large high-frequency Fourier coefficients, then a significant part of its total energy is carried by high-frequency oscillations. \verb|If a denoising or compression method removes those coefficients, the loss can be measured either in the spatial domain or in the frequency domain|. Parseval’s theorem guarantees that these two measurements are \verb|consistent|.
+For example, if a signal has large high-frequency Fourier coefficients, then much of its total energy is carried by high-frequency oscillations. If a denoising or compression method removes those coefficients, the loss can be measured either in the spatial domain or in the frequency domain. Parseval’s theorem guarantees that the two measurements agree.
 
 \section{Parseval’s theorem in finite-dimensional vector spaces}
 
-The cleanest way to understand Parseval’s theorem is through linear algebra.
+Parseval’s theorem is easiest to see in linear algebra.
 
-Before discussing Fourier transform, consider an ordinary finite-dimensional vector space. Let
+Before the Fourier transform, take an ordinary finite-dimensional vector space. Let
 
 \[
 x \in \mathbb{C}^N
@@ -34,7 +32,7 @@ be a vector, and let
 
 be an orthonormal basis of \(\mathbb{C}^N\).
 
-Here, “orthonormal” means two things:
+“Orthonormal” means:
 
 \begin{enumerate}
   \item each basis vector has length \(1\);
@@ -61,7 +59,7 @@ orthonormality can be written as
 \end{cases}
 \]
 
-Because these basis vectors form a complete coordinate system, every vector \(x\) can be decomposed as
+Every vector \(x\) decomposes as
 
 \[
 x
@@ -87,7 +85,7 @@ x
 \langle x,u_k\rangle u_k.
 \]
 
-This equation simply says:
+That is:
 
 \begin{quote}
 A vector can be reconstructed by adding up its projections onto all orthonormal basis directions.
@@ -162,15 +160,15 @@ we obtain
 
 This is the finite-dimensional form of Parseval’s theorem.
 
-Its meaning is:
+In words:
 
 \begin{quote}
 The energy of a vector is equal to the sum of the energies of its coordinates under any orthonormal basis.
 \end{quote}
 
-In other words, \verb|changing from the standard basis to another orthonormal basis may change the coordinates of the vector, but it does not change the total energy of the vector|.
+Changing from the standard basis to another orthonormal basis changes the coordinates, but not the total energy.
 
-This is exactly what happens in Fourier analysis. The Fourier transform represents a signal using sinusoidal basis functions. Parseval’s theorem says that the signal’s total energy is the same whether we compute it in the original domain or in the Fourier domain.
+Fourier analysis does the same thing. The Fourier transform represents a signal using sinusoidal basis functions. Parseval’s theorem says that the signal’s total energy is the same whether we compute it in the original domain or in the Fourier domain.
 
 \section{Discrete Fourier transform version}
 
@@ -296,7 +294,7 @@ Equivalently,
 }
 \]
 
-This means that the average energy of a periodic signal over one period equals the sum of the energies of all its Fourier modes.
+The average energy of a periodic signal over one period equals the sum of the energies of all its Fourier modes.
 
 \section{Continuous Fourier transform version}
 
@@ -365,9 +363,9 @@ The difference between these formulas is only a matter of normalization.
 
 \section{Parseval’s theorem and Plancherel’s theorem}
 
-Parseval’s theorem is often closely related to Plancherel’s theorem.
+Parseval’s theorem is closely related to Plancherel’s theorem.
 
-Roughly speaking:
+The split is:
 
 \begin{itemize}
   \item Parseval’s theorem usually refers to the equality of energy between a function and its expansion coefficients under an orthonormal basis.
@@ -394,9 +392,7 @@ Therefore, Parseval’s theorem can be viewed as the energy-preservation case of
 
 \section{Geometric interpretation}
 
-The most important geometric idea is:
-
-Fourier transform is a change of orthonormal coordinates.
+Geometrically, the Fourier transform is a change of orthonormal coordinates.
 
 In Euclidean geometry, if we rotate a vector, its coordinates change, but its length does not change.
 
@@ -470,7 +466,7 @@ E_{\mathrm{mid}}
 E_{\mathrm{high}}.
 \]
 
-This decomposition is mathematically meaningful because Parseval’s theorem guarantees that frequency-domain energy corresponds to spatial-domain energy.
+The decomposition is meaningful because Parseval’s theorem ties frequency-domain energy to spatial-domain energy.
 
 \section{Application to reconstruction error}
 
@@ -499,7 +495,7 @@ By Parseval’s theorem, this is equal to the frequency-domain residual energy:
 |\widehat{r}|_2^2.
 \]
 
-Therefore,
+So
 
 \[
 \sum_{m,n}
@@ -509,7 +505,7 @@ Therefore,
 |\widehat{x}[u,v]-\widehat{\hat{x}}[u,v]|^2.
 \]
 
-This means that reconstruction error can be analyzed frequency by frequency.
+Reconstruction error can then be analyzed frequency by frequency.
 
 For example, one may define
 
@@ -520,13 +516,13 @@ E_{\mathrm{mid}}
 |\widehat{r}[u,v]|^2,
 \]
 
-where \(\Omega_{\mathrm{mid}}\) is a middle-frequency region. If \(E_{\mathrm{mid}}\) is large, then the reconstruction model loses or changes a significant amount of middle-frequency information.
+where \(\Omega_{\mathrm{mid}}\) is a middle-frequency region. If \(E_{\mathrm{mid}}\) is large, then the reconstruction model loses or changes much of the middle-frequency information.
 
-This is useful for studying compression models such as VAEs. A VAE with a higher spatial compression ratio may preserve low-frequency semantic structure while weakening the precise reconstruction of middle- and high-frequency details. Parseval’s theorem provides a rigorous way to quantify this loss.
+This is useful for studying compression models such as VAEs. A VAE with a higher spatial compression ratio may preserve low-frequency semantic structure while weakening the precise reconstruction of middle- and high-frequency details. Parseval’s theorem lets you quantify that loss.
 
 \section{Why normalization matters}
 
-When using FFT libraries, one must be careful about normalization.
+FFT libraries differ in normalization.
 
 Different libraries use different conventions:
 
@@ -557,7 +553,7 @@ x[n]
 X[k]e^{2\pi i kn/N}.
 \]
 
-Therefore,
+So
 
 \[
 \sum_n |x[n]|^2
@@ -566,7 +562,7 @@ Therefore,
 \sum_k |X[k]|^2.
 \]
 
-If one uses an orthonormal FFT, then the factor disappears:
+With an orthonormal FFT, the factor disappears:
 
 \[
 \sum_n |x[n]|^2
@@ -574,11 +570,9 @@ If one uses an orthonormal FFT, then the factor disappears:
 \sum_k |\widehat{x}[k]|^2.
 \]
 
-Thus, when comparing frequency-domain energy across images, it is important to keep the normalization convention fixed.
+When comparing frequency-domain energy across images, keep the normalization convention fixed.
 
-\section{Summary}
-
-Parseval’s theorem states that the total energy of a signal is preserved under an orthonormal transform.
+\section{The formulas in one place}
 
 In finite-dimensional spaces,
 
@@ -609,6 +603,4 @@ For the continuous Fourier transform,
 \int |F(\omega)|^2d\omega.
 \]
 
-The theorem shows that spatial-domain energy and frequency-domain energy are two equivalent descriptions of the same quantity.
-
-This is why Parseval’s theorem is fundamental in Fourier analysis, signal processing, image analysis, compression, and reconstruction error evaluation.
+The same identity in each setting.

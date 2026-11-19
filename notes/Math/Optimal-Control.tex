@@ -3,21 +3,21 @@
 % date: 2025/12/31
 % tag: Math
 % ---
-\section{介绍}
+\section{最优控制是什么}
 
-\textbf{最优控制理论}是\href{https://en.wikipedia.org/wiki/Control_theory}{控制理论}的一个分支，研究在一段时间内寻找动力\href{https://en.wikipedia.org/wiki/Dynamical_system}{系统的}\href{https://en.wikipedia.org/wiki/Control_(optimal_control_theory}{控制})，从而优化\href{https://en.wikipedia.org/wiki/Objective_function}{目标函数}。\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-:0-1}{[1]} 它在科学、工程和运筹学中有广泛的应用。
+最优控制理论是\href{https://en.wikipedia.org/wiki/Control_theory}{控制理论}的一个分支，研究在一段时间内寻找动力\href{https://en.wikipedia.org/wiki/Dynamical_system}{系统的}\href{https://en.wikipedia.org/wiki/Control_(optimal_control_theory}{控制})，从而优化\href{https://en.wikipedia.org/wiki/Objective_function}{目标函数}。\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-:0-1}{[1]} 它在科学、工程和运筹学中有广泛的应用。
 
 例如，动力系统可能是一艘带有火箭推进器控制装置的\href{https://en.wikipedia.org/wiki/Spacecraft}{航天器}，目标可能是以最小燃料消耗抵达\href{https://en.wikipedia.org/wiki/Moon}{月}球。\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-2}{[2]} 或者，动力系统可以是一个国家\href{https://en.wikipedia.org/wiki/Economy}{的经济}体，目标是最小\href{https://en.wikipedia.org/wiki/Unemployment}{化失业};在这种情况下，控制措施可能是\href{https://en.wikipedia.org/wiki/Fiscal_policy}{财政}和\href{https://en.wikipedia.org/wiki/Monetary_policy}{货币政策}。\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-3}{[3]} 动力学系统也可以被引入，将\href{https://en.wikipedia.org/wiki/Operations_research}{运筹学问题}嵌入最优控制理论框架内。
 
 最优控制是\href{https://en.wikipedia.org/wiki/Calculus_of_variations}{变分法}的扩展，是一种用于推导\href{https://en.wikipedia.org/wiki/Control_theory}{控制策略}的数学优化方法。\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-6}{[6]} 该方法主要得益于 20 世纪 50 年代 \href{https://en.wikipedia.org/wiki/Lev_Pontryagin}{Lev Pontryagin} 和 \href{https://en.wikipedia.org/wiki/Richard_Bellman}{Richard Bellman} 的工作，继 \href{https://en.wikipedia.org/wiki/Edward_J._McShane}{Edward J. McShane} 对变分法的贡献之后。最优控制可以被视为\href{https://en.wikipedia.org/wiki/Control_theory}{控制理论}中的\href{https://en.wikipedia.org/wiki/Control_strategy}{一种控制策略}。
 
-\section{2.一般方法}
+\section{一般方法}
 
-\subsection{介绍}
+\subsection{一般形式}
 
-最优控制处理的是为给定系统寻找一个控制定律，从而实现某个\href{https://en.wikipedia.org/wiki/Optimality_criterion}{最优性准则}的问题。控制问题包括一个成本\href{https://en.wikipedia.org/wiki/Cost_functional}{泛函}，它是状态变量和控制变量的\href{https://en.wikipedia.org/wiki/Function_(mathematics}{函数})。 \textbf{最优控制}是一组描述控制变量路径的微\href{https://en.wikipedia.org/wiki/Differential_equation}{分方程}，使成本函数最小化。最优控制可以通过庞\href{https://en.wikipedia.org/wiki/Pontryagin's_maximum_principle}{特里亚金最大原理}\href{https://en.wikipedia.org/wiki/Necessary_condition}{（也称为}庞特里亚金最小原则或简称庞特里亚金原理）来推导，\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-8}{[8]}，或者通过求解\href{https://en.wikipedia.org/wiki/Hamilton–Jacobi–Bellman_equation}{汉密尔顿–雅可比–贝尔曼方程}（\href{https://en.wikipedia.org/wiki/Sufficient_condition}{充分条件}）。
+最优控制处理的是为给定系统寻找一个控制定律，从而实现某个\href{https://en.wikipedia.org/wiki/Optimality_criterion}{最优性准则}的问题。控制问题包括一个成本\href{https://en.wikipedia.org/wiki/Cost_functional}{泛函}，它是状态变量和控制变量的\href{https://en.wikipedia.org/wiki/Function_(mathematics}{函数})。 最优控制是一组描述控制变量路径的微\href{https://en.wikipedia.org/wiki/Differential_equation}{分方程}，使成本函数最小化。最优控制可以通过庞\href{https://en.wikipedia.org/wiki/Pontryagin's_maximum_principle}{特里亚金最大原理}\href{https://en.wikipedia.org/wiki/Necessary_condition}{（也称为}庞特里亚金最小原则或简称庞特里亚金原理）来推导，\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-8}{[8]}，或者通过求解\href{https://en.wikipedia.org/wiki/Hamilton–Jacobi–Bellman_equation}{汉密尔顿–雅可比–贝尔曼方程}（\href{https://en.wikipedia.org/wiki/Sufficient_condition}{充分条件}）。
 
-我们从一个简单的例子开始。想象一辆汽车在丘陵路上直线行驶。问题是，司机应该如何踩油门踏板，以\emph{最小化}总行驶时间？在这个例子中， \emph{控制律}一词特指驾驶员踩下油门和换挡的方式。 \emph{该系统}由汽车和道路组成，最\emph{优性准则}是总行驶时间的最小化。控制问题通常包含辅助\href{https://en.wikipedia.org/wiki/Constraint_(mathematics}{约束})。例如，可用燃油量可能有限，油门踏板无法穿过车底，限速等。
+一个简单的例子：一辆汽车在丘陵路上直线行驶，司机应该如何踩油门踏板，以\emph{最小化}总行驶时间？在这个例子中， \emph{控制律}一词特指驾驶员踩下油门和换挡的方式。 \emph{该系统}由汽车和道路组成，最\emph{优性准则}是总行驶时间的最小化。控制问题通常包含辅助\href{https://en.wikipedia.org/wiki/Constraint_(mathematics}{约束})。例如，可用燃油量可能有限，油门踏板无法穿过车底，限速等。
 
 适当的成本函数是一个数学表达式，表示旅行时间随速度、几何因素和\href{https://en.wikipedia.org/wiki/Initial_condition}{系统初始条件}变化而变化。\href{https://en.wikipedia.org/wiki/Constraint_(mathematics}{约束})通常与成本函数互换。
 
@@ -29,7 +29,7 @@
 {\displaystyle J[{\textbf {x}}(\cdot ),{\textbf {u}}(\cdot ),t_{0},t_{f}]:=E\,[{\textbf {x}}(t_{0}),t_{0},{\textbf {x}}(t_{f}),t_{f}]+\int _{t_{0}}^{t_{f}}F\,[{\textbf {x}}(t),{\textbf {u}}(t),t]\,\mathrm {d} t}
 \]
 
-受一阶动力学约束（ \textbf{状态方程} ）x 约束:
+受一阶动力学约束（状态方程）x 约束:
 
 \[
 {\displaystyle {\dot {\textbf {x}}}(t)={\textbf {f}}\,[\,{\textbf {x}}(t),{\textbf {u}}(t),t],}
@@ -47,7 +47,7 @@
 {\displaystyle {\textbf {e}}[{\textbf {x}}(t_{0}),t_{0},{\textbf {x}}(t_{f}),t_{f}]=0}
 \]
 
-其中 \(x ( t )\) 是\emph{状态} ，\(u ( t )\) 是\emph{控制，}\(T\) 是自变量（一般来说，时间），\(T_ 0\) 是初始时间，且\( T_ f\) 是终端时间。 项 \(E\) 以及 \(F\) 分别称为\emph{端点成本}和\emph{运行成本} 。在变分法中，\(E\) 以及 \(F\)分别称为迈耶项和\emph{\href{https://en.wikipedia.org/wiki/Lagrange_multiplier}{拉格朗日量}}。 此外，需要注意的是，路径约束通常属于\emph{不等式}约束，因此在最优解处可能不具备激活（即不等于零）。 还需要注意，上述最优控制问题可能有多个解（即解可能不唯一）。 因此，通常情况下，任何解\([ x^∗ ( t ) , u^∗ ( t ) , t_0^∗ , t_f^∗ ]\) 最优控制问题是\textbf{局部最小化}的。
+其中 \(x ( t )\) 是\emph{状态} ，\(u ( t )\) 是\emph{控制，}\(T\) 是自变量（一般来说，时间），\(T_ 0\) 是初始时间，且\( T_ f\) 是终端时间。 项 \(E\) 以及 \(F\) 分别称为\emph{端点成本}和\emph{运行成本} 。在变分法中，\(E\) 以及 \(F\)分别称为迈耶项和\emph{\href{https://en.wikipedia.org/wiki/Lagrange_multiplier}{拉格朗日量}}。 路径约束通常属于\emph{不等式}约束，因此在最优解处可能不起作用。 上述最优控制问题可能有多个解（即解可能不唯一）。 因此，任何解\([ x^∗ ( t ) , u^∗ ( t ) , t_0^∗ , t_f^∗ ]\) 最优控制问题是局部最小化的。
 
 \subsection{线性二次控制（Linear quadratic control ）}
 
@@ -57,7 +57,7 @@
 {\displaystyle J={\tfrac {1}{2}}\mathbf {x} ^{\mathsf {T}}(t_{f})\mathbf {S} _{f}\mathbf {x} (t_{f})+{\tfrac {1}{2}}\int _{t_{0}}^{t_{f}}[\,\mathbf {x} ^{\mathsf {T}}(t)\mathbf {Q} (t)\mathbf {x} (t)+\mathbf {u} ^{\mathsf {T}}(t)\mathbf {R} (t)\mathbf {u} (t)]\,\mathrm {d} t}
 \]
 
-受限于\textbf{线性一阶动力学约束}
+受限于线性一阶动力学约束
 
 \[
 {\displaystyle {\dot {\mathbf {x} }}(t)=\mathbf {A} (t)\mathbf {x} (t)+\mathbf {B} (t)\mathbf {u} (t),}
@@ -69,7 +69,7 @@
 {\displaystyle \mathbf {x} (t_{0})=\mathbf {x} _{0}}
 \]
 
-在有限视界情况下，矩阵在 Q 下受到限制 以及 R 分别是正半定和正定。 然而，在无限视界情况下，矩\href{https://en.wikipedia.org/wiki/Matrix_(mathematics}{阵})Q 以及 R 不仅是正半定和正定，而且是\emph{常数}的。 这些额外的限制 Q 以及 R 在无限视野情况下，强制执行以确保成本泛函保持正值。 此外，为了确保成本函数有\emph{界} ，还额外限制了对\(( A , B )\) \emph{\href{https://en.wikipedia.org/wiki/Controllability}{是可控}} 的。 注意，LQ 或 LQR 成本泛函在物理上可以理解为试图最小化\emph{控制能量} （以二次型测量）。
+在有限视界情况下，矩阵在 Q 下受到限制 以及 R 分别是正半定和正定。 然而，在无限视界情况下，矩\href{https://en.wikipedia.org/wiki/Matrix_(mathematics}{阵})Q 以及 R 不仅是正半定和正定，而且是\emph{常数}的。 这些额外的限制 Q 以及 R 在无限视野情况下，强制执行以确保成本泛函保持正值。 此外，为了确保成本函数有\emph{界} ，还额外限制了对\(( A , B )\) \emph{\href{https://en.wikipedia.org/wiki/Controllability}{是可控}} 的。LQ 或 LQR 成本泛函在物理上可以理解为试图最小化\emph{控制能量} （以二次型测量）。
 
 \[
 
@@ -105,7 +105,7 @@
 {\displaystyle \mathbf {0} =-\mathbf {S} \mathbf {A} -\mathbf {A} ^{\mathsf {T}}\mathbf {S} +\mathbf {S} \mathbf {B} \mathbf {R} ^{-1}\mathbf {B} ^{\mathsf {T}}\mathbf {S} -\mathbf {Q} }
 \]
 
-理解 ARE 源自无限视界问题，矩阵 A 为 ， B ， Q ，以及 R 这些都\emph{保持恒定} 。 值得注意的是，代数里卡蒂方程通常有多个解，而正\emph{定}解（或正半正定解）用于计算反馈增益。 LQ（LQR）问题由\href{https://en.wikipedia.org/wiki/Rudolf_E._Kálmán}{鲁道夫·E·卡尔曼}优雅地解决。\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-9}{[9]}
+理解 ARE 源自无限视界问题，矩阵 A 为 ， B ， Q ，以及 R 这些都\emph{保持恒定} 。 代数里卡蒂方程通常有多个解，正\emph{定}解（或正半正定解）用来计算反馈增益。 LQ（LQR）问题由\href{https://en.wikipedia.org/wiki/Rudolf_E._Kálmán}{鲁道夫·E·卡尔曼}优雅地解决。\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-9}{[9]}
 
 \subsection{最优控制的数值方法（Numerical methods for optimal control）}
 
@@ -131,7 +131,7 @@
 {\displaystyle {\begin{aligned}\mathbf {g} (\mathbf {z} )&=\mathbf {0} \\\mathbf {h} (\mathbf {z} )&\leq \mathbf {0} \end{aligned}}}
 \]
 
-根据所采用的直接方法类型，非线性优化问题的规模可以非常小（例如直接射击法或\href{https://en.wikipedia.org/wiki/Quasilinearization}{准声波化}方法），中等规模（例如伪\href{https://en.wikipedia.org/wiki/Pseudospectral_optimal_control}{谱最优控制}\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-ReviewPOC-11}{[11]}），也可能相当大（例如直接\href{https://en.wikipedia.org/wiki/Collocation_method}{配址法}\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-12}{[12]}).在后一种情况下（即搭配方法），非线性优化问题可能包含数千到数万个变量和约束。鉴于许多由直接方法产生的自然语言处理（NLP）规模庞大，解非线性优化问题比解决边界值问题更容易似乎有些反直觉。然而，NLP 比边界值问题更容易求解。计算相对容易的原因，尤其是直接搭配方法，是因为自然语言处理是\emph{稀疏的} ，且有许多知名软件（如 \href{https://en.wikipedia.org/wiki/SNOPT}{SNOPT}\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-13}{[13]}）用于解决大型稀疏自然语言处理。因此，通过直接方法（尤其是如今非常流行的直接\emph{搭配法} ）解决的问题范围，远大于通过间接方法解决的问题范围。事实上，直接方法如今变得如此流行，以至于许多人编写了复杂的软件程序来采用这些方法。 特别是，许多此类项目包括 \emph{DIRCOL，}\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-14}{[14]} SOCS，\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-15}{[15]} OTIS，\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-16}{[16]} GESOP/\href{https://en.wikipedia.org/wiki/ASTOS}{ASTOS}，\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-17}{[17]} DITAN。\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-18}{[18]} 以及 PyGMO/PyKEP。\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-19}{[19]} 近年来，由于 \href{https://en.wikipedia.org/wiki/MATLAB}{MATLAB} 编程语言的出现，MATLAB 中的最优控制软件变得越来越普遍。学术开发的 MATLAB 软件工具实现直接方法的例子包括 \emph{RIOTS}，\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-20}{[20]}\emph{\href{https://en.wikipedia.org/wiki/DIDO_(optimal_control}{DIDO})}，\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-21}{[21]}DIRECT，\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-22}{[22]} FALCON.m，\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-23}{[23]} 和 \emph{GPOPS，}\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-24}{[24]}，同时也是一个行业发展的例子 MATLAB 工具是 \emph{\href{https://en.wikipedia.org/wiki/PROPT}{PROPT}}。\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-25}{[25]} 这些软件工具极大地增加了人们探索复杂最优控制问题的机会，无论是在学术研究还是工业领域。\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-26}{[26]} 最后，值得注意的是，通用的 MATLAB 优化环境如 \href{https://en.wikipedia.org/wiki/TOMLAB}{TOMLAB} 使编写复杂最优控制问题变得比以往 C 和 \href{https://en.wikipedia.org/wiki/FORTRAN}{FORTRAN} 等语言更容易。
+根据所采用的直接方法类型，非线性优化问题的规模可以非常小（例如直接射击法或\href{https://en.wikipedia.org/wiki/Quasilinearization}{准声波化}方法），中等规模（例如伪\href{https://en.wikipedia.org/wiki/Pseudospectral_optimal_control}{谱最优控制}\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-ReviewPOC-11}{[11]}），也可能相当大（例如直接\href{https://en.wikipedia.org/wiki/Collocation_method}{配址法}\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-12}{[12]}).在后一种情况下（即搭配方法），非线性优化问题可能包含数千到数万个变量和约束。鉴于许多由直接方法产生的自然语言处理（NLP）规模庞大，解非线性优化问题比解决边界值问题更容易似乎有些反直觉。然而，NLP 比边界值问题更容易求解。计算相对容易的原因，尤其是直接搭配方法，是因为自然语言处理是\emph{稀疏的} ，且有许多知名软件（如 \href{https://en.wikipedia.org/wiki/SNOPT}{SNOPT}\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-13}{[13]}）用于解决大型稀疏自然语言处理。因此，通过直接方法（尤其是如今非常流行的直接\emph{搭配法} ）解决的问题范围，远大于通过间接方法解决的问题范围。事实上，直接方法如今变得如此流行，以至于许多人编写了复杂的软件程序来采用这些方法。 特别是，许多此类项目包括 \emph{DIRCOL，}\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-14}{[14]} SOCS，\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-15}{[15]} OTIS，\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-16}{[16]} GESOP/\href{https://en.wikipedia.org/wiki/ASTOS}{ASTOS}，\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-17}{[17]} DITAN。\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-18}{[18]} 以及 PyGMO/PyKEP。\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-19}{[19]} 近年来，由于 \href{https://en.wikipedia.org/wiki/MATLAB}{MATLAB} 编程语言的出现，MATLAB 中的最优控制软件变得越来越普遍。学术开发的 MATLAB 软件工具实现直接方法的例子包括 \emph{RIOTS}，\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-20}{[20]}\emph{\href{https://en.wikipedia.org/wiki/DIDO_(optimal_control}{DIDO})}，\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-21}{[21]}DIRECT，\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-22}{[22]} FALCON.m，\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-23}{[23]} 和 \emph{GPOPS，}\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-24}{[24]}，同时也是一个行业发展的例子 MATLAB 工具是 \emph{\href{https://en.wikipedia.org/wiki/PROPT}{PROPT}}。\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-25}{[25]} 这些软件工具极大地增加了人们探索复杂最优控制问题的机会，无论是在学术研究还是工业领域。\href{https://en.wikipedia.org/wiki/Optimal_control#cite_note-26}{[26]} 通用的 MATLAB 优化环境如 \href{https://en.wikipedia.org/wiki/TOMLAB}{TOMLAB} 使编写复杂最优控制问题变得比以往 C 和 \href{https://en.wikipedia.org/wiki/FORTRAN}{FORTRAN} 等语言更容易。
 
 \subsection{离散时间最优控制（Discrete-time optimal control）}
 

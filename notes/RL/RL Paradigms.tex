@@ -1,29 +1,31 @@
 % ---
-% title: 主流强化学习方法范式综述：策略梯度、值函数、Actor-Critic 及现代变体
+% title: 强化学习的几种范式
 % date: 2026-03-29
 % tag: RL
-% excerpt: 系统梳理强化学习核心范式，涵盖值函数法（MC、TD、Q-Learning、DQN）、策略梯度法（REINFORCE、PPO、TRPO）、Actor-Critic 族（A2C、SAC）及面向 LLM 的 GRPO，每种方法附完整伪代码与核心公式。
+% excerpt: 从 MC、TD、Q-learning、DQN 到 REINFORCE、TRPO、PPO、A2C、SAC 和 GRPO，按值函数、策略梯度、Actor-Critic 三条线整理，每个方法保留伪代码和核心公式。
 % ---
 \section{强化学习基础框架}
+
+把值函数、策略梯度、Actor-Critic 和 LLM 变体放在同一条线上看，公式和伪代码集中在一起，方便对照。
 
 强化学习（Reinforcement Learning, RL）的基本要素：
 
 \begin{itemize}
-  \item \textbf{状态} \(s \in \mathcal{S}\)：环境的描述
-  \item \textbf{动作} \(a \in \mathcal{A}\)：智能体的选择
-  \item \textbf{奖励} \(r \in \mathbb{R}\)：环境的反馈信号
-  \item \textbf{策略} \(\pi(a|s)\)：从状态到动作的映射（概率分布）
-  \item \textbf{转移函数} \(P(s'|s, a)\)：环境动态
-  \item \textbf{折扣因子} \(\gamma \in [0, 1)\)：对未来奖励的折扣
+  \item 状态 \(s \in \mathcal{S}\)：环境的描述
+  \item 动作 \(a \in \mathcal{A}\)：智能体的选择
+  \item 奖励 \(r \in \mathbb{R}\)：环境的反馈信号
+  \item 策略 \(\pi(a|s)\)：从状态到动作的映射（概率分布）
+  \item 转移函数 \(P(s'|s, a)\)：环境动态
+  \item 折扣因子 \(\gamma \in [0, 1)\)：对未来奖励的折扣
 \end{itemize}
 
-\textbf{优化目标}：最大化期望累积折扣回报
+优化目标是最大化期望累积折扣回报：
 
 \[
 J(\pi) = \mathbb{E}_{\tau \sim \pi}\left[\sum_{t=0}^{T} \gamma^t r_t\right]
 \]
 
-\textbf{关键函数定义：}
+三个关键函数：
 
 \[
 V^\pi(s) = \mathbb{E}_\pi\left[\sum_{t=0}^\infty \gamma^t r_t \mid s_0 = s\right] \quad \text{（状态值函数）}
@@ -41,11 +43,11 @@ A^\pi(s, a) = Q^\pi(s, a) - V^\pi(s) \quad \text{（优势函数）}
 
 \section{一、值函数方法（Value-Based Methods）}
 
-值函数方法的核心思路：\textbf{不直接优化策略，而是学习值函数，再从值函数导出策略}（贪心或 \(\epsilon\)-greedy）。
+值函数方法先学值函数，再从值函数导出策略（贪心或 \(\epsilon\)-greedy），不直接优化策略。
 
 \subsection{Monte Carlo 方法}
 
-\textbf{思路}：用完整轨迹的实际回报 \(G_t\) 作为 \(Q(s,a)\) 的无偏估计，然后更新值函数。
+用完整轨迹的实际回报 \(G_t\) 作为 \(Q(s,a)\) 的无偏估计，再更新值函数。
 
 \[
 G_t = \sum_{k=0}^{T-t} \gamma^k r_{t+k}
@@ -55,12 +57,7 @@ G_t = \sum_{k=0}^{T-t} \gamma^k r_{t+k}
 Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha\left[G_t - Q(s_t, a_t)\right]
 \]
 
-\textbf{特点：}
-
-\begin{itemize}
-  \item 无偏，但方差高（依赖完整轨迹）
-  \item 只适用于 episodic 任务
-\end{itemize}
+无偏，但方差高，因为依赖完整轨迹；只适用于 episodic 任务。
 
 \begin{verbatim}
 算法：Monte Carlo Control（每次访问型）
@@ -92,7 +89,7 @@ return Q
 
 \subsection{时序差分（TD Learning）}
 
-\textbf{思路}：不等轨迹结束，用\textbf{单步 bootstrap} 更新值函数：
+不等轨迹结束，用单步 bootstrap 更新值函数：
 
 \[
 V(s_t) \leftarrow V(s_t) + \alpha\left[\underbrace{r_t + \gamma V(s_{t+1})}_{\text{TD target}} - V(s_t)\right]
@@ -104,7 +101,7 @@ TD error（\(\delta_t\)）：
 \delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)
 \]
 
-\textbf{特点}：有偏但方差低，可在线更新，不依赖完整轨迹。
+有偏但方差低，可在线更新，不依赖完整轨迹。
 
 \begin{verbatim}
 算法：TD(0) 策略评估
@@ -131,13 +128,13 @@ return V
 
 \subsection{Q-Learning}
 
-\textbf{思路}：off-policy TD，直接学习最优动作值函数 \(Q^*\)：
+Q-Learning 是 off-policy TD，直接学习最优动作值函数 \(Q^*\)：
 
 \[
 Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha\left[r_t + \gamma \max_{a'} Q(s_{t+1}, a') - Q(s_t, a_t)\right]
 \]
 
-\textbf{off-policy 特性}：行为策略（\(\epsilon\)-greedy）与目标策略（greedy）可以不同。
+行为策略（\(\epsilon\)-greedy）与目标策略（greedy）可以不同。
 
 \begin{verbatim}
 算法：Q-Learning
@@ -169,11 +166,11 @@ return Q
 
 \subsection{Deep Q-Network（DQN）}
 
-\textbf{思路}：用神经网络 \(Q_\phi(s, a)\) 近似 Q 函数，解决大状态空间问题。引入两项关键技巧：
+用神经网络 \(Q_\phi(s, a)\) 近似 Q 函数，解决大状态空间问题。两项关键技巧：
 
 \begin{enumerate}
-  \item \textbf{Experience Replay}：从 replay buffer \(\mathcal{D}\) 中随机采样 mini-batch，打破样本相关性
-  \item \textbf{Target Network}：用滞后参数 \(\phi^-\) 计算 TD target，稳定训练
+  \item Experience Replay：从 replay buffer \(\mathcal{D}\) 中随机采样 mini-batch，打破样本相关性。
+  \item Target Network：用滞后参数 \(\phi^-\) 计算 TD target，稳定训练。
 \end{enumerate}
 
 \[
@@ -221,23 +218,15 @@ for episode = 1 to MAX_EPISODES:
 return φ
 \end{verbatim}
 
-\begin{quote}
-\textbf{DQN 的重要变体：}
-
-\begin{itemize}
-  \item \textbf{Double DQN}：解耦选动作与评估，用 \(Q_\phi\) 选 \(a^*\)，用 \(Q_{\phi^-}\) 估值，缓解过估计
-  \item \textbf{Dueling DQN}：将网络头拆分为 \(V(s)\) 和 \(A(s,a)\)，提升学习效率
-  \item \textbf{Prioritized Experience Replay}：按 TD error 大小对 replay buffer 加权采样
-\end{itemize}
-\end{quote}
+DQN 有几个常用变体。Double DQN 解耦选动作和评估，用 \(Q_\phi\) 选 \(a^*\)，用 \(Q_{\phi^-}\) 估值，缓解过估计。Dueling DQN 把网络头拆成 \(V(s)\) 和 \(A(s,a)\)，提升学习效率。Prioritized Experience Replay 按 TD error 大小对 replay buffer 加权采样。
 
 \hrule
 
 \section{二、策略梯度方法（Policy Gradient Methods）}
 
-值函数方法在\textbf{连续动作空间}或\textbf{随机策略}上难以应用，策略梯度方法直接对策略参数 \(\theta\) 求梯度。
+值函数方法在连续动作空间或随机策略上难以应用，策略梯度方法直接对策略参数 \(\theta\) 求梯度。
 
-\textbf{策略梯度定理（Policy Gradient Theorem）：}
+策略梯度定理（Policy Gradient Theorem）：
 
 \[
 \nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}\left[\sum_{t=0}^T \nabla_\theta \log \pi_\theta(a_t|s_t) \cdot G_t\right]
@@ -247,13 +236,13 @@ return φ
 
 \subsection{REINFORCE}
 
-\textbf{思路}：用 Monte Carlo 回报 \(G_t\) 估计策略梯度，无偏但高方差。
+REINFORCE 用 Monte Carlo 回报 \(G_t\) 估计策略梯度，无偏，但方差高。
 
 \[
 \nabla_\theta J(\theta) \approx \frac{1}{N}\sum_{n=1}^N \sum_{t=0}^T \nabla_\theta \log \pi_\theta(a_t^n|s_t^n) \cdot G_t^n
 \]
 
-引入 \textbf{baseline} \(b(s_t)\)（通常为 \(V(s_t)\)）减小方差，不影响梯度期望：
+引入 baseline \(b(s_t)\)（通常为 \(V(s_t)\)）减小方差，不影响梯度期望：
 
 \[
 \nabla_\theta J(\theta) \approx \frac{1}{N}\sum_{n=1}^N \sum_{t=0}^T \nabla_\theta \log \pi_\theta(a_t^n|s_t^n) \cdot (G_t^n - b(s_t^n))
@@ -302,9 +291,7 @@ return θ
 
 \subsection{TRPO（Trust Region Policy Optimization）}
 
-\textbf{核心问题}：策略梯度更新步长难以控制，步子太大会破坏策略。
-
-\textbf{TRPO 的思路}：在\textbf{信赖域（trust region）}内约束更新，确保新旧策略的 KL 散度不超过阈值 \(\delta\)：
+策略梯度的更新步长难以控制，步子太大会破坏策略。TRPO 在信赖域（trust region）内约束更新，确保新旧策略的 KL 散度不超过阈值 \(\delta\)：
 
 \[
 \max_\theta \; \mathbb{E}_{s,a \sim \pi_{\theta_\mathrm{old}}}\left[\frac{\pi_\theta(a|s)}{\pi_{\theta_\mathrm{old}}(a|s)} A^{\pi_{\theta_\mathrm{old}}}(s,a)\right]
@@ -314,7 +301,7 @@ return θ
 \text{s.t.} \quad \mathbb{E}_s\left[\mathrm{KL}(\pi_{\theta_\mathrm{old}}(\cdot|s) \| \pi_\theta(\cdot|s))\right] \leq \delta
 \]
 
-求解方法：\textbf{共轭梯度 + 线搜索}（计算开销大）。
+求解用共轭梯度加线搜索，计算开销大。
 
 \begin{verbatim}
 算法：TRPO
@@ -355,7 +342,7 @@ return θ
 
 \subsection{PPO（Proximal Policy Optimization）}
 
-\textbf{思路}：TRPO 的轻量化替代，用\textbf{截断 clip} 代替硬约束，实现近似 trust-region 效果：
+PPO 是 TRPO 的轻量化替代，用截断 clip 代替硬约束，得到近似 trust-region 的效果：
 
 \[
 \mathcal{L}^\mathrm{CLIP}(\theta) = \mathbb{E}_t\left[\min\left(\rho_t(\theta) A_t,\; \mathrm{clip}(\rho_t(\theta), 1-\varepsilon, 1+\varepsilon) A_t\right)\right]
@@ -363,7 +350,7 @@ return θ
 
 其中 \(\rho_t(\theta) = \dfrac{\pi_\theta(a_t|s_t)}{\pi_{\theta_\mathrm{old}}(a_t|s_t)}\) 为重要性权重。
 
-\textbf{完整 PPO 损失（加值函数和熵正则）：}
+完整 PPO 损失还要加值函数和熵正则：
 
 \[
 \mathcal{L}(\theta) = \mathcal{L}^\mathrm{CLIP}(\theta) - c_1 \mathcal{L}^\mathrm{VF}(\theta) + c_2 \mathcal{H}[\pi_\theta]
@@ -413,15 +400,7 @@ for iteration = 1 to MAX_ITER:
 return θ, φ
 \end{verbatim}
 
-\begin{quote}
-\textbf{PPO 的关键超参：}
-
-\begin{itemize}
-  \item \(\varepsilon \in [0.1, 0.3]\)：clip 范围，越小越保守
-  \item \(\lambda \in [0.9, 0.99]\)：GAE 的 bias-variance tradeoff
-  \item \(K \in [3, 10]\)：每批数据复用的 epoch 数
-\end{itemize}
-\end{quote}
+PPO 的几个关键超参：clip 范围一般取 \(\varepsilon \in [0.1, 0.3]\)，越小越保守；GAE 的 \(\lambda \in [0.9, 0.99]\)，在偏差和方差之间折中；每批数据复用 \(K \in [3, 10]\) 个 epoch。
 
 \hrule
 
@@ -431,15 +410,15 @@ Actor-Critic 将策略（Actor）和值函数（Critic）结合，用 Critic 估
 
 \subsection{A2C / A3C}
 
-\textbf{A2C（Advantage Actor-Critic）} 是同步版本，A3C 是异步多线程版本。
+A2C（Advantage Actor-Critic）是同步版本，A3C 是异步多线程版本。
 
-\textbf{Actor 更新}：用 advantage \(A_t = r_t + \gamma V(s_{t+1}) - V(s_t)\) 加权策略梯度：
+Actor 用 advantage \(A_t = r_t + \gamma V(s_{t+1}) - V(s_t)\) 加权策略梯度：
 
 \[
 \nabla_\theta J(\theta) = \mathbb{E}_t\left[\nabla_\theta \log \pi_\theta(a_t|s_t) \cdot A_t\right]
 \]
 
-\textbf{Critic 更新}：最小化 TD error：
+Critic 最小化 TD error：
 
 \[
 \mathcal{L}_\mathrm{critic} = \mathbb{E}_t\left[(r_t + \gamma V_\phi(s_{t+1}) - V_\phi(s_t))^2\right]
@@ -486,13 +465,13 @@ return θ, φ
 
 \subsection{SAC（Soft Actor-Critic）}
 
-\textbf{思路}：最大熵 RL，在奖励中加入策略熵，鼓励探索、提升鲁棒性：
+SAC 是最大熵 RL，在奖励里加入策略熵，鼓励探索、提升鲁棒性：
 
 \[
 J(\pi) = \mathbb{E}_{\tau \sim \pi}\left[\sum_t \gamma^t \left(r_t + \alpha \mathcal{H}[\pi(\cdot|s_t)]\right)\right]
 \]
 
-使用 \textbf{Soft Bellman 方程}：
+它使用 Soft Bellman 方程：
 
 \[
 Q(s, a) = r + \gamma \mathbb{E}_{s'}\left[V(s')\right], \quad V(s) = \mathbb{E}_{a \sim \pi}\left[Q(s,a) - \alpha \log \pi(a|s)\right]
@@ -552,25 +531,19 @@ for step = 1 to MAX_STEPS:
 return θ
 \end{verbatim}
 
-\begin{quote}
-SAC 是目前\textbf{连续控制}任务的 SOTA 基线之一，双 Critic 和自动温度调节是其两大核心设计。
-\end{quote}
+SAC 是连续控制任务上的 SOTA 基线之一，双 Critic 和自动温度调节是两个核心设计。
 
 \hrule
 
 \section{四、广义优势估计（GAE）}
 
-GAE（Generalized Advantage Estimation）是现代 Actor-Critic 方法（PPO、TRPO）中几乎通用的优势估计技术，通过参数 \(\lambda\) 平衡偏差与方差：
+GAE（Generalized Advantage Estimation）用参数 \(\lambda\) 平衡偏差与方差，PPO 和 TRPO 都用它：
 
 \[
 A_t^\mathrm{GAE}(\gamma, \lambda) = \sum_{l=0}^{\infty} (\gamma\lambda)^l \delta_{t+l}, \quad \delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)
 \]
 
-\begin{itemize}
-  \item \(\lambda = 0\)：纯 TD(0) estimate，\textbf{偏差高，方差低}
-  \item \(\lambda = 1\)：等价于 Monte Carlo，\textbf{无偏，方差高}
-  \item \(\lambda \in (0.9, 0.99)\)：实践中常用区间
-\end{itemize}
+\(\lambda = 0\) 退化成纯 TD(0) estimate，偏差高、方差低；\(\lambda = 1\) 等价于 Monte Carlo，无偏但方差高；实践里常用 \(\lambda \in (0.9, 0.99)\)。
 
 \begin{verbatim}
 函数：compute_GAE(trajectory, V_φ, γ, λ)
@@ -596,7 +569,7 @@ return advantages, returns
 
 \subsection{GRPO（Group Relative Policy Optimization）}
 
-GRPO 来自 DeepSeekMath，专为 LLM 的 RL post-training 设计，\textbf{无需单独的 Critic 网络}，用同一 prompt 下一组输出的相对奖励估计 advantage：
+GRPO 来自 DeepSeekMath，专为 LLM 的 RL post-training 设计。它不需要单独的 Critic 网络，用同一 prompt 下一组输出的相对奖励估计 advantage：
 
 \[
 A^i = \frac{R(x^i) - \mathrm{mean}(R^{1:G})}{\mathrm{std}(R^{1:G})}

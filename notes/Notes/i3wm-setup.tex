@@ -1,21 +1,19 @@
 % ---
-% title: My i3wm setup: calm aesthetics for a busy mind
+% title: My i3wm setup
 % date: 2026/1/26
 % tag: Notes
 % ---
-How a tiling window manager helped me find focus — and a colour palette that stays out of the way.
-
 \section{Why i3wm}
 
-I've never been good at managing chaos. My desktop used to be a graveyard of overlapping terminals, half-read papers, and browser tabs I swore I'd come back to. Then I discovered i3wm — a tiling window manager that, by design, refuses to let windows pile up.
+i3 is a tiling window manager for X11. Windows do not overlap. Each one takes a region of the screen, and the layout reflows when windows open or close.
 
-The appeal was immediate: \textbf{everything has its place}. No decorations, no distractions. Just screens split into logical regions, each holding exactly what I need.
+My desktop used to be a pile of overlapping terminals and browser tabs. Tiling removed the need to arrange them by hand.
 
 \section{The Setup}
 
-This configuration is built on \textbf{i3-wm}, which uses the classic X11 display protocol. It may not be the flashiest option, but it's simple, stable, and gets out of the way.
+The config runs on i3-wm. It is not the flashiest setup, but i3 is small, stable, and stays out of the way, which is what I want from a window manager.
 
-I've collected and refined these configurations from various open-source projects, adding small tweaks to make the experience more usable. The goal wasn't to reinvent the wheel — it was to create something that works, day in and day out.
+Most of the configuration comes from existing open-source projects, with small changes of my own. I did not set out to write anything new; the aim was a setup that works every day.
 
 \section{What's Included}
 
@@ -42,7 +40,7 @@ Component & Purpose \\
 
 \section{Key Bindings That Matter}
 
-After two years, these are the bindings I actually use:
+Two years in, these are the bindings I actually use:
 
 \begin{center}
 \begin{tabular}{ll}
@@ -61,7 +59,7 @@ Key & Action \\
 \end{tabular}
 \end{center}
 
-The vim-style navigation was the hardest to build into muscle memory. Now I can't imagine going back to clicking.
+Vim-style navigation took the longest to learn. Now I reach for it without thinking.
 
 \section{Polybar Customization}
 
@@ -75,9 +73,9 @@ Or edit the configuration files directly to create your own combination.
 
 \section{Neovim Integration}
 
-I use a customized \textbf{NvChad} configuration for a consistent experience across the setup. The theme is OneDark (though I personally use Dracula).
+I use a customized NvChad configuration so the editor matches the rest of the setup. The theme is OneDark (though I personally use Dracula).
 
-Key mappings are defined in \verb|mappings.lua|. Combined with qutebrowser, this setup lets you keep your hands on the keyboard for most tasks — freeing your mouse and neck from unnecessary strain.
+Key mappings are defined in \verb|mappings.lua|. With qutebrowser handling the web, most tasks can be done from the keyboard.
 
 \begin{quote}
 Note: The code hover key has been remapped to \verb|F|. Double-tap \verb|Shift+f| to activate.
@@ -103,22 +101,22 @@ Note: The code hover key has been remapped to \verb|F|. Double-tap \verb|Shift+f
 
 \section{A Note on Colours}
 
-The accent colour (\verb|#c47c5a| — a muted rust/orange) is the same one I use throughout my personal site. It's warm without being loud, and it pairs well with the cool greys that dominate my editor and terminal.
+The accent colour is \verb|#c47c5a|, a muted rust orange. It is the same colour I use on my personal site, and it sits well against the cool greys in the editor and terminal.
 
-I've learned that \textbf{aesthetics isn't about adding more} — it's about knowing what to leave out. i3wm enforces that philosophy at the window-manager level. My mind, once scattered, now has room to breathe.
+One accent colour is enough. Changing every colour at once makes the screen harder to read.
 
 \section{Acknowledgments}
 
-This setup builds on the work of many great open-source projects:
+The setup builds on these projects:
 
 \begin{itemize}
-  \item \href{https://i3wm.org/}{i3-wm} — The foundation
-  \item \href{https://github.com/polybar/polybar}{Polybar} — Status bar
-  \item \href{https://github.com/NvChad/NvChad}{NvChad} — Neovim configuration
-  \item \href{https://github.com/slate-conky-theme}{slate-conky-theme} — Conky theme
+  \item \href{https://i3wm.org/}{i3-wm}: the window manager.
+  \item \href{https://github.com/polybar/polybar}{Polybar}: status bar.
+  \item \href{https://github.com/NvChad/NvChad}{NvChad}: Neovim configuration.
+  \item \href{https://github.com/slate-conky-theme}{slate-conky-theme}: Conky theme.
 \end{itemize}
 
-Respect to all the developers who make this ecosystem possible.
+Thanks to the maintainers of these projects.
 
 \hrule
 

@@ -2,7 +2,7 @@
 % title: Mixture Distribution's Variance
 % date: 2026-04-10
 % tag: Math
-% excerpt: This post introduces a concept about mixture distribution's variance.
+% excerpt: 两个高斯混合时，方差不能只对条件分布求期望；把积分写全，多出来的那一项就是混合本身带来的方差。
 % ---
 \section{混合分佈的方差}
 
@@ -13,7 +13,7 @@
 \mathrm{Var}(X)=\underbrace{\boxed{ \mathbb E[\mathrm{Var}(X\mid G)]}}_{\text{類內方差}} + \underbrace{\boxed{\mathrm{Var}(\mathbb E[X\mid G])}}_{\text{類間方差}}
 \]
 
-這裡：
+其中：
 
 \[
 \mathbb E[\mathrm{Var}(X\mid G)] = 1 \\
@@ -44,14 +44,13 @@ p(x\mid g)=\sum_m p(x\mid g,m)p(m\mid g)
 p(x\mid g)=\int p(x\mid g,m)\,p(m\mid g)\,dm
 \]
 
-这一步非常关键：
-\texttt{在给定 \(G=g\) 时，\(X\) 的分布是由各个子分布 \(p(x\mid g,m)\) 按权重 \(p(m\mid g)\) 混合出来的。}
-所以你要算 \(\mathrm{Var}(X\mid G=g)\)，当然不能只看 \(p(x\mid g,m)\)，还必须再对 \(m\) 的分布加权。
+在给定 \(G=g\) 时，\(X\) 的分布是各个子分布 \(p(x\mid g,m)\) 按权重 \(p(m\mid g)\) 混合出来的。
+所以算 \(\mathrm{Var}(X\mid G=g)\) 时，不能只看 \(p(x\mid g,m)\)，还必须对 \(m\) 的分布加权。
 
 \section{为什么不是只对 \(p(x\mid g,m)\) 取期望}
 
 因为\(\mathrm{Var}(X\mid G=g)\)描述的是整个条件分布 \(p(x\mid g)\) 的方差，而不是某个固定 \(m\) 下的方差。
-固定 \(m\) 时，如果 \(m\) 也固定了，那你算的是：
+如果 \(m\) 也固定，算的是：
 
 \[
 \mathrm{Var}(X\mid G=g,M=m)
@@ -59,16 +58,11 @@ p(x\mid g)=\int p(x\mid g,m)\,p(m\mid g)\,dm
 
 这时才是只对\(p(x\mid g,m)\)取期望。
 但现在 \(m\) 没固定，你要的是：\(\mathrm{Var}(X\mid G=g)\)
-\texttt{而给定 \(g\) 后，\(m\) 仍然是随机变量，所以总体上要对\(p(m\mid g)\)再做一次平均。}
+给定 \(g\) 后，\(m\) 仍然是随机变量，所以总体上要对 \(p(m\mid g)\) 再做一次平均。
 
-所以这里一定会出现：
+这里有两层平均：内层对 \(p(x\mid g,m)\)，外层对 \(p(m\mid g)\)。
 
-\begin{itemize}
-  \item 内层对 \(p(x\mid g,m)\)
-  \item 外层对 \(p(m\mid g)\)
-\end{itemize}
-
-\section{直接写成积分你就能看清楚}
+\section{直接写成积分}
 
 先看条件均值：
 
@@ -119,7 +113,4 @@ p(x\mid g)=\int p(x\mid g,m)p(m\mid g)\,dm
 \]
 所以
 
-\begin{itemize}
-  \item 里面的 \(\mathbb{E}[X\mid G,M]\) 才是对 \(p(x\mid g,m)\) 积分
-  \item 外面的 \(\mathbb{E}_{M\mid G}\) 是对 \(p(m\mid g)\) 积分
-\end{itemize}
+里面的 \(\mathbb{E}[X\mid G,M]\) 是对 \(p(x\mid g,m)\) 积分，外面的 \(\mathbb{E}_{M\mid G}\) 是对 \(p(m\mid g)\) 积分。

@@ -3,9 +3,9 @@
 % date: 2025/12/19
 % tag: ML
 % ---
-这是一个\textbf{集中不等式}，更准确地说，是 \textbf{McDiarmid 不等式（有界差分不等式）} 的形式。
+这是集中不等式，更准确地说，是 McDiarmid 不等式（有界差分不等式）的形式。
 
-你图里的式子是：
+要看的式子是：
 
 \[
 \mathbb{P}\bigl[f(\mathcal X)-\mathbb{E}[f(\mathcal X)]\ge \epsilon\bigr] \le \exp\!\left( -\frac{2\epsilon^2}{\sum_{i=1}^m c_i^2} \right)
@@ -13,9 +13,7 @@
 
 它表达的意思是：
 
-对于某个依赖于 \(m\) 个独立随机变量的函数 \(f(\mathcal X)\)，如果\textbf{每个变量单独改变时，对函数值的影响都不会太大}，那么
-
-\(f(\mathcal X)\) 偏离其均值 \(\mathbb E[f(\mathcal X)] \) 超过 \(\epsilon\) 的概率，会以\textbf{指数速度衰减}。
+对于某个依赖于 \(m\) 个独立随机变量的函数 \(f(\mathcal X)\)，如果每个变量单独改变时对函数值的影响都不太大，那么 \(f(\mathcal X)\) 偏离其均值 \(\mathbb E[f(\mathcal X)] \) 超过 \(\epsilon\) 的概率会以指数速度衰减。
 
 \hrule
 
@@ -27,7 +25,7 @@
 \mathbb P\bigl(f(\mathcal X)-\mathbb E[f(\mathcal X)]\ge \epsilon\bigr)
 \]
 
-的一个\textbf{上界估计}。
+的一个上界估计。
 
 也就是在估计：
 
@@ -41,7 +39,7 @@
 \exp\!\left(-\frac{2\epsilon^2}{\sum_{i=1}^m c_i^2}\right).
 \]
 
-所以这是一个\textbf{大偏差概率估计}、\textbf{集中性估计}。
+所以它是大偏差概率估计，也是集中性估计。
 
 \hrule
 
@@ -49,7 +47,7 @@
 
 设\(\mathcal X=(X_1,\dots,X_m)\)
 
-其中 \(X_1,\dots,X_m\) 相互独立，且函数 \(f\) 满足\textbf{有界差分条件}：
+其中 \(X_1,\dots,X_m\) 相互独立，且函数 \(f\) 满足有界差分条件：
 
 对于任意 \(i\)，如果只改变第 \(i\) 个变量，其他变量不变，那么函数值变化不超过 \(c_i\)，即
 
@@ -65,15 +63,7 @@
 
 \section{直观理解}
 
-这条不等式的核心思想是：
-
-\begin{itemize}
-  \item \(f\) 虽然可能很复杂；
-  \item 但只要它对每个输入变量都“不太敏感”；
-  \item 并且这些输入变量彼此独立；
-\end{itemize}
-
-那么 \(f(\mathcal X)\) 就会\textbf{高度集中在其期望附近}。
+\(f\) 可能很复杂，但只要它对每个输入变量都“不太敏感”，并且这些输入变量彼此独立，\(f(\mathcal X)\) 就会高度集中在其期望附近。
 
 也就是说，虽然 \(X_1,\dots,X_m\) 都是随机的，但 \(f(\mathcal X)\) 不会乱跑得太远。
 
@@ -83,19 +73,9 @@
 
 上界是\(\exp\!\left(-\frac{2\epsilon^2}{\sum_{i=1}^m c_i^2}\right).\)
 
-它说明：
+\(\epsilon\) 越大，概率越小；\(\sum c_i^2\) 越小，概率也越小。
 
-\begin{itemize}
-  \item \(\epsilon\) 越大，概率越小；
-  \item \(\sum c_i^2\) 越小，概率越小。
-\end{itemize}
-
-也就是说：
-
-\begin{itemize}
-  \item 如果你要求偏离均值很多，那么这种事件很罕见；
-  \item 如果每个变量对结果影响都很小，那么整体更稳定。
-\end{itemize}
+也就是说，要求偏离均值很多时，这种事件很罕见；每个变量对结果的影响都很小时，整体就更稳定。
 
 \hrule
 
@@ -107,7 +87,7 @@
 \mathbb P\bigl(|f(\mathcal X)-\mathbb E[f(\mathcal X)]|\ge \epsilon\bigr) \le 2\exp\!\left(-\frac{2\epsilon^2}{\sum_{i=1}^m c_i^2}\right).
 \]
 
-你图里的是\textbf{单边上尾}版本。
+开头给的是单边上尾版本。
 
 \hrule
 
@@ -121,7 +101,7 @@
 
 \hrule
 
-\section{你这条式子可以怎么表述}
+\section{在论文里怎么写}
 
 在论文或证明里，一般可以写成：
 
@@ -143,7 +123,7 @@
 
 \hrule
 
-\section{如果你问“概率论估计”具体怎么用}
+\section{实际怎么用}
 
 通常是这几步：
 

@@ -2,10 +2,10 @@
 % title: Krogh-Vedelsby 集成误差分解
 % date: 2026-06-21
 % tag: ML
-% excerpt: Krogh-Vedelsby 集成误差分解说明，集成模型的误差可以表示为单模型平均误差减去模型之间的差异性，因此好的集成不仅依赖单模型准确性，也依赖模型之间的有效分歧。
+% excerpt: Krogh-Vedelsby 分解：集成误差等于单模型平均误差减去模型之间的分歧。后面接着讨论它对多专家 AIGC 检测和 MLP fusion 的意义。
 % ---
 \definecolor{mdc1}{HTML}{D97757}
-Krogh-Vedelsby 集成误差分解，也称为 \verb|Ambiguity Decomposition|，用于解释集成学习中一个重要现象：集成模型的性能提升不仅来自\verb|单个模型本身的准确性|，也来自不同模型之间的\verb|互补分歧|。
+Krogh-Vedelsby 集成误差分解，也叫 \verb|Ambiguity Decomposition|。它解释的是集成学习里的一个现象：集成模型提升，一部分来自\verb|单个模型本身的准确性|，另一部分来自不同模型之间的\verb|互补分歧|。
 
 它的核心结论是：
 
@@ -19,7 +19,7 @@ E_{\text{ens}} = \bar{E} - \bar{A}
 集成误差 = 单模型平均误差 - 模型分歧项
 \]
 
-其中，\textbf{单模型平均误差越低越好，而模型之间的有效分歧越大，集成模型的误差就可能越低}。
+单模型平均误差越低越好；模型之间的有效分歧越大，集成误差也可能越低。
 
 \section{基本设定}
 
@@ -93,8 +93,7 @@ E_{\text{ens}} = \left(\bar{f}(x)-y\right)^2
 
 如果每个模型本身都很弱，那么 \(\bar{E}\) 会很大。即使模型之间存在分歧，集成模型也很难取得好的性能。
 
-因此，集成模型的第一个要求是：
-基模型本身需要具有一定准确性。
+所以第一个要求是基模型本身要有一定准确性。
 
 \subsection{模型分歧项}
 
@@ -116,10 +115,10 @@ f_i(x) \approx \bar{f}(x)
 
 如果不同模型的预测存在差异，并且这种差异不是纯噪声，而是来自不同模型对样本不同证据的捕捉，那么 \(\bar{A}\) 会变大，从而降低集成误差。
 
-因此，集成模型的第二个要求是：
+第二个要求是：
 
 \begin{center}
-\textbf{\textcolor{mdc1}{基模型之间需要具有有效的互补分歧。}}
+\textcolor{mdc1}{基模型之间需要具有有效的互补分歧。}
 \end{center}
 
 \section{直观理解}
@@ -201,14 +200,9 @@ Krogh-Vedelsby 分解说明：
 E_{\text{ens}} = \bar{E} - \bar{A}
 \]
 
-因此，集成提升来自两个方面：
+所以集成提升来自两处：降低单个模型的平均误差，以及利用模型之间的有效分歧。
 
-\begin{enumerate}
-  \item 降低单个模型的平均误差；
-  \item 利用模型之间的有效分歧。
-\end{enumerate}
-
-对于多专家 AIGC 检测而言，MLP fusion 的价值不只是平均多个专家的置信度，而是学习专家之间的结构化分歧模式。
+在多专家 AIGC 检测里，MLP fusion 学的是专家之间的结构化分歧模式；平均多个置信度只是基线。
 
 换句话说，MLP fusion 可以学习：
 
@@ -220,7 +214,7 @@ E_{\text{ens}} = \bar{E} - \bar{A}
   \item 多个专家严重分歧时如何决策。
 \end{itemize}
 
-因此，MLP fusion 可以被理解为一种利用 ambiguity 的融合方法。
+这样看，MLP fusion 就是一种利用 ambiguity 的融合方法。
 
 \section{Logit Fusion 与 Embedding Fusion}
 
@@ -261,19 +255,10 @@ E_{\text{ens}} = \bar{E} - \bar{A}
 \text{Logit + Embedding Fusion}
 \]
 
-\section{总结}
-
-Krogh-Vedelsby 集成误差分解的核心思想是：
+\section{回到分解式}
 
 \[
 \text{集成误差} = \text{单模型平均误差} - \text{模型分歧}
 \]
 
-因此，好的集成模型不是简单堆叠多个强模型，而是要同时满足：
-
-\begin{itemize}
-  \item 单个模型本身足够准确；
-  \item 不同模型之间具有有效互补分歧。
-\end{itemize}
-
-为提升分类性能，学习专家之间的结构化分歧，而不是仅仅平均专家置信度。
+好的集成要同时满足两条：单个模型本身足够准确，不同模型之间有有效的互补分歧。落到分类性能上，要学的是专家之间的结构化分歧，而不只是平均专家置信度。

@@ -2,20 +2,15 @@
 % title: Expectation Maximization Algorithm
 % date: 2026-05-28
 % tag: ML
-% excerpt: Recapped from [知乎专栏：EM算法]{https://zhuanlan.zhihu.com/p/484134651}
+% excerpt: EM 的推导：用 Jensen 不等式构造似然下界，E 步和 M 步交替抬高它，最后证明似然单调不降。
 % ---
 \section{簡述}
 
 在統計計算中，最大期望算法（Expectation Maximization Algorithm, EM）是一類用於在含有隱變量的機率模型中尋找參數最大概似估計（Maximum Likelihood Estimation, MLE）的算法。EM 算法常用於機器學習與計算機視覺中的數據聚類（Data Clustering）問題，尤其適合處理具有隱變量的混合模型。
 
-EM 算法交替執行兩個步驟：
+EM 算法交替執行兩個步驟。E-step（Expectation Step）在當前參數下計算隱變量的後驗分布，並構造觀測對數似然函數的下界；M-step（Maximization Step）最大化這個下界，得到新的參數估計。
 
-\begin{itemize}
-  \item \textbf{E-step（Expectation Step）}：在當前參數下，計算隱變量的後驗分布，並構造觀測對數似然函數的下界；
-  \item \textbf{M-step（Maximization Step）}：最大化該下界，得到新的參數估計。
-\end{itemize}
-
-M-step 中得到的新參數會被用於下一輪 E-step。這一過程不斷交替進行，使觀測數據的對數似然值單調不下降。
+M-step 得到的新參數用於下一輪 E-step。如此交替，觀測數據的對數似然值單調不下降。
 
 \section{算法過程}
 
@@ -398,19 +393,6 @@ EM 算法可以保證觀測數據的對數似然值單調不下降：
 
 收斂。
 
-需要注意的是，EM 算法通常只能保證收斂到局部最優點、鞍點或駐點，而不能保證收斂到全局最優解。EM 對初始化較為敏感，不同的初始參數可能會導致不同的收斂結果。
+EM 算法通常只能保證收斂到局部最優點、鞍點或駐點，不能保證收斂到全局最優解。它對初始化較為敏感，不同的初始參數可能會導致不同的收斂結果。
 
-\section{總結}
-
-EM 算法的核心可以概括為：
-
-\begin{enumerate}
-  \item 對含有隱變量的觀測對數似然函數直接最大化通常比較困難；
-  \item E-step 根據當前參數計算隱變量的後驗分布；
-  \item 利用 Jensen 不等式構造觀測對數似然函數的下界；
-  \item M-step 最大化該下界，得到新的參數；
-  \item 每次迭代都能保證觀測對數似然值單調不下降；
-  \item 在似然函數有上界時，似然值序列收斂。
-\end{enumerate}
-
-因此，EM 算法本質上是一種通過交替構造並最大化下界來求解含隱變量模型最大概似估計的方法。
+EM 算法本質上是一種通過交替構造並最大化下界，來求解含隱變量模型最大概似估計的方法。

@@ -2,27 +2,21 @@
 % title: Usual Command
 % date: 2026/3/27
 % tag: Notes
-% excerpt: Some whisper about Docker、Git and Latex...
+% excerpt: Docker、Git 和 LaTeX 的常用命令，按类别放在表里。危险的 Docker 命令单独标出来，Git 部分记了 force-with-lease 和 rebase -i 的习惯。
 % ---
 \section{Usual Command.}
 
-本文记录了 docker、git、latex 的一些常见使用方法。
+Docker、Git 和 LaTeX 的常用命令，按类别放在下面。
 
-三个类别的常用命令都整理好了，支持顶部 Tab 切换，也可以用搜索框快速筛选命令。
+表格里标为“危险”的命令会不可逆地删除数据，执行前先确认。
 
-几个重点补充说明：
-
-\textbf{Docker} 中标注 ⚠️ 危险的命令（如 \verb|docker system prune -a|、\verb|docker reset --hard|）会不可逆地删除数据，务必确认后再执行。
-
-\textbf{Git} 协作中最重要的习惯是：\verb|push --force-with-lease| 代替 \verb|push --force|，以及用 \verb|rebase -i| 整理提交再发 PR，保持提交历史整洁。
-
-\textbf{LaTeX} 推荐现代工具链：用 \verb|biblatex + biber| 管理文献（比旧的 \verb|bibtex| 更强），中文文档用 \verb|ctex| 包配合 \verb|XeLaTeX| 编译。
+Git 部分除了提交和分支操作，还记了 \verb|push --force-with-lease| 和 \verb|rebase -i| 的用法。LaTeX 部分用 \verb|biblatex + biber| 管理文献，中文文档用 \verb|ctex| 配合 \verb|XeLaTeX| 编译。
 
 \section{常用命令速查}
 
 \hrule
 
-\subsection{🐳 Docker 容器常用命令}
+\subsection{Docker 容器常用命令}
 
 \subsubsection{镜像管理}
 
@@ -114,14 +108,14 @@
 \verb|docker compose ps| & 查看 compose 服务状态 \\
 \verb|docker compose build| & 重新构建服务镜像 \\
 \verb|docker system df| & 查看磁盘使用情况 \\
-\verb|docker system prune -a| & ⚠️ 清理所有未使用资源 \\
+\verb|docker system prune -a| & 危险：清理所有未使用资源 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 \hrule
 
-\subsection{🔀 Git 协作常用命令}
+\subsection{Git 协作常用命令}
 
 \subsubsection{初始化与配置}
 
@@ -225,7 +219,7 @@
 \verb|git log -p file.txt| & 查看文件改动历史 \\
 \verb|git blame file.txt| & 查看每行最后修改人 \\
 \verb|git reset --soft HEAD~1| & 回退提交，保留暂存区 \\
-\verb|git reset --hard HEAD~1| & ⚠️ 回退提交，丢弃所有改动 \\
+\verb|git reset --hard HEAD~1| & 危险：回退提交，丢弃所有改动 \\
 \verb|git reflog| & 查看操作记录（救命日志） \\
 \verb|git tag v1.0.0| & 打轻量标签 \\
 \verb|git tag -a v1.0.0 -m 'msg'| & 打附注标签 \\
@@ -235,7 +229,7 @@
 
 \hrule
 
-\subsection{📄 LaTeX 常用命令}
+\subsection{LaTeX 常用命令}
 
 \subsubsection{文档结构}
 

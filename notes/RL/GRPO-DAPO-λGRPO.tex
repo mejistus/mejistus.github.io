@@ -3,7 +3,7 @@
 % date: 2026/1/3
 % tag: RL
 % ---
-This blog is a summary of GRPO, DAPO and λGRPO.
+GRPO, DAPO and λ-GRPO share the same policy-gradient core. The difference sits in the coefficient in front of the per-token sum.
 
 \section{GRPO}
 
@@ -23,84 +23,44 @@ This blog is a summary of GRPO, DAPO and λGRPO.
 \mathcal{J}_{\lambda-\mathit{GRP}O}(\theta) = \frac{1}{\sum_{i=1}^{G} |o_i|} \sum_{i=1}^{G} \cdot \textcolor{blue}{\mathbf{f}(o_i, \lambda)} \cdot \sum_{t=1}^{|o_i|} r_{i,t}(\theta) \widehat{A_{i,t}}
 \]
 
-\textbf{GRPO 不像传统 RLHF 那样额外训练“价值模型(value)”和“奖励模型(reward model)”，而是直接用一个规则验证器(verifier) 给答案判对/判错（或给分）来当训练信号。}
+GRPO 不像传统 RLHF 那样额外训练价值模型和奖励模型，而是直接用规则验证器（verifier）给答案判对错，或者给一个分数，用它当训练信号。
 
-\section{这些名词分别是什么}
+\section{Policy、reward model、value model 和 verifier}
 
-\textbf{Policy（策略/生成模型）}
+Policy 就是你的 LLM，本质是 \(\pi_\theta(y|x)\)：给定问题 \(x\)，生成回答 \(y\)。
 
-就是你的 LLM，本质是 \(\pi_\theta(y|x)\)：给定问题 \(x\)，生成回答\(y\)。
+Reward model 是单独训练的模型 \(R_\phi(x,y)\)，输入问题和回答，输出一个标量分数，近似人类偏好。经典 RLHF 里，人类做成对偏好数据（\(A\) 比 \(B\) 好），RM 学会打分。
 
-\textbf{**Reward Model（奖励模型 RM）}**
+Value model 估计从当前生成状态继续下去最终能拿到多大回报，记作 \(V_\psi(\text{state})\)。在语言生成里，\(state\) 可以理解为 prompt 加上已生成的前缀。它的主要作用是做基线（baseline）降低方差，用来算 advantage：\(A = R - V\)。
 
-一个单独训练的模型 \(R_\phi(x,y)\)，输入“问题+回答”，输出一个标量分数，近似“人类偏好/好坏”。
-
-\begin{itemize}
-  \item 在经典 RLHF 里，人类做成对偏好数据（\(A\) 比\(B\) 好），RM 学会打分。
-\end{itemize}
-
-\textbf{Value Model（价值模型/critic）}
-
-用来估计“从当前生成状态继续下去，最终能拿到多大回报”，记作 \(V_\psi(\text{state})\)。
-
-\begin{itemize}
-  \item 在语言生成里，\(state\) 可以理解为“\(prompt\) + 已生成前缀”。
-  \item 它的主要作用：\textbf{做基线(baseline)降低方差}，算 \(advantage\)：\(A = R - V\)
-\end{itemize}
-
-\textbf{Verifier（规则验证器）}
-
-不是学出来的偏好模型，而是“可程序化/可验证”的判分器。
-
-\begin{itemize}
-  \item 典型：数学题用答案是否正确、是否满足格式；代码题用单元测试是否通过；推理题用规则检查。
-  \item 输出通常是 0/1 或可解释的分数。
-\end{itemize}
+Verifier 不是学出来的偏好模型，而是可程序化、可验证的判分器。数学题看答案是否正确、格式是否满足；代码题跑单元测试；推理题用规则检查。输出通常是 0/1 或一个可解释的分数。
 
 \section{以往（PPO/RLHF）怎么做？}
 
 典型 RLHF + PPO 流程（简化版）：
 
 \begin{enumerate}
-  \item \textbf{采样}：用当前策略生成回答 \(y\)。
-  \item \textbf{打分}：用奖励模型 RM 得到 \(R_\phi(x,y)\)。
-  \item \textbf{价值估计}：价值模型给 \(V_\psi(x, y_{<t})\)。
-  \item \textbf{算优势}：\(A_t \approx R - V_t\)（可能还有 GAE 等）。
-  \item \textbf{PPO 更新}：用 \(clip\) 目标更新 \(policy\)，同时通常还会加 \textbf{KL 约束}，别偏离参考模型太远。
+  \item 采样：用当前策略生成回答 \(y\)。
+  \item 打分：用奖励模型 RM 得到 \(R_\phi(x,y)\)。
+  \item 价值估计：价值模型给 \(V_\psi(x, y_{<t})\)。
+  \item 算优势：\(A_t \approx R - V_t\)（可能还有 GAE 等）。
+  \item PPO 更新：用 clip 目标更新 policy，同时通常还会加 KL 约束，别偏离参考模型太远。
 \end{enumerate}
 
-问题是：
-
-\begin{itemize}
-  \item 你得训练/维护 \textbf{RM + Value} 两个额外模型（算力和工程复杂度都高）；
-  \item PPO 本身也比较敏感、容易不稳定。
-\end{itemize}
+代价是要训练和维护 RM 和 Value 两个额外模型，算力和工程复杂度都高；PPO 本身也比较敏感，容易不稳定。
 
 \section{GRPO 为什么说“去掉 value model 和 reward model”？}
 
-\textbf{去掉 Reward Model}：
+Reward model 这一边，GRPO 不用学出来的偏好打分器，而用规则 verifier 直接给 reward，例如答案对就 1、不对就 0。
 
-GRPO 不用“学出来的偏好打分器”，而用 \textbf{规则 verifier} 直接给 reward（例如“答案对=1，不对=0”）。
+Value model 这一边，GRPO 用组内相对比较当 baseline，替代 critic。对同一个问题 \(x\)，一次生成一组候选回答 \(\{y^{(1)},...,y^{(G)}\}\)，verifier 分别打分 \(\{r^{(i)}\}\)，再用组内均值和标准差构造相对优势：比同组平均好就是正优势，比平均差就是负优势。
 
-\textbf{去掉 Value Model}：
+\[
+\hat A^{(i)} = \frac{r^{(i)} - \text{mean}(r)}{\text{std}(r)+\epsilon}
+\]
 
-GRPO 用“\textbf{组内相对比较}”来当 \(baseline\)，替代 \(critic/value\)。做法是：
+这样就不需要训练 \(V_\psi\) 来做 baseline；baseline 直接来自同题同组的其他回答。
 
-\begin{itemize}
-  \item 对同一个问题 \(x\)，一次生成一组候选回答\( \{y^{(1)},...,y^{(G)}\}\)
-  \item verifier 分别打分 \(\{r^{(i)}\}\)
-  \item 用组内均值/标准差构造相对优势（直觉：比同组平均好就正优势，比平均差就负优势），例如：
-  
-  \[
-  \hat A^{(i)} = \frac{r^{(i)} - \text{mean}(r)}{\text{std}(r)+\epsilon}
-  \]
-\end{itemize}
+\section{和 PPO/RLHF 的差别}
 
-这样就不需要训练一个 \(V_\psi\) 来做 \(baseline\) 了——\(baseline\) 直接来自“同题同组的其他回答”。
-
-\section{一句话对比总结}
-
-\begin{itemize}
-  \item \textbf{PPO/RLHF}：人类偏好 → 训练 RM；再用 PPO + Value(critic) 稳定更新。
-  \item \textbf{GRPO}：同题采样多答案 → 用规则 verifier 直接给分；用组内相对分数当 advantage → \textbf{不训练 RM，也不训练 Value}。
-\end{itemize}
+PPO/RLHF 从人类偏好训练 RM，再用 PPO 和 value critic 稳定更新。GRPO 对同一问题采样多个答案，用规则 verifier 直接给分，用组内相对分数当 advantage。它不训练 RM，也不训练 value。
