@@ -1,10 +1,10 @@
 [
   {
-    "file": "Slides/Recent-Image-Compression-提纲.tex",
-    "title": "Recent Image Compression：演讲提纲",
-    "date": "2026-10-14",
+    "file": "Slides/Agent-的使用技巧.tex",
+    "title": "Agent 的使用技巧",
+    "date": "2026-10-22",
     "tag": "Slides",
-    "excerpt": "配合幻灯片 Recent Image Compression 的脱稿提纲。先记住一句主线和四字口诀“省、真、轻、机”，再按页记每页要讲的点和接下一页的过渡句；论文页的图是原论文的 pipeline，指着图从左往右讲；数字都在幻灯片上，不用背。附时间检查点、卡住时的办法和可能的提问。"
+    "excerpt": "一场约 17 分钟的分享，主旨是「你能验证多少，Agent 就能做多少」。从三个「看起来成功」的翻车现场切入——预处理被默认 resize 改写、参考文献被编造、评测脚本被改动——对应三个动作：外置领域规则（以 AIGC 图像检测中 VAE 重建须裁剪到 32 的整数倍、禁止 resize、底层伪影存 PNG 为例，把规则写进仓库并写成可执行检查）、落地原始材料（自行下载 PDF 至 Zotero，令 agent 只读本地、附文件名与页码、查不到就写 NOT FOUND）、显式验收（用任务单定义完成，并设人工闸门）；最后对照 Claude Code、Codex CLI、opencode 的落地手段，并给出低成本运行方案：opencode Go 订阅与开源模型、subagent 并行、vibe-fork 所需插件（mejistus/llm-for-zotero）。"
   },
   {
     "file": "Slides/Recent-Image-Compression.tex",
