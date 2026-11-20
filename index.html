@@ -1423,6 +1423,22 @@
         text-align: justify;
         hyphens: auto;
       }
+      /* A picture is not prose: the wrapper centres it, but an explicit
+         justify on the paragraph would pin it to the left margin. */
+      #blogPanelContent.blog-paper.hatex .latex-float p,
+      #blogPanelContent.blog-paper.hatex .latex-center p,
+      #blogPanelContent.blog-paper.hatex .latex-subfloat p,
+      #blogPanelContent.blog-paper.hatex .latex-minipage p,
+      #editorPreview.blog-paper.hatex .latex-float p,
+      #editorPreview.blog-paper.hatex .latex-center p,
+      #editorPreview.blog-paper.hatex .latex-subfloat p,
+      #editorPreview.blog-paper.hatex .latex-minipage p,
+      #paperView .paper-page .latex-float p,
+      #paperView .paper-page .latex-center p,
+      #paperView .paper-page .latex-subfloat p,
+      #paperView .paper-page .latex-minipage p {
+        text-align: center;
+      }
       #blogPanelContent.blog-paper.hatex h2,
       #editorPreview.blog-paper.hatex h2 {
         margin-top: 1.6em;
