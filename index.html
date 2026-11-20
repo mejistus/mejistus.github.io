@@ -1388,6 +1388,50 @@
         color: var(--ink);
       }
 
+      /* ── CVPR-style paper layout for LaTeX posts ──
+         HaTeX detects the injected \documentclass[twocolumn] and wraps the
+         body in .hatex-cols; its runtime splits that flow into two columns.
+         Below 50rem the runtime leaves it in one column, so phones stay
+         readable. The font is CVPR's Times (with Songti for Chinese), not
+         the site's Inter. */
+      .blog-paper {
+        font-family: "Times New Roman", "Nimbus Roman", "TeX Gyre Termes",
+          "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", serif;
+        line-height: 1.55;
+        padding: 0;
+      }
+      #blogPanelContent.blog-paper.hatex,
+      #editorPreview.blog-paper.hatex {
+        --hx-font-body: "Times New Roman", "Nimbus Roman", "TeX Gyre Termes",
+          "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", serif;
+        --hx-font-heading: var(--hx-font-body);
+        --hx-ink: var(--ink);
+        --hx-text: var(--ink);
+        --hx-muted: var(--muted);
+        --hx-accent: var(--rust);
+        --hx-accent-2: var(--sage);
+        --hx-border: var(--border);
+        --hx-code-bg: var(--sand);
+        --hx-surface: var(--surface);
+        --hx-paper: var(--paper);
+        max-width: 78rem;
+        margin: 0 auto;
+        line-height: 1.55;
+      }
+      #blogPanelContent.blog-paper.hatex p,
+      #editorPreview.blog-paper.hatex p {
+        text-align: justify;
+        hyphens: auto;
+      }
+      #blogPanelContent.blog-paper.hatex h2,
+      #editorPreview.blog-paper.hatex h2 {
+        margin-top: 1.6em;
+      }
+      /* A section whose only block is a table (or a single paragraph) should
+         not leave half the row blank: let the occupied column take the row. */
+      .blog-paper .hatex-cols-chunk:has(> .hatex-col:not(:has(*))) { display: block; }
+      .blog-paper .hatex-cols-chunk > .hatex-col:not(:has(*)) { display: none; }
+
       /* ── Slide decks (HaTeX, with its stylesheet) ── */
       .blog-deck-note {
         color: var(--muted);
@@ -3636,21 +3680,22 @@
         }
         /* Code backgrounds, boxes and coloured text print as they look. */
         html.print-post .blog-content,
-        html.print-post .blog-deck {
+        html.print-post .blog-deck,
+        html.print-post .blog-paper {
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
-        html.print-post .blog-content :is(h1, h2, h3, h4, figcaption) { break-after: avoid; }
+        html.print-post :is(.blog-content, .blog-paper) :is(h1, h2, h3, h4, figcaption) { break-after: avoid; }
         /* Only what fits on a page is kept whole: a table or code block
            taller than a page would leave a blank page and split anyway. */
-        html.print-post .blog-content :is(img, svg, .latex-tikz, .katex-display, .latex-float:not(:has(table, pre))) {
+        html.print-post :is(.blog-content, .blog-paper) :is(img, svg, .latex-tikz, .katex-display, .latex-float:not(:has(table, pre))) {
           break-inside: avoid;
         }
-        html.print-post .blog-content tr { break-inside: avoid; }
+        html.print-post :is(.blog-content, .blog-paper) tr { break-inside: avoid; }
         /* A scrolling box prints as one block: it cannot break across pages,
            and what it would scroll to is cut off. */
-        html.print-post .blog-content :is(pre, .latex-table-wrap, .latex-tikz) { overflow: visible !important; }
-        html.print-post .blog-content pre { white-space: pre-wrap; }
+        html.print-post :is(.blog-content, .blog-paper) :is(pre, .latex-table-wrap, .latex-tikz) { overflow: visible !important; }
+        html.print-post :is(.blog-content, .blog-paper) pre { white-space: pre-wrap; }
         /* Decks: the slide is the page (its size comes from preparePrint). */
         html.print-deck .blog-panel .panel-header { display: none !important; }
         html.print-deck .blog-deck,
@@ -4796,7 +4841,7 @@
         // paint of the next load.
         root.style.background = theme.swatch[0];
         root.style.colorScheme = theme.dark ? 'dark' : 'light';
-        document.querySelectorAll('.blog-deck-host').forEach(h => { h.dataset.theme = theme.dark ? 'dark' : 'light'; });
+        document.querySelectorAll('.blog-deck-host, .blog-paper').forEach(h => { h.dataset.theme = theme.dark ? 'dark' : 'light'; });
         const meta = document.getElementById('themeColorMeta');
         if (meta) meta.setAttribute('content', theme.swatch[0]);
         renderThemeMenu();
@@ -4964,6 +5009,8 @@
         }
         const stat = readingTime(b);
         if (stat && label) label.textContent += ` · ${stat.minutes} min read`;
+        // In paper mode HaTeX adds its own copy buttons and zoom handlers.
+        if (root.classList.contains('blog-paper')) return;
 
         root.querySelectorAll('pre').forEach(pre => {
           if (pre.querySelector('.code-copy')) return;
@@ -5159,8 +5206,17 @@
 
       // ── Parsed HTML cache ──
       const parsedHtmlCache = new Map();
+      // A blog post is a fragment, not a paper. The CVPR preamble gives HaTeX
+      // the class option it looks for, so the body is laid out as a CVPR
+      // two-column paper; \usepackage{cvpr} itself is ignored by HaTeX.
+      const PAPER_PREAMBLE = '\\documentclass[10pt,twocolumn,letterpaper]{article}\n\\usepackage{cvpr}\n';
+      const PAPER_OPTIONS = { tikzSvgBase: 'notes/tikz/', deckBar: false, zoom: true };
+      function paperSource(content) {
+        const src = content || '';
+        return /^\s*\\documentclass/m.test(src) ? src : PAPER_PREAMBLE + src;
+      }
       function renderPost(content) {
-        return HaTeX.parse(content || '');
+        return HaTeX.parse(paperSource(content), { titleBlock: false });
       }
 
       // ── Slide decks ──
@@ -5191,8 +5247,9 @@
       // on the box when the next post is an article. Synchronous once the
       // stylesheet is loaded, so the editor can keep its place.
       function renderDeck(box, src, options) {
-        box.classList.remove('blog-content');
+        box.classList.remove('blog-content', 'blog-paper', 'hatex');
         box.classList.add('blog-deck');
+        delete box.dataset.paperToken;
         const token = String(Math.random());
         box.dataset.deckToken = token;
         const draw = () => {
@@ -5218,8 +5275,32 @@
       }
       function leaveDeck(box) {
         box.classList.add('blog-content');
-        box.classList.remove('blog-deck');
+        box.classList.remove('blog-deck', 'blog-paper', 'hatex');
         delete box.dataset.deckToken;
+        delete box.dataset.paperToken;
+      }
+
+      // Renders an article as a CVPR paper: parse with the preamble, put the
+      // HTML in the box, then let HaTeX's runtime split the flow into columns
+      // and do its TikZ/box fitting. The stylesheet is shared with decks.
+      function paintPaper(box, html, options) {
+        box.classList.remove('blog-content', 'blog-deck', 'hatex');
+        box.classList.add('blog-paper');
+        delete box.dataset.deckToken;
+        box.innerHTML = html;
+        const token = String(Math.random());
+        box.dataset.paperToken = token;
+        const draw = () => {
+          if (box.dataset.paperToken !== token || !box.isConnected) return;
+          box.dataset.theme = document.documentElement.hasAttribute('data-dark') ? 'dark' : 'light';
+          box.classList.add('hatex');
+          HaTeX.enhance(box, Object.assign({}, PAPER_OPTIONS, options));
+        };
+        if (hatexCssReady) draw();
+        else loadHatexCss().then(draw, () => {});
+      }
+      function renderPaper(box, i, options) {
+        paintPaper(box, getParsedHtml(i), options);
       }
 
       // Bounded, most recently used last: a site with hundreds of posts should
@@ -5286,10 +5367,7 @@
         const content = document.getElementById("blogPanelContent");
         const deck = isDeck(b.content);
         if (deck) renderDeck(content, b.content);
-        else {
-          leaveDeck(content);
-          content.innerHTML = getParsedHtml(i);
-        }
+        else renderPaper(content, i);
         // Screen readers pick a voice from this; the page shell is English but
         // most posts are not.
         const text = (b.content || '').slice(0, 4000);
@@ -5297,8 +5375,7 @@
         content.lang = cjk > text.replace(/\s/g, '').length * 0.15 ? 'zh' : 'en';
         if (!deck) {
           applyStagedImages(content);
-          fitLatexBoxes(content);
-          loadTikzJax(content);
+          // HaTeX's runtime fits boxes and loads TikZ in paper mode.
         }
         buildToc();
         enhanceReading(content, b);
@@ -6476,11 +6553,8 @@
         const range = changedLineRange(lastCompiledSource, md);
         if (isDeck(md)) renderDeck(pv, md, { tikzErrors: true });
         else {
-          leaveDeck(pv);
-          pv.innerHTML = renderPost(md);
+          paintPaper(pv, renderPost(md), { tikzErrors: true });
           applyStagedImages(pv);
-          fitLatexBoxes(pv);
-          loadTikzJax(pv);
         }
         if (anchor) {
           restorePreviewAnchor(anchor);
