@@ -13,7 +13,7 @@ A local Claude Code status line. Three left-aligned rows:
  ▝▝   ▝▝    ▸ current task
 ```
 
-The crab is the official Clawd from Claude Code's startup screen (v2.1.327), colored `#D77757` with a black background inside the shell. It switches between two frames every second: the official pose and a blink with shifted legs.
+The crab is the official Clawd from Claude Code's startup screen (v2.1.327), colored `#D77757` with a black background inside the shell. It switches between two frames while a turn is active, then rests on the official pose when the turn ends.
 
 ## Install
 
@@ -43,13 +43,14 @@ The crab is the official Clawd from Claude Code's startup screen (v2.1.327), col
 - Git: `git symbolic-ref --short HEAD`, falling back to the short SHA; the dirty marker comes from `git status --porcelain`.
 - Token speed: reads the tail of `transcript_path`, takes the last unique assistant message, and divides `usage.output_tokens` by the time since the user prompt that started the turn.
 - Task: the latest user text in the transcript, truncated to the terminal width; falls back to `session_name` or `ready`.
+- Working: the last transcript event is a user or tool message, or the last assistant message still has `stop_reason` `tool_use` (or no terminal stop reason). The crab animates only while this is true.
 
 ## Customize
 
 - Frames live in `CRAB_FRAMES`; each frame is three strings. Keep each line 10 columns wide including padding.
-- Remove `refreshInterval` to stop the animation and update only on status line events.
+- The animation is driven by the transcript's working state; removing `refreshInterval` makes it event-driven instead of checking every second.
 - `TEXT_COL` controls where the text after the crab starts.
-- The status line is plain text. `refreshInterval` 1 is the fastest supported animation (1 fps).
+- The status line is plain text. While working, `refreshInterval` 1 is the fastest supported animation (1 fps); idle output stays on frame 0.
 
 ## Limits
 

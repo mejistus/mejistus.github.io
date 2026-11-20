@@ -120,10 +120,10 @@ def user_text(entry) -> str:
 
 
 def transcript_metrics(payload):
-    """Return (last_response_tokens_per_second, latest_user_prompt)."""
+    """Return (tokens/second, latest user prompt, working)."""
     path = payload.get("transcript_path")
     if not path or not os.path.isfile(path):
-        return None, ""
+        return None, "", False
     try:
         size = os.path.getsize(path)
         with open(path, "rb") as handle:
@@ -133,31 +133,51 @@ def transcript_metrics(payload):
         if lines and not chunk.startswith("{"):
             lines = lines[1:]
     except OSError:
-        return None, ""
+        return None, "", False
 
     assistants = []
     users = []
     latest_prompt = ""
+    last_role = None
+    last_stop_reason = None
     for line in lines:
         try:
             entry = json.loads(line)
         except json.JSONDecodeError:
             continue
-        moment = parse_time(entry.get("timestamp"))
-        if not moment:
-            continue
-        if entry.get("type") == "assistant":
+        entry_type = entry.get("type")
+        if entry_type == "assistant":
             message = entry.get("message") or {}
+            last_role = "assistant"
+            last_stop_reason = message.get("stop_reason")
             usage = message.get("usage") or {}
             output = usage.get("output_tokens")
             message_id = message.get("id")
-            if isinstance(output, (int, float)) and output > 0 and message_id:
+            moment = parse_time(entry.get("timestamp"))
+            if (
+                moment
+                and isinstance(output, (int, float))
+                and output > 0
+                and message_id
+            ):
                 assistants.append((moment, output, message_id))
-        elif entry.get("type") == "user":
-            users.append(moment)
-            text = user_text(entry)
-            if text:
-                latest_prompt = text
+        elif entry_type == "user":
+            last_role = "user"
+            last_stop_reason = None
+            moment = parse_time(entry.get("timestamp"))
+            if moment:
+                users.append(moment)
+                text = user_text(entry)
+                if text:
+                    latest_prompt = text
+
+    # A turn is active while a user/tool message is the last event, or while
+    # the last assistant message is still calling tools or streaming.
+    working = last_role == "user" or (
+        last_role == "assistant"
+        and last_stop_reason
+        not in ("end_turn", "stop_sequence", "max_tokens")
+    )
 
     speed = None
     if assistants:
@@ -178,7 +198,7 @@ def transcript_metrics(payload):
             elapsed = api_ms / 1000.0
         if elapsed > 0.2:
             speed = last_output / elapsed
-    return speed, latest_prompt
+    return speed, latest_prompt, working
 
 
 def truncate(text: str, limit: int) -> str:
@@ -203,7 +223,7 @@ def main():
     home = os.path.expanduser("~")
     directory = "~" if cwd == home else (os.path.basename(cwd.rstrip("/")) or "/")
 
-    speed, latest_prompt = transcript_metrics(payload)
+    speed, latest_prompt, working = transcript_metrics(payload)
     speed_text = (
         f"{YELLOW}⚡ {speed:.1f} tok/s{RESET}"
         if speed is not None
@@ -221,7 +241,11 @@ def main():
     task = truncate(task, max(24, columns - TEXT_COL - 2))
 
     git = git_segment(cwd)
-    frame = CRAB_FRAMES[int(time.time()) % len(CRAB_FRAMES)]
+    frame = (
+        CRAB_FRAMES[int(time.time()) % len(CRAB_FRAMES)]
+        if working
+        else CRAB_FRAMES[0]
+    )
     art = [
         f"{line}{' ' * max(0, CRAB_WIDTH - visible_len(line))}"
         for line in frame
