@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Claude Code Skills</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f6f4ef;
+    --fg: #211f1b;
+    --muted: #6d675d;
+    --card: #fffdf9;
+    --line: #ded8cc;
+    --accent: #a94f2c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #171614;
+      --fg: #eeeae2;
+      --muted: #a8a196;
+      --card: #201e1b;
+      --line: #3a352e;
+      --accent: #e2926c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  main { max-width: 1040px; margin: 0 auto; padding: 48px 24px 72px; }
+  header a, .links a, .single a { color: var(--accent); text-decoration: none; }
+  header a { font-size: 14px; }
+  h1 { font-size: clamp(30px, 5vw, 44px); margin: 18px 0 8px; letter-spacing: -0.02em; }
+  .lede { color: var(--muted); max-width: 64ch; margin: 0 0 30px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+  article { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+  article h2 { font: 600 15px/1.3 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0 0 6px; overflow-wrap: anywhere; }
+  article p { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+  .links a { font-size: 13px; margin-right: 14px; }
+  .single { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 24px; }
+  .single h2 { font-size: 20px; margin: 0 0 12px; }
+  .single ul { margin: 0; padding-left: 20px; }
+  .single li { margin-bottom: 6px; }
+  .single span { color: var(--muted); font-size: 13px; margin-left: 6px; }
+  footer { color: var(--muted); font-size: 13px; margin-top: 40px; max-width: 70ch; }
+</style>
+</head>
+<body>
+<main>
+  <header><a href="../">← Home</a></header>
+  <h1>Claude Code Skills</h1>
+  <p class="lede">26 skills installed in Claude Code, mirrored here as folders. Each folder contains a <code>SKILL.md</code> plus any scripts, references, and assets the skill needs.</p>
+  <div class="grid">
+      <article>
+        <h2>aeon</h2>
+        <p title="This skill should be used for time series machine learning tasks including classification, regression, clustering, forecasting, anomaly detection, segmentation, and similarity search. Use when working with temporal data, sequential patterns, or time-indexed observations requiring specialized algorithms beyond standard ML approaches. Particularly suited for univariate and multivariate time series analysis with scikit-learn compatible APIs.">This skill should be used for time series machine learning tasks including classification, regression, clustering, forecasting, anomaly detection, segmentation, and similarity search. Use when working with temporal data, sequential patterns, or time-indexed observations requiring specialized algo…</p>
+        <div class="links">
+          <a href="./aeon/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/aeon">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>avoid-ai-writing</h2>
+        <p title="Audit and rewrite content to remove AI writing patterns (\&quot;AI-isms\&quot;). Use this skill when asked to \&quot;remove AI-isms,\&quot; \&quot;clean up AI writing,\&quot; \&quot;edit writing for AI patterns,\&quot; \&quot;audit writing for AI tells,\&quot; or \&quot;make this sound less like AI.\&quot; Covers vocabulary, formatting, rhythm, and the structural rhetorical tics that survive vocabulary cleanup (named-abstraction authority, superlative anointing, not-just escalation, forced symmetry, verdict-closer density, paragraph-shape uniformity, unification claims, bold lead-in paragraphs, negated chains, wholeness verdicts, stranded auxiliary contrast, participle sentence tails, repeated sentence openers). Handles long internal documents — memos, proposals, PRDs, design docs — where the writing is dense with real specifics and still reads as machine-written. Supports a detect-only mode, an edit-in-place mode for files, an optional voice profile (casual / professional / technical / warm / blunt), and an iterate-to-convergence pass.">Audit and rewrite content to remove AI writing patterns (\&quot;AI-isms\&quot;). Use this skill when asked to \&quot;remove AI-isms,\&quot; \&quot;clean up AI writing,\&quot; \&quot;edit writing for AI patterns,\&quot; \&quot;audit writing for AI tells,\&quot; or \&quot;make this sound less like AI.\&quot; Covers vocabulary, formatting, rhythm, and the st…</p>
+        <div class="links">
+          <a href="./avoid-ai-writing/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/avoid-ai-writing">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>bgpt-paper-search</h2>
+        <p title="Searches BGPT scientific papers by topic or DOI and retrieves claim-level evidence extracted from full text, including experiments, reported statistics, scope, limitations, and provenance. Use for literature reviews, evidence synthesis, and finding experimental details beyond abstracts.">Searches BGPT scientific papers by topic or DOI and retrieves claim-level evidence extracted from full text, including experiments, reported statistics, scope, limitations, and provenance. Use for literature reviews, evidence synthesis, and finding experimental details beyond abstracts.</p>
+        <div class="links">
+          <a href="./bgpt-paper-search/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/bgpt-paper-search">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>clear-prose</h2>
+        <p title="Sentence-level clarity pass for prose that&#x27;s grammatical and specific but still hard to follow. Use when a draft makes the reader work to find who did what, when asked to &#x27;make this clearer&#x27;, &#x27;this is confusing&#x27;, &#x27;I can&#x27;t tell what this is saying&#x27;, &#x27;this is hard to follow&#x27;, or &#x27;say it plainly&#x27;, and on drafted status updates, PR descriptions, incident write-ups, and technical reports, where these faults are most common. Finds hidden actors and actions, invented names for ordinary things, and points buried behind their evidence. Runs inside writing-pipeline, after the cold-reader audit and before the AI-ism pass.">Sentence-level clarity pass for prose that&#x27;s grammatical and specific but still hard to follow. Use when a draft makes the reader work to find who did what, when asked to &#x27;make this clearer&#x27;, &#x27;this is confusing&#x27;, &#x27;I can&#x27;t tell what this is saying&#x27;, &#x27;this is hard to follow&#x27;, or &#x27;say it plainly&#x27;, a…</p>
+        <div class="links">
+          <a href="./clear-prose/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/clear-prose">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>cold-reader-docs</h2>
+        <p title="Write documents derived from a conversation so they stand alone for readers who were not part of that conversation. Use this skill whenever the user asks for a doc, memo, writeup, PRD, spec, announcement, email, or summary after discussing the topic in chat — any phrasing like &quot;write this up&quot;, &quot;turn this into a doc&quot;, &quot;draft a memo on this&quot;, or &quot;put this in a document&quot; after a back-and-forth about an idea. Trigger even when the user doesn&#x27;t mention audience: the default audience for any document is people who were not in the conversation.">Write documents derived from a conversation so they stand alone for readers who were not part of that conversation. Use this skill whenever the user asks for a doc, memo, writeup, PRD, spec, announcement, email, or summary after discussing the topic in chat — any phrasing like &quot;write this up&quot;, &quot;t…</p>
+        <div class="links">
+          <a href="./cold-reader-docs/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/cold-reader-docs">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>concise</h2>
+        <p title="Cuts a draft down to what its reader needs. Use when a reply, email, Slack message, GitHub issue, PR description, status update, or memo runs longer than the request it answers, and when asked to &#x27;make this shorter&#x27;, &#x27;cut this down&#x27;, &#x27;this is too long&#x27;, &#x27;trim this&#x27;, or &#x27;get to the point&#x27;. Removes whole sentences and sections the reader didn&#x27;t need: restated requests, background they already have, the writer&#x27;s process, rejected alternatives, verification detail, speculation, and summaries. Runs first in writing-pipeline, and sets the length the later passes must not inflate.">Cuts a draft down to what its reader needs. Use when a reply, email, Slack message, GitHub issue, PR description, status update, or memo runs longer than the request it answers, and when asked to &#x27;make this shorter&#x27;, &#x27;cut this down&#x27;, &#x27;this is too long&#x27;, &#x27;trim this&#x27;, or &#x27;get to the point&#x27;. Removes…</p>
+        <div class="links">
+          <a href="./concise/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/concise">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>dask</h2>
+        <p title="Scales pandas, NumPy, and custom Python research workflows beyond memory or across clusters with Dask. Covers DataFrames, Arrays, Bags, Futures, chunking, schedulers, and distributed diagnostics. Use for partitioned file processing, scientific array computation, or parallel tasks whose memory and dependency structure require Dask.">Scales pandas, NumPy, and custom Python research workflows beyond memory or across clusters with Dask. Covers DataFrames, Arrays, Bags, Futures, chunking, schedulers, and distributed diagnostics. Use for partitioned file processing, scientific array computation, or parallel tasks whose memory and…</p>
+        <div class="links">
+          <a href="./dask/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/dask">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>exploratory-data-analysis</h2>
+        <p title="Performs bounded, local exploratory analysis of explicitly supported scientific files. Supports redacted CSV/TSV/JSON profiles; optional NumPy, HDF5, FASTA/FASTQ, and basic image metadata inspection; missingness/leakage audits; outlier and transformation sensitivity; and rigorous EDA report scaffolds. Other domain formats are reference-only and unknown formats fail closed.">Performs bounded, local exploratory analysis of explicitly supported scientific files. Supports redacted CSV/TSV/JSON profiles; optional NumPy, HDF5, FASTA/FASTQ, and basic image metadata inspection; missingness/leakage audits; outlier and transformation sensitivity; and rigorous EDA report scaff…</p>
+        <div class="links">
+          <a href="./exploratory-data-analysis/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/exploratory-data-analysis">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>hypothesis-generation</h2>
+        <p title="Formulates evidence-bounded scientific questions, candidate hypotheses, rival explanations, causal or associational claims, discriminating predictions, measurements, and preregistration-ready analysis plans. Used when turning observations or preliminary findings into transparent, testable research plans without treating hypotheses as facts.">Formulates evidence-bounded scientific questions, candidate hypotheses, rival explanations, causal or associational claims, discriminating predictions, measurements, and preregistration-ready analysis plans. Used when turning observations or preliminary findings into transparent, testable researc…</p>
+        <div class="links">
+          <a href="./hypothesis-generation/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/hypothesis-generation">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>matplotlib</h2>
+        <p title="Creates and customizes scientific plots with Matplotlib. Used for fine-grained control over plot elements, novel plot types, and scientific workflows. Export to PNG/PDF/SVG for publication. For quick statistical plots use seaborn; for interactive plots use plotly; for publication-ready multi-panel figures with journal styling, use scientific-visualization.">Creates and customizes scientific plots with Matplotlib. Used for fine-grained control over plot elements, novel plot types, and scientific workflows. Export to PNG/PDF/SVG for publication. For quick statistical plots use seaborn; for interactive plots use plotly; for publication-ready multi-pane…</p>
+        <div class="links">
+          <a href="./matplotlib/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/matplotlib">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>networkx</h2>
+        <p title="Creates, analyzes, and visualizes complex networks and graphs in Python with NetworkX. Use when working with network/graph data structures, computing graph algorithms (shortest paths, centrality, clustering), detecting communities, generating synthetic networks (random, scale-free, small-world), reading/writing graph file formats, or drawing network topologies. Common applications include social, biological, transportation, and citation networks.">Creates, analyzes, and visualizes complex networks and graphs in Python with NetworkX. Use when working with network/graph data structures, computing graph algorithms (shortest paths, centrality, clustering), detecting communities, generating synthetic networks (random, scale-free, small-world),…</p>
+        <div class="links">
+          <a href="./networkx/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/networkx">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>peer-review</h2>
+        <p title="Prepares evidence-bounded, constructive peer-review drafts and structured manuscript assessments. Supports authorized review of scientific manuscripts, protocols, preprints, or research proposals; reporting-guideline selection; claim–evidence checks; methods, statistics, reproducibility, ethics, figure/table, and citation critique; or revision-response planning.">Prepares evidence-bounded, constructive peer-review drafts and structured manuscript assessments. Supports authorized review of scientific manuscripts, protocols, preprints, or research proposals; reporting-guideline selection; claim–evidence checks; methods, statistics, reproducibility, ethics,…</p>
+        <div class="links">
+          <a href="./peer-review/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/peer-review">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>polars</h2>
+        <p title="High-performance DataFrame library for Python ETL, analytics, and pandas migration. It supports expression-based data manipulation with lazy query optimization, parallel execution, streaming out-of-core processing, Arrow interoperability, and optional GPU execution.">High-performance DataFrame library for Python ETL, analytics, and pandas migration. It supports expression-based data manipulation with lazy query optimization, parallel execution, streaming out-of-core processing, Arrow interoperability, and optional GPU execution.</p>
+        <div class="links">
+          <a href="./polars/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/polars">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>research-lookup</h2>
+        <p title="Compiles current scholarly evidence for a scientific manuscript or research brief when the user explicitly asks to gather literature, references, background evidence, competing findings, or a manuscript research packet. Uses Parallel Search by default, Parallel Extract for source retrieval, Parallel Research for explicitly deep/exhaustive work, optional explicit Parallel Chat, and optional Perplexity only when requested or allowed as a failure fallback.">Compiles current scholarly evidence for a scientific manuscript or research brief when the user explicitly asks to gather literature, references, background evidence, competing findings, or a manuscript research packet. Uses Parallel Search by default, Parallel Extract for source retrieval, Paral…</p>
+        <div class="links">
+          <a href="./research-lookup/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/research-lookup">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>scholar-evaluation</h2>
+        <p title="Provides qualitative-first, evidence-traceable developmental review of scholarly works and audit low-stakes research-assessment rubrics with optional local quality controls. Never use for ranking people or consequential decisions.">Provides qualitative-first, evidence-traceable developmental review of scholarly works and audit low-stakes research-assessment rubrics with optional local quality controls. Never use for ranking people or consequential decisions.</p>
+        <div class="links">
+          <a href="./scholar-evaluation/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/scholar-evaluation">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>scientific-brainstorming</h2>
+        <p title="Facilitates evidence-aware scientific ideation with independent generation, structured discussion, explicit assumptions, transparent evaluation, adversarial review, and decision logs. Use for early-stage research brainstorming or prioritizing candidate directions; hand off empirical validation, study design, ethics or regulatory review, and clinical questions to appropriate experts or skills.">Facilitates evidence-aware scientific ideation with independent generation, structured discussion, explicit assumptions, transparent evaluation, adversarial review, and decision logs. Use for early-stage research brainstorming or prioritizing candidate directions; hand off empirical validation, s…</p>
+        <div class="links">
+          <a href="./scientific-brainstorming/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/scientific-brainstorming">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>scientific-critical-thinking</h2>
+        <p title="Evaluates scientific claims and evidence quality. Applies to experimental design validity, biases and confounders, statistical interpretation, evidence grading frameworks (GRADE, Cochrane Risk of Bias), and teaching critical analysis. Supports evidence appraisal and identifying flaws; formal peer review writing belongs to peer-review.">Evaluates scientific claims and evidence quality. Applies to experimental design validity, biases and confounders, statistical interpretation, evidence grading frameworks (GRADE, Cochrane Risk of Bias), and teaching critical analysis. Supports evidence appraisal and identifying flaws; formal peer…</p>
+        <div class="links">
+          <a href="./scientific-critical-thinking/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/scientific-critical-thinking">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>scientific-visualization</h2>
+        <p title="Creates and audits truthful, accessible, publication-ready scientific figures with Matplotlib, Seaborn, or Plotly. Use it for figure design, multi-panel layouts, uncertainty and missing-data displays, color/contrast review, image metadata validation, and journal export planning.">Creates and audits truthful, accessible, publication-ready scientific figures with Matplotlib, Seaborn, or Plotly. Use it for figure design, multi-panel layouts, uncertainty and missing-data displays, color/contrast review, image metadata validation, and journal export planning.</p>
+        <div class="links">
+          <a href="./scientific-visualization/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/scientific-visualization">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>seaborn</h2>
+        <p title="Creates Seaborn statistical visualizations with pandas integration for distributions, relationships, categorical comparisons, regression displays, pair plots, and heatmaps. Supports function and objects interfaces with explicit aggregation, uncertainty, and missing-data handling. Best suited to static exploratory plots; plotly covers interactive figures and scientific-visualization covers publication styling.">Creates Seaborn statistical visualizations with pandas integration for distributions, relationships, categorical comparisons, regression displays, pair plots, and heatmaps. Supports function and objects interfaces with explicit aggregation, uncertainty, and missing-data handling. Best suited to s…</p>
+        <div class="links">
+          <a href="./seaborn/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/seaborn">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>statistical-analysis</h2>
+        <p title="Guided statistical analysis for research data - test selection, assumption checking, effect sizes, power analysis, Bayesian alternatives, and APA-formatted reporting. Use whenever a user wants to compare groups, test a hypothesis, analyze experimental or survey data, check statistical assumptions, compute required sample sizes, or write up results - even if they never name a specific test. Covers t-tests, ANOVA, chi-square, correlation, regression, non-parametric and Bayesian methods. For low-level model APIs, see the statsmodels and pymc skills.">Guided statistical analysis for research data - test selection, assumption checking, effect sizes, power analysis, Bayesian alternatives, and APA-formatted reporting. Use whenever a user wants to compare groups, test a hypothesis, analyze experimental or survey data, check statistical assumptions…</p>
+        <div class="links">
+          <a href="./statistical-analysis/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/statistical-analysis">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>statusline-crab</h2>
+        <p title="Install, customize, or troubleshoot the Claude Code status line. It renders an animated official Clawd crab, the current directory and git branch, the last response&#x27;s token speed, and the current task. Use when the user mentions the status line, the crab, tok/s, or asks to change, fix, or remove the status line.">Install, customize, or troubleshoot the Claude Code status line. It renders an animated official Clawd crab, the current directory and git branch, the last response&#x27;s token speed, and the current task. Use when the user mentions the status line, the crab, tok/s, or asks to change, fix, or remove…</p>
+        <div class="links">
+          <a href="./statusline-crab/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/statusline-crab">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>timesfm-forecasting</h2>
+        <p title="Performs zero-shot time-series forecasting with Google&#x27;s TimesFM, including regular-grid CSV preparation, quantile forecasts, XReg covariates, and held-out evaluation. Uses the Apache-licensed TimesFM 2.5 checkpoint by default and documents the distinct TimesFM 3.0 multivariate API and weight-license requirements.">Performs zero-shot time-series forecasting with Google&#x27;s TimesFM, including regular-grid CSV preparation, quantile forecasts, XReg covariates, and held-out evaluation. Uses the Apache-licensed TimesFM 2.5 checkpoint by default and documents the distinct TimesFM 3.0 multivariate API and weight-lic…</p>
+        <div class="links">
+          <a href="./timesfm-forecasting/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/timesfm-forecasting">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>unslop</h2>
+        <p title="Turns vibecoded, AI-looking UI into a designed interface with its own character. Finds a direction from the product itself, then fixes spacing, color, icons, copy, type, layout, details, visuals and motion in that order, and can generate a real hero visual with an image tool when one is available. Use when the user asks to unslop, polish, clean up or redesign a screen so it stops looking AI-generated, or when a UI shows the usual tells like purple gradients, glows, gradient text, emoji labels, &quot;New ✨&quot; badges, glossy blobs, uppercase tracked labels, pulsing elements or uneven spacing. Works on React, Tailwind, HTML and CSS, for dashboards, apps and landing pages.">Turns vibecoded, AI-looking UI into a designed interface with its own character. Finds a direction from the product itself, then fixes spacing, color, icons, copy, type, layout, details, visuals and motion in that order, and can generate a real hero visual with an image tool when one is available…</p>
+        <div class="links">
+          <a href="./unslop/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/unslop">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>vaex</h2>
+        <p title="Processes large tabular scientific datasets with Vaex expressions, filtered views, streamed statistics, binned visualizations, and file conversion. Use for larger-than-RAM HDF5, Arrow, CSV, or Parquet analysis, virtual feature engineering, or Vaex ML preprocessing; distinguishes these operations from estimators and conversions that materialize data.">Processes large tabular scientific datasets with Vaex expressions, filtered views, streamed statistics, binned visualizations, and file conversion. Use for larger-than-RAM HDF5, Arrow, CSV, or Parquet analysis, virtual feature engineering, or Vaex ML preprocessing; distinguishes these operations…</p>
+        <div class="links">
+          <a href="./vaex/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/vaex">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>writing-pipeline</h2>
+        <p title="The checking sequence to run after drafting any document. Use this after writing or substantially revising a memo, blog post, PRD, spec, email, Slack message, GitHub issue, report, README, announcement, or any other prose deliverable, wherever it&#x27;s written (a file, a document or notes tool, a published page, a message draft), and whenever asked to &#x27;check this document&#x27;, &#x27;run the writing checks&#x27;, &#x27;is this ready to send&#x27;, or &#x27;clean this up before I publish&#x27;. Orders the length cut, the cold-reader audit, the clarity pass, and the AI-ism pass, says which runs first and why, and defines what counts as done.">The checking sequence to run after drafting any document. Use this after writing or substantially revising a memo, blog post, PRD, spec, email, Slack message, GitHub issue, report, README, announcement, or any other prose deliverable, wherever it&#x27;s written (a file, a document or notes tool, a pub…</p>
+        <div class="links">
+          <a href="./writing-pipeline/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/writing-pipeline">Folder</a>
+        </div>
+      </article>
+      <article>
+        <h2>zarr-python</h2>
+        <p title="Stores and queries chunked N-D scientific arrays with Zarr-Python 3, including codecs, sharding, S3/GCS storage, and NumPy/Dask/Xarray integration. Use for array layout, bounded I/O, format migration, or scientific metadata preservation.">Stores and queries chunked N-D scientific arrays with Zarr-Python 3, including codecs, sharding, S3/GCS storage, and NumPy/Dask/Xarray integration. Use for array layout, bounded I/O, format migration, or scientific metadata preservation.</p>
+        <div class="links">
+          <a href="./zarr-python/SKILL.md">SKILL.md</a>
+          <a href="https://github.com/mejistus/mejistus.github.io/tree/main/skills/zarr-python">Folder</a>
+        </div>
+      </article>
+  </div>
+  <section class="single">
+    <h2>Single-file skills and downloads</h2>
+    <ul>
+      <li><a href="./visual-html.md">visual-html.md</a> <span>Single-file skill</span></li>
+      <li><a href="./collect-aigi-images.skill">collect-aigi-images.skill</a> <span>Packaged skill</span></li>
+      <li><a href="./paper-ppt-skill.skill">paper-ppt-skill.skill</a> <span>Packaged skill</span></li>
+      <li><a href="./statusline-crab.md">statusline-crab.md</a> <span>Single-file skill</span></li>
+      <li><a href="./statusline-crab.skill">statusline-crab.skill</a> <span>Packaged skill</span></li>
+    </ul>
+  </section>
+  <footer>Third-party skills remain subject to their own licenses. The folder mirror is provided for reference and reuse; check each skill's source before redistributing.</footer>
+</main>
+</body>
+</html>
